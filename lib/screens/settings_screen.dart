@@ -1,0 +1,248 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/app_state.dart';
+import '../providers/history_manager.dart';
+import '../models/poetry_card.dart';
+import '../widgets/settings_card_widget.dart';
+import '../widgets/user_info_card_widget.dart';
+
+class SettingsScreen extends StatelessWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('设置')),
+      body: ListView(
+        children: [
+          const UserInfoCardWidget(),
+          const SizedBox(height: 16),
+          _UsageSection(),
+          const SizedBox(height: 16),
+          _PreferencesSection(),
+          const SizedBox(height: 16),
+          _DataSection(),
+          const SizedBox(height: 16),
+          _AboutSection(),
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+}
+
+class _UsageSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        return SettingsCardWidget(
+          title: '使用情况',
+          children: [
+            SettingItemWidget(
+              icon: Icons.today,
+              title: '今日使用',
+              subtitle: '${appState.dailyUsage}/${appState.dailyLimit} 次',
+              trailing: SizedBox(
+                width: 100,
+                child: LinearProgressIndicator(
+                  value: appState.dailyUsage / appState.dailyLimit,
+                  backgroundColor: Colors.grey.shade200,
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    appState.remainingUsage > 0
+                        ? Theme.of(context).primaryColor
+                        : Colors.red,
+                  ),
+                ),
+              ),
+            ),
+            SettingItemWidget(
+              icon: Icons.refresh,
+              title: '重置时间',
+              subtitle: '每日 00:00 自动重置',
+            ),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _PreferencesSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<AppState>(
+      builder: (context, appState, child) {
+        return SettingsCardWidget(
+          title: '偏好设置',
+          children: [
+            SettingItemWidget(
+              icon: Icons.style,
+              title: '默认文案风格',
+              subtitle: appState.getStyleDisplayName(appState.selectedStyle),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _showStyleSelector(context, appState),
+            ),
+            SettingItemWidget(
+              icon: Icons.qr_code,
+              title: '显示二维码',
+              subtitle: '在卡片上显示二维码',
+              trailing: Switch(
+                value: appState.showQrCode,
+                onChanged: (value) {
+                  appState.setShowQrCode(value);
+                },
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showStyleSelector(BuildContext context, AppState appState) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('选择默认风格', style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 16),
+            ...PoetryStyle.values.map((style) {
+              return ListTile(
+                title: Text(appState.getStyleDisplayName(style)),
+                subtitle: Text(appState.getStyleDescription(style)),
+                leading: Radio<PoetryStyle>(
+                  value: style,
+                  groupValue: appState.selectedStyle,
+                  onChanged: (value) {
+                    if (value != null) {
+                      appState.setSelectedStyle(value);
+                    }
+                    Navigator.pop(context);
+                  },
+                ),
+                onTap: () {
+                  appState.setSelectedStyle(style);
+                  Navigator.pop(context);
+                },
+              );
+            }).toList(),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _DataSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<HistoryManager>(
+      builder: (context, historyManager, child) {
+        return SettingsCardWidget(
+          title: '数据管理',
+          children: [
+            SettingItemWidget(
+              icon: Icons.history,
+              title: '历史记录',
+              subtitle: '共 ${historyManager.totalCount} 张卡片',
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.pushNamed(context, '/history');
+              },
+            ),
+            SettingItemWidget(
+              icon: Icons.download,
+              title: '导出数据',
+              subtitle: '导出所有卡片数据',
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                ScaffoldMessenger.of(
+                  context,
+                ).showSnackBar(const SnackBar(content: Text('导出功能开发中...')));
+              },
+            ),
+            SettingItemWidget(
+              icon: Icons.delete_forever,
+              title: '清空历史',
+              subtitle: '删除所有历史记录',
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _showClearHistoryDialog(context, historyManager),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showClearHistoryDialog(
+    BuildContext context,
+    HistoryManager historyManager,
+  ) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('清空历史记录'),
+        content: const Text('确定要清空所有历史记录吗？此操作不可撤销。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              historyManager.clearHistory();
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('历史记录已清空')));
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('清空'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _AboutSection extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return SettingsCardWidget(
+      title: '关于',
+      children: [
+        SettingItemWidget(icon: Icons.info, title: '版本信息', subtitle: 'v1.0.0'),
+        SettingItemWidget(
+          icon: Icons.feedback,
+          title: '意见反馈',
+          subtitle: '告诉我们你的想法',
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('反馈功能开发中...')));
+          },
+        ),
+        SettingItemWidget(
+          icon: Icons.privacy_tip,
+          title: '隐私政策',
+          subtitle: '了解我们如何保护你的隐私',
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () {
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(const SnackBar(content: Text('隐私政策页面开发中...')));
+          },
+        ),
+      ],
+    );
+  }
+}

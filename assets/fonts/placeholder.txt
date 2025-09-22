@@ -1,0 +1,30 @@
+# 字体资源目录
+
+这里存放应用的自定义字体文件。
+
+## 建议添加的字体：
+
+1. **PoetryFont-Regular.ttf** - 常规字体
+2. **PoetryFont-Bold.ttf** - 粗体字体
+
+## 字体使用说明：
+
+在 pubspec.yaml 中已配置了 PoetryFont 字体族，可以直接使用：
+
+```dart
+Text(
+  '诗意文字',
+  style: TextStyle(
+    fontFamily: 'PoetryFont',
+    fontWeight: FontWeight.w400, // 常规
+    // 或
+    fontWeight: FontWeight.w700, // 粗体
+  ),
+)
+```
+
+## 字体来源建议：
+
+- 可以使用开源字体如思源黑体、思源宋体
+- 或购买商业字体授权
+- 确保字体文件有合法的使用授权
