@@ -7,6 +7,7 @@ import 'package:ai_poetry_card/providers/history_manager.dart';
 import 'package:ai_poetry_card/services/user_profile_service.dart';
 import 'package:ai_poetry_card/screens/home_screen.dart';
 import 'package:ai_poetry_card/screens/onboarding_screen.dart';
+import 'package:ai_poetry_card/screens/history_screen.dart';
 import 'package:ai_poetry_card/theme/app_theme.dart';
 
 void main() {
@@ -32,6 +33,9 @@ class PoetryCardApp extends StatelessWidget {
         themeMode: ThemeMode.system,
         home: const AppInitializer(),
         debugShowCheckedModeBanner: false,
+        routes: {
+          '/history': (context) => const HistoryScreen(),
+        },
         localizationsDelegates: const [
           GlobalMaterialLocalizations.delegate,
           GlobalWidgetsLocalizations.delegate,

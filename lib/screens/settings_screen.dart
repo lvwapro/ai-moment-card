@@ -10,70 +10,27 @@ class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('设置')),
-      body: ListView(
-        children: [
-          const UserInfoCardWidget(),
-          const SizedBox(height: 16),
-          _UsageSection(),
-          const SizedBox(height: 16),
-          _PreferencesSection(),
-          const SizedBox(height: 16),
-          _DataSection(),
-          const SizedBox(height: 16),
-          _AboutSection(),
-          const SizedBox(height: 32),
-        ],
-      ),
-    );
-  }
-}
-
-class _UsageSection extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<AppState>(
-      builder: (context, appState, child) {
-        return SettingsCardWidget(
-          title: '使用情况',
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(title: const Text('设置')),
+        body: ListView(
           children: [
-            SettingItemWidget(
-              icon: Icons.today,
-              title: '今日使用',
-              subtitle: '${appState.dailyUsage}/${appState.dailyLimit} 次',
-              trailing: SizedBox(
-                width: 100,
-                child: LinearProgressIndicator(
-                  value: appState.dailyUsage / appState.dailyLimit,
-                  backgroundColor: Colors.grey.shade200,
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                    appState.remainingUsage > 0
-                        ? Theme.of(context).primaryColor
-                        : Colors.red,
-                  ),
-                ),
-              ),
-            ),
-            SettingItemWidget(
-              icon: Icons.refresh,
-              title: '重置时间',
-              subtitle: '每日 00:00 自动重置',
-            ),
+            const UserInfoCardWidget(),
+            const SizedBox(height: 16),
+            _PreferencesSection(),
+            const SizedBox(height: 16),
+            _DataSection(),
+            const SizedBox(height: 16),
+            _AboutSection(),
+            const SizedBox(height: 32),
           ],
-        );
-      },
-    );
-  }
+        ),
+      );
 }
 
 class _PreferencesSection extends StatelessWidget {
   @override
-  Widget build(BuildContext context) {
-    return Consumer<AppState>(
-      builder: (context, appState, child) {
-        return SettingsCardWidget(
+  Widget build(BuildContext context) => Consumer<AppState>(
+        builder: (context, appState, child) => SettingsCardWidget(
           title: '偏好设置',
           children: [
             SettingItemWidget(
@@ -95,43 +52,45 @@ class _PreferencesSection extends StatelessWidget {
               ),
             ),
           ],
-        );
-      },
-    );
-  }
+        ),
+      );
 
   void _showStyleSelector(BuildContext context, AppState appState) {
     showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
       builder: (context) => Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.7,
+        ),
         padding: const EdgeInsets.all(16),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('选择默认风格', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 16),
-            ...PoetryStyle.values.map((style) {
-              return ListTile(
-                title: Text(appState.getStyleDisplayName(style)),
-                subtitle: Text(appState.getStyleDescription(style)),
-                leading: Radio<PoetryStyle>(
-                  value: style,
-                  groupValue: appState.selectedStyle,
-                  onChanged: (value) {
-                    if (value != null) {
-                      appState.setSelectedStyle(value);
-                    }
-                    Navigator.pop(context);
-                  },
-                ),
-                onTap: () {
-                  appState.setSelectedStyle(style);
-                  Navigator.pop(context);
-                },
-              );
-            }).toList(),
-          ],
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('选择默认风格', style: Theme.of(context).textTheme.titleLarge),
+              const SizedBox(height: 16),
+              ...PoetryStyle.values.map((style) => ListTile(
+                    title: Text(appState.getStyleDisplayName(style)),
+                    subtitle: Text(appState.getStyleDescription(style)),
+                    leading: Radio<PoetryStyle>(
+                      value: style,
+                      groupValue: appState.selectedStyle,
+                      onChanged: (value) {
+                        if (value != null) {
+                          appState.setSelectedStyle(value);
+                        }
+                        Navigator.pop(context);
+                      },
+                    ),
+                    onTap: () {
+                      appState.setSelectedStyle(style);
+                      Navigator.pop(context);
+                    },
+                  )),
+            ],
+          ),
         ),
       ),
     );
@@ -140,10 +99,8 @@ class _PreferencesSection extends StatelessWidget {
 
 class _DataSection extends StatelessWidget {
   @override
-  Widget build(BuildContext context) {
-    return Consumer<HistoryManager>(
-      builder: (context, historyManager, child) {
-        return SettingsCardWidget(
+  Widget build(BuildContext context) => Consumer<HistoryManager>(
+        builder: (context, historyManager, child) => SettingsCardWidget(
           title: '数据管理',
           children: [
             SettingItemWidget(
@@ -174,10 +131,8 @@ class _DataSection extends StatelessWidget {
               onTap: () => _showClearHistoryDialog(context, historyManager),
             ),
           ],
-        );
-      },
-    );
-  }
+        ),
+      );
 
   void _showClearHistoryDialog(
     BuildContext context,
@@ -215,34 +170,33 @@ class _DataSection extends StatelessWidget {
 
 class _AboutSection extends StatelessWidget {
   @override
-  Widget build(BuildContext context) {
-    return SettingsCardWidget(
-      title: '关于',
-      children: [
-        SettingItemWidget(icon: Icons.info, title: '版本信息', subtitle: 'v1.0.0'),
-        SettingItemWidget(
-          icon: Icons.feedback,
-          title: '意见反馈',
-          subtitle: '告诉我们你的想法',
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('反馈功能开发中...')));
-          },
-        ),
-        SettingItemWidget(
-          icon: Icons.privacy_tip,
-          title: '隐私政策',
-          subtitle: '了解我们如何保护你的隐私',
-          trailing: const Icon(Icons.chevron_right),
-          onTap: () {
-            ScaffoldMessenger.of(
-              context,
-            ).showSnackBar(const SnackBar(content: Text('隐私政策页面开发中...')));
-          },
-        ),
-      ],
-    );
-  }
+  Widget build(BuildContext context) => SettingsCardWidget(
+        title: '关于',
+        children: [
+          const SettingItemWidget(
+              icon: Icons.info, title: '版本信息', subtitle: 'v1.0.0'),
+          SettingItemWidget(
+            icon: Icons.feedback,
+            title: '意见反馈',
+            subtitle: '告诉我们你的想法',
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('反馈功能开发中...')));
+            },
+          ),
+          SettingItemWidget(
+            icon: Icons.privacy_tip,
+            title: '隐私政策',
+            subtitle: '了解我们如何保护你的隐私',
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              ScaffoldMessenger.of(
+                context,
+              ).showSnackBar(const SnackBar(content: Text('隐私政策页面开发中...')));
+            },
+          ),
+        ],
+      );
 }

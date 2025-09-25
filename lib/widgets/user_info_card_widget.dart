@@ -6,10 +6,8 @@ class UserInfoCardWidget extends StatelessWidget {
   const UserInfoCardWidget({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return Consumer<AppState>(
-      builder: (context, appState, child) {
-        return Container(
+  Widget build(BuildContext context) => Consumer<AppState>(
+        builder: (context, appState, child) => Container(
           margin: const EdgeInsets.all(16),
           padding: const EdgeInsets.all(20),
           decoration: BoxDecoration(
@@ -60,14 +58,37 @@ class UserInfoCardWidget extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      appState.isPremium
-                          ? '享受无限创作体验'
-                          : '每日可生成 ${appState.dailyLimit} 张卡片',
+                      appState.isPremium ? '享受无限创作体验' : '试用版用户',
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.9),
                         fontSize: 14,
                       ),
                     ),
+                    if (!appState.isPremium) ...[
+                      const SizedBox(height: 8),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: LinearProgressIndicator(
+                              value: appState.usedCount / 10.0,
+                              backgroundColor: Colors.white.withOpacity(0.3),
+                              valueColor: const AlwaysStoppedAnimation<Color>(
+                                  Colors.white),
+                              minHeight: 6,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            '${appState.usedCount}/10',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.9),
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -82,10 +103,8 @@ class UserInfoCardWidget extends StatelessWidget {
                 ),
             ],
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
 
   void _showUpgradeDialog(BuildContext context) {
     showDialog(
@@ -96,6 +115,8 @@ class UserInfoCardWidget extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Text('当前：试用版（10张卡片）'),
+            SizedBox(height: 8),
             Text('专业版特权：'),
             SizedBox(height: 8),
             Text('• 无限生成次数'),

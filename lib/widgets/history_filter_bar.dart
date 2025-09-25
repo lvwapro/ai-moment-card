@@ -1,6 +1,7 @@
-import 'package:flutter/material.dart';
 import 'package:ai_poetry_card/models/poetry_card.dart';
-import 'package:ai_poetry_card/models/time_filter.dart';
+import 'package:flutter/material.dart';
+
+import '../models/time_filter.dart';
 import 'time_filter_widget.dart';
 
 class HistoryFilterBar extends StatelessWidget {
@@ -26,92 +27,78 @@ class HistoryFilterBar extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          // 搜索框
-          TextField(
-            onChanged: onSearchChanged,
-            decoration: InputDecoration(
-              hintText: '搜索文案内容...',
-              prefixIcon: const Icon(Icons.search),
-              suffixIcon: searchQuery.isNotEmpty
-                  ? IconButton(
-                      icon: const Icon(Icons.clear),
-                      onPressed: () => onSearchChanged(''),
-                    )
-                  : null,
-              border: InputBorder.none,
-              enabledBorder: InputBorder.none,
-              focusedBorder: InputBorder.none,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
+  Widget build(BuildContext context) => Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            // 搜索框
+            TextField(
+              onChanged: onSearchChanged,
+              decoration: InputDecoration(
+                hintText: '搜索文案内容...',
+                prefixIcon: const Icon(Icons.search),
+                suffixIcon: searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: const Icon(Icons.clear),
+                        onPressed: () => onSearchChanged(''),
+                      )
+                    : null,
+                border: InputBorder.none,
+                enabledBorder: InputBorder.none,
+                focusedBorder: InputBorder.none,
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
+                ),
               ),
             ),
-          ),
 
-          const SizedBox(height: 12),
+            const SizedBox(height: 12),
 
-          // 筛选器
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              // 风格筛选
-              _FilterChip(
-                label: '风格',
-                value: selectedStyle != null
-                    ? _getStyleName(selectedStyle!)
-                    : null,
-                onTap: () => _showStyleFilter(context),
-              ),
-
-              // 时间筛选
-              _FilterChip(
-                label: '时间',
-                value: selectedTimeFilter != null
-                    ? TimeFilterWidget.getTimeFilterDisplayValue(
-                        selectedTimeFilter, customTimeRange)
-                    : null,
-                onTap: () => TimeFilterWidget.showTimeFilter(
-                  context,
-                  selectedTimeFilter: selectedTimeFilter,
-                  customTimeRange: customTimeRange,
-                  onTimeFilterChanged: onTimeFilterChanged,
-                  onCustomTimeRangeChanged: onCustomTimeRangeChanged,
+            // 筛选器
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: [
+                // 风格筛选
+                _FilterChip(
+                  label: '风格',
+                  value: selectedStyle != null
+                      ? _getStyleName(selectedStyle!)
+                      : null,
+                  onTap: () => _showStyleFilter(context),
                 ),
-              ),
 
-              // 清除筛选
-              if (_hasActiveFilters())
-                IconButton(
-                  onPressed: () {
-                    onStyleChanged(null);
-                    onTimeFilterChanged(null);
-                    onCustomTimeRangeChanged(null);
-                  },
-                  icon: const Icon(Icons.clear_all),
-                  tooltip: '清除筛选',
+                // 时间筛选
+                _FilterChip(
+                  label: '时间',
+                  value: selectedTimeFilter != null
+                      ? TimeFilterWidget.getTimeFilterDisplayValue(
+                          selectedTimeFilter, customTimeRange)
+                      : null,
+                  onTap: () => TimeFilterWidget.showTimeFilter(
+                    context,
+                    selectedTimeFilter: selectedTimeFilter,
+                    customTimeRange: customTimeRange,
+                    onTimeFilterChanged: onTimeFilterChanged,
+                    onCustomTimeRangeChanged: onCustomTimeRangeChanged,
+                  ),
                 ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
+              ],
+            ),
+          ],
+        ),
+      );
 
   void _showStyleFilter(BuildContext context) {
     showModalBottomSheet(
@@ -207,11 +194,6 @@ class HistoryFilterBar extends StatelessWidget {
         return '随机惊喜，未知体验';
     }
   }
-
-  /// 检查是否有活跃的筛选器
-  bool _hasActiveFilters() {
-    return selectedStyle != null || selectedTimeFilter != null;
-  }
 }
 
 class _FilterChip extends StatelessWidget {
@@ -226,53 +208,51 @@ class _FilterChip extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: value != null
-              ? Theme.of(context).primaryColor.withOpacity(0.1)
-              : Colors.grey.shade100,
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
+  Widget build(BuildContext context) => InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          decoration: BoxDecoration(
+            color: value != null
+                ? Theme.of(context).primaryColor.withOpacity(0.1)
+                : Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label,
+                style: TextStyle(
+                  color: value != null
+                      ? Theme.of(context).primaryColor
+                      : Colors.grey.shade600,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+              if (value != null) ...[
+                const SizedBox(width: 4),
+                Text(
+                  ': $value',
+                  style: TextStyle(
+                    color: Theme.of(context).primaryColor,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+              const SizedBox(width: 4),
+              Icon(
+                Icons.keyboard_arrow_down,
+                size: 16,
                 color: value != null
                     ? Theme.of(context).primaryColor
                     : Colors.grey.shade600,
-                fontSize: 12,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            if (value != null) ...[
-              const SizedBox(width: 4),
-              Text(
-                ': $value',
-                style: TextStyle(
-                  color: Theme.of(context).primaryColor,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
               ),
             ],
-            const SizedBox(width: 4),
-            Icon(
-              Icons.keyboard_arrow_down,
-              size: 16,
-              color: value != null
-                  ? Theme.of(context).primaryColor
-                  : Colors.grey.shade600,
-            ),
-          ],
+          ),
         ),
-      ),
-    );
-  }
+      );
 }

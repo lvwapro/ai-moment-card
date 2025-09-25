@@ -3,29 +3,27 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ai_poetry_card/models/poetry_card.dart';
 
 class AppState extends ChangeNotifier {
-  static const String _dailyUsageKey = 'daily_usage';
-  static const String _lastUsageDateKey = 'last_usage_date';
+  static const String _usedCountKey = 'used_count';
   static const String _isPremiumKey = 'is_premium';
   static const String _selectedStyleKey = 'selected_style';
   static const String _showQrCodeKey = 'show_qr_code';
 
   // 用户状态
   bool _isPremium = false;
-  int _dailyUsage = 0;
-  DateTime? _lastUsageDate;
+  int _usedCount = 0;
   PoetryStyle _selectedStyle = PoetryStyle.blindBox;
   bool _showQrCode = true;
 
   // 限制设置
-  static const int freeDailyLimit = 3;
-  static const int premiumDailyLimit = 999;
+  static const int freeTrialLimit = 10;
+  static const int premiumLimit = 999;
 
   // Getters
   bool get isPremium => _isPremium;
-  int get dailyUsage => _dailyUsage;
-  int get dailyLimit => _isPremium ? premiumDailyLimit : freeDailyLimit;
-  int get remainingUsage => dailyLimit - _dailyUsage;
-  bool get canGenerate => remainingUsage > 0;
+  int get usedCount => _usedCount;
+  int get totalLimit => _isPremium ? premiumLimit : freeTrialLimit;
+  int get remainingUsage => totalLimit - _usedCount;
+  bool get canGenerate => _isPremium || _usedCount < freeTrialLimit;
   PoetryStyle get selectedStyle => _selectedStyle;
   bool get showQrCode => _showQrCode;
 
@@ -37,13 +35,8 @@ class AppState extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
 
     _isPremium = prefs.getBool(_isPremiumKey) ?? false;
-    _dailyUsage = prefs.getInt(_dailyUsageKey) ?? 0;
+    _usedCount = prefs.getInt(_usedCountKey) ?? 0;
     _showQrCode = prefs.getBool(_showQrCodeKey) ?? true;
-
-    final lastDateStr = prefs.getString(_lastUsageDateKey);
-    if (lastDateStr != null) {
-      _lastUsageDate = DateTime.parse(lastDateStr);
-    }
 
     final styleStr = prefs.getString(_selectedStyleKey);
     if (styleStr != null) {
@@ -53,38 +46,20 @@ class AppState extends ChangeNotifier {
       );
     }
 
-    // 检查是否需要重置每日使用次数
-    _checkAndResetDailyUsage();
-
     notifyListeners();
-  }
-
-  void _checkAndResetDailyUsage() {
-    final now = DateTime.now();
-    if (_lastUsageDate == null ||
-        now.day != _lastUsageDate!.day ||
-        now.month != _lastUsageDate!.month ||
-        now.year != _lastUsageDate!.year) {
-      _dailyUsage = 0;
-      _lastUsageDate = now;
-      _saveSettings();
-    }
   }
 
   Future<void> _saveSettings() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_isPremiumKey, _isPremium);
-    await prefs.setInt(_dailyUsageKey, _dailyUsage);
-    await prefs.setString(
-        _lastUsageDateKey, _lastUsageDate?.toIso8601String() ?? '');
+    await prefs.setInt(_usedCountKey, _usedCount);
     await prefs.setString(_selectedStyleKey, _selectedStyle.name);
     await prefs.setBool(_showQrCodeKey, _showQrCode);
   }
 
   Future<void> incrementUsage() async {
     if (canGenerate) {
-      _dailyUsage++;
-      _lastUsageDate = DateTime.now();
+      _usedCount++;
       await _saveSettings();
       notifyListeners();
     }

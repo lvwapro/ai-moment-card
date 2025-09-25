@@ -9,7 +9,7 @@ class UsageIndicator extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<AppState>(
       builder: (context, appState, child) {
-        final progress = appState.dailyUsage / appState.dailyLimit;
+        final progress = appState.usedCount / appState.totalLimit;
         final isNearLimit = progress > 0.8;
 
         return Container(
@@ -64,7 +64,7 @@ class UsageIndicator extends StatelessWidget {
                   ),
                   const SizedBox(width: 12),
                   Text(
-                    '${appState.dailyUsage}/${appState.dailyLimit}',
+                    '${appState.usedCount}/${appState.totalLimit}',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: isNearLimit ? Colors.red : null,
                           fontWeight: FontWeight.w600,

@@ -153,6 +153,37 @@ class _HistoryScreenState extends State<HistoryScreen> {
             });
           },
         ),
+        PopupMenuButton<String>(
+          onSelected: (value) {
+            if (!mounted) return;
+            switch (value) {
+              case 'clear':
+                _showClearHistoryDialog();
+                break;
+              case 'export':
+                _exportHistory();
+                break;
+            }
+          },
+          itemBuilder: (context) => [
+            const PopupMenuItem(
+              value: 'export',
+              child: ListTile(
+                leading: Icon(Icons.download),
+                title: Text('导出历史'),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'clear',
+              child: ListTile(
+                leading: Icon(Icons.delete_forever, color: Colors.red),
+                title: Text('清空历史', style: TextStyle(color: Colors.red)),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          ],
+        ),
       ];
 
   List<Widget> _buildMultiSelectActions() => [
@@ -178,6 +209,44 @@ class _HistoryScreenState extends State<HistoryScreen> {
         ),
       ];
 
+  void _showClearHistoryDialog() {
+    if (!mounted) return;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('清空历史记录'),
+        content: const Text('确定要清空所有历史记录吗？此操作不可撤销。'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('取消'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              if (mounted) {
+                Provider.of<HistoryManager>(context, listen: false)
+                    .clearHistory();
+              }
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('清空'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _exportHistory() {
+    if (!mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('导出功能开发中...')),
+    );
+  }
+
   void _enterMultiSelectMode() {
     setState(() {
       _isMultiSelectMode = true;
@@ -188,10 +257,13 @@ class _HistoryScreenState extends State<HistoryScreen> {
     setState(() {
       _isMultiSelectMode = false;
     });
-    Provider.of<HistoryManager>(context, listen: false).clearSelection();
+    if (mounted) {
+      Provider.of<HistoryManager>(context, listen: false).clearSelection();
+    }
   }
 
   void _showDeleteSelectedDialog() {
+    if (!mounted) return;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
@@ -209,9 +281,11 @@ class _HistoryScreenState extends State<HistoryScreen> {
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
-              Provider.of<HistoryManager>(context, listen: false)
-                  .deleteSelectedCards();
-              _exitMultiSelectMode();
+              if (mounted) {
+                Provider.of<HistoryManager>(context, listen: false)
+                    .deleteSelectedCards();
+                _exitMultiSelectMode();
+              }
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,

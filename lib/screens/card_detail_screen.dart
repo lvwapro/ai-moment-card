@@ -47,40 +47,6 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
               icon: const Icon(Icons.save_alt),
               onPressed: () => _saveCard(context),
             ),
-            PopupMenuButton<String>(
-              onSelected: (value) {
-                switch (value) {
-                  case 'copy':
-                    _copyText(context);
-                    break;
-                  case 'delete':
-                    _deleteCard(context);
-                    break;
-                }
-              },
-              itemBuilder: (context) => [
-                const PopupMenuItem(
-                  value: 'copy',
-                  child: Row(
-                    children: [
-                      Icon(Icons.copy),
-                      SizedBox(width: 8),
-                      Text('复制文案'),
-                    ],
-                  ),
-                ),
-                const PopupMenuItem(
-                  value: 'delete',
-                  child: Row(
-                    children: [
-                      Icon(Icons.delete, color: Colors.red),
-                      SizedBox(width: 8),
-                      Text('删除卡片', style: TextStyle(color: Colors.red)),
-                    ],
-                  ),
-                ),
-              ],
-            ),
           ],
         ),
         body: SingleChildScrollView(
@@ -140,67 +106,65 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
         ),
       );
 
-  Widget _buildPoetrySection() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(
-                '文案',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.grey.shade700,
-                    ),
-              ),
-              const Spacer(),
-              IconButton(
-                icon: const Icon(Icons.copy, size: 20),
-                onPressed: () => _copyText(context),
-                tooltip: '复制文案',
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(
-                  minWidth: 32,
-                  minHeight: 32,
+  Widget _buildPoetrySection() => Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.grey.shade50,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: Colors.grey.shade200),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  '文案',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey.shade700,
+                      ),
                 ),
-              ),
-              IconButton(
-                icon: _isRegenerating
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.refresh, size: 20),
-                onPressed: _isRegenerating ? null : _regeneratePoetry,
-                tooltip: '重新生成文案',
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(
-                  minWidth: 32,
-                  minHeight: 32,
+                const Spacer(),
+                IconButton(
+                  icon: const Icon(Icons.copy, size: 20),
+                  onPressed: () => _copyText(context),
+                  tooltip: '复制文案',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 32,
+                    minHeight: 32,
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            _currentCard.poetry,
-            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  height: 1.6,
-                  color: Colors.grey.shade800,
+                IconButton(
+                  icon: _isRegenerating
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.refresh, size: 20),
+                  onPressed: _isRegenerating ? null : _regeneratePoetry,
+                  tooltip: '重新生成文案',
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(
+                    minWidth: 32,
+                    minHeight: 32,
+                  ),
                 ),
-          ),
-        ],
-      ),
-    );
-  }
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              _currentCard.poetry,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                    height: 1.6,
+                    color: Colors.grey.shade800,
+                  ),
+            ),
+          ],
+        ),
+      );
 
   Widget _buildInfoRow(String label, String value) {
     return Padding(
@@ -356,32 +320,6 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
         });
       }
     }
-  }
-
-  void _deleteCard(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('删除卡片'),
-        content: const Text('确定要删除这张卡片吗？此操作不可撤销。'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
-          ),
-          TextButton(
-            onPressed: () {
-              final historyManager =
-                  Provider.of<HistoryManager>(context, listen: false);
-              historyManager.removeCard(_currentCard.id);
-              Navigator.pop(context); // 关闭对话框
-              Navigator.pop(context); // 返回上一页
-            },
-            child: const Text('删除', style: TextStyle(color: Colors.red)),
-          ),
-        ],
-      ),
-    );
   }
 
   String _getStyleDisplayName(PoetryStyle style) {
