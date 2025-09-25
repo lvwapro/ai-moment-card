@@ -6,10 +6,16 @@ import 'package:ai_poetry_card/models/poetry_card.dart';
 class HistoryManager extends ChangeNotifier {
   static const String _historyKey = 'poetry_cards_history';
   List<PoetryCard> _cards = [];
+  Set<String> _selectedCardIds = {};
 
   List<PoetryCard> get cards => List.unmodifiable(_cards);
   List<PoetryCard> get recentCards => _cards.take(10).toList();
   int get totalCount => _cards.length;
+
+  // 多选相关
+  Set<String> get selectedCardIds => Set.unmodifiable(_selectedCardIds);
+  bool get isMultiSelectMode => _selectedCardIds.isNotEmpty;
+  int get selectedCount => _selectedCardIds.length;
 
   HistoryManager() {
     _loadHistory();
@@ -91,10 +97,6 @@ class HistoryManager extends ChangeNotifier {
     return _cards.where((card) => card.style == style).toList();
   }
 
-  List<PoetryCard> getCardsByTemplate(CardTemplate template) {
-    return _cards.where((card) => card.template == template).toList();
-  }
-
   List<PoetryCard> searchCards(String query) {
     if (query.isEmpty) return _cards;
 
@@ -102,9 +104,6 @@ class HistoryManager extends ChangeNotifier {
     return _cards.where((card) {
       return card.poetry.toLowerCase().contains(lowercaseQuery) ||
           _getStyleDisplayName(card.style)
-              .toLowerCase()
-              .contains(lowercaseQuery) ||
-          _getTemplateDisplayName(card.template)
               .toLowerCase()
               .contains(lowercaseQuery);
     }).toList();
@@ -131,21 +130,35 @@ class HistoryManager extends ChangeNotifier {
     }
   }
 
-  String _getTemplateDisplayName(CardTemplate template) {
-    switch (template) {
-      case CardTemplate.minimal:
-        return '极简';
-      case CardTemplate.elegant:
-        return '优雅';
-      case CardTemplate.romantic:
-        return '浪漫';
-      case CardTemplate.vintage:
-        return '复古';
-      case CardTemplate.nature:
-        return '自然';
-      case CardTemplate.urban:
-        return '都市';
+  // 多选相关方法
+  void toggleCardSelection(String cardId) {
+    if (_selectedCardIds.contains(cardId)) {
+      _selectedCardIds.remove(cardId);
+    } else {
+      _selectedCardIds.add(cardId);
     }
+    notifyListeners();
+  }
+
+  void selectAllCards() {
+    _selectedCardIds = _cards.map((card) => card.id).toSet();
+    notifyListeners();
+  }
+
+  void clearSelection() {
+    _selectedCardIds.clear();
+    notifyListeners();
+  }
+
+  bool isCardSelected(String cardId) {
+    return _selectedCardIds.contains(cardId);
+  }
+
+  Future<void> deleteSelectedCards() async {
+    _cards.removeWhere((card) => _selectedCardIds.contains(card.id));
+    _selectedCardIds.clear();
+    await _saveHistory();
+    notifyListeners();
   }
 
   // 获取统计信息
@@ -155,11 +168,6 @@ class HistoryManager extends ChangeNotifier {
     // 按风格统计
     for (final style in PoetryStyle.values) {
       stats['style_${style.name}'] = getCardsByStyle(style).length;
-    }
-
-    // 按模板统计
-    for (final template in CardTemplate.values) {
-      stats['template_${template.name}'] = getCardsByTemplate(template).length;
     }
 
     // 总数量

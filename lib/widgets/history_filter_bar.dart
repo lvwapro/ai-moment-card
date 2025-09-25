@@ -1,22 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:ai_poetry_card/models/poetry_card.dart';
+import 'package:ai_poetry_card/models/time_filter.dart';
+import 'time_filter_widget.dart';
 
 class HistoryFilterBar extends StatelessWidget {
   final String searchQuery;
   final PoetryStyle? selectedStyle;
-  final CardTemplate? selectedTemplate;
+  final TimeFilterType? selectedTimeFilter;
+  final DateTimeRange? customTimeRange;
   final ValueChanged<String> onSearchChanged;
   final ValueChanged<PoetryStyle?> onStyleChanged;
-  final ValueChanged<CardTemplate?> onTemplateChanged;
+  final ValueChanged<TimeFilterType?> onTimeFilterChanged;
+  final ValueChanged<DateTimeRange?> onCustomTimeRangeChanged;
 
   const HistoryFilterBar({
     super.key,
     required this.searchQuery,
     required this.selectedStyle,
-    required this.selectedTemplate,
+    required this.selectedTimeFilter,
+    required this.customTimeRange,
     required this.onSearchChanged,
     required this.onStyleChanged,
-    required this.onTemplateChanged,
+    required this.onTimeFilterChanged,
+    required this.onCustomTimeRangeChanged,
   });
 
   @override
@@ -60,40 +66,42 @@ class HistoryFilterBar extends StatelessWidget {
           const SizedBox(height: 12),
 
           // 筛选器
-          Row(
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
             children: [
               // 风格筛选
-              Expanded(
-                child: _FilterChip(
-                  label: '风格',
-                  value: selectedStyle != null
-                      ? _getStyleName(selectedStyle!)
-                      : null,
-                  onTap: () => _showStyleFilter(context),
-                ),
+              _FilterChip(
+                label: '风格',
+                value: selectedStyle != null
+                    ? _getStyleName(selectedStyle!)
+                    : null,
+                onTap: () => _showStyleFilter(context),
               ),
 
-              const SizedBox(width: 8),
-
-              // 模板筛选
-              Expanded(
-                child: _FilterChip(
-                  label: '模板',
-                  value: selectedTemplate != null
-                      ? _getTemplateName(selectedTemplate!)
-                      : null,
-                  onTap: () => _showTemplateFilter(context),
+              // 时间筛选
+              _FilterChip(
+                label: '时间',
+                value: selectedTimeFilter != null
+                    ? TimeFilterWidget.getTimeFilterDisplayValue(
+                        selectedTimeFilter, customTimeRange)
+                    : null,
+                onTap: () => TimeFilterWidget.showTimeFilter(
+                  context,
+                  selectedTimeFilter: selectedTimeFilter,
+                  customTimeRange: customTimeRange,
+                  onTimeFilterChanged: onTimeFilterChanged,
+                  onCustomTimeRangeChanged: onCustomTimeRangeChanged,
                 ),
               ),
-
-              const SizedBox(width: 8),
 
               // 清除筛选
-              if (selectedStyle != null || selectedTemplate != null)
+              if (_hasActiveFilters())
                 IconButton(
                   onPressed: () {
                     onStyleChanged(null);
-                    onTemplateChanged(null);
+                    onTimeFilterChanged(null);
+                    onCustomTimeRangeChanged(null);
                   },
                   icon: const Icon(Icons.clear_all),
                   tooltip: '清除筛选',
@@ -158,59 +166,6 @@ class HistoryFilterBar extends StatelessWidget {
     );
   }
 
-  void _showTemplateFilter(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => Container(
-        padding: const EdgeInsets.all(16),
-        child: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                '选择模板',
-                style: Theme.of(context).textTheme.titleLarge,
-              ),
-              const SizedBox(height: 16),
-              ...CardTemplate.values.map((template) {
-                final isSelected = selectedTemplate == template;
-                return ListTile(
-                  title: Text(_getTemplateName(template)),
-                  subtitle: Text(_getTemplateDescription(template)),
-                  leading: Radio<CardTemplate>(
-                    value: template,
-                    groupValue: selectedTemplate,
-                    onChanged: (value) {
-                      onTemplateChanged(value);
-                      Navigator.pop(context);
-                    },
-                  ),
-                  onTap: () {
-                    onTemplateChanged(isSelected ? null : template);
-                    Navigator.pop(context);
-                  },
-                );
-              }).toList(),
-              if (selectedTemplate != null) ...[
-                const Divider(),
-                ListTile(
-                  title: const Text('清除筛选'),
-                  leading: const Icon(Icons.clear),
-                  onTap: () {
-                    onTemplateChanged(null);
-                    Navigator.pop(context);
-                  },
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
   String _getStyleName(PoetryStyle style) {
     switch (style) {
       case PoetryStyle.modernPoetic:
@@ -253,38 +208,9 @@ class HistoryFilterBar extends StatelessWidget {
     }
   }
 
-  String _getTemplateName(CardTemplate template) {
-    switch (template) {
-      case CardTemplate.minimal:
-        return '极简';
-      case CardTemplate.elegant:
-        return '优雅';
-      case CardTemplate.romantic:
-        return '浪漫';
-      case CardTemplate.vintage:
-        return '复古';
-      case CardTemplate.nature:
-        return '自然';
-      case CardTemplate.urban:
-        return '都市';
-    }
-  }
-
-  String _getTemplateDescription(CardTemplate template) {
-    switch (template) {
-      case CardTemplate.minimal:
-        return '简洁大方，突出内容';
-      case CardTemplate.elegant:
-        return '优雅精致，彰显品味';
-      case CardTemplate.romantic:
-        return '浪漫温馨，充满爱意';
-      case CardTemplate.vintage:
-        return '复古怀旧，时光沉淀';
-      case CardTemplate.nature:
-        return '自然清新，回归本真';
-      case CardTemplate.urban:
-        return '现代都市，时尚前卫';
-    }
+  /// 检查是否有活跃的筛选器
+  bool _hasActiveFilters() {
+    return selectedStyle != null || selectedTimeFilter != null;
   }
 }
 

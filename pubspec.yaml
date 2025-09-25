@@ -28,6 +28,10 @@ dependencies:
   # 状态管理
   provider: ^6.1.1
   
+  # 国际化
+  flutter_localizations:
+    sdk: flutter
+  
   # 本地存储
   shared_preferences: ^2.2.2
   sqflite: ^2.3.0
@@ -37,7 +41,7 @@ dependencies:
   http: ^1.1.0
   
   # 工具类
-  intl: ^0.18.1
+  intl: ^0.20.2
   permission_handler: ^11.0.1
   speech_to_text: ^6.6.0
   
@@ -60,6 +64,7 @@ flutter:
   
   assets:
     - assets/images/
+    - assets/images/backgrounds/
     - assets/icons/
     - assets/animations/
     - assets/fonts/

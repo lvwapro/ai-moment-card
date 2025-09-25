@@ -7,79 +7,102 @@ class AIPoetryService {
   // 在实际应用中，这里会调用真实的AI API
 
   Future<String> generatePoetry(File image, PoetryStyle style,
-      {String? userDescription}) async {
+      {String? userDescription, String? userProfile}) async {
     // 模拟网络延迟
     await Future.delayed(const Duration(seconds: 2));
 
-    // 如果有用户描述，优先使用描述生成文案
+    // 只使用用户描述生成文案，用户信息仅用于背景选择
+    final context = _buildUserContext(userDescription, null);
+
+    // 根据用户描述和风格生成文案
+    return _generatePoetryWithContext(context, style);
+  }
+
+  String _buildUserContext(String? userDescription, String? userProfile) {
+    final parts = <String>[];
+
+    // 只使用用户描述，不显示用户信息
     if (userDescription != null && userDescription.isNotEmpty) {
-      return _generatePoetryFromDescription(userDescription, style);
+      parts.add('当前描述：$userDescription');
+    }
+
+    return parts.join('，');
+  }
+
+  String _generatePoetryWithContext(String context, PoetryStyle style) {
+    // 如果有用户上下文，优先使用上下文生成文案
+    if (context.isNotEmpty) {
+      return _generatePoetryFromContext(context, style);
     }
 
     // 根据风格返回不同的文案
-    final poetry = _getRandomPoetry(style);
-    return poetry;
+    return _getRandomPoetry(style);
   }
 
-  String _generatePoetryFromDescription(String description, PoetryStyle style) {
-    // 模拟根据用户描述生成个性化文案
+  String _generatePoetryFromContext(String context, PoetryStyle style) {
     final random = Random();
 
     switch (style) {
       case PoetryStyle.modernPoetic:
         final modernTemplates = [
-          '在"$description"中寻找诗意',
-          '"$description"让生活更美好',
-          '感受"$description"的魅力',
-          '"$description"如诗如画',
+          '在$context中寻找诗意',
+          '$context让生活更美好',
+          '感受$context的魅力',
+          '$context如诗如画',
+          '关于$context的诗意瞬间',
         ];
         return modernTemplates[random.nextInt(modernTemplates.length)];
 
       case PoetryStyle.classicalElegant:
         final classicalTemplates = [
-          '关于"$description"的古韵',
-          '"$description"如诗如画',
-          '品味"$description"的意境',
-          '"$description"传千古',
+          '关于$context的古韵',
+          '$context如诗如画',
+          '品味$context的意境',
+          '$context传千古',
+          '$context的诗意传承',
         ];
         return classicalTemplates[random.nextInt(classicalTemplates.length)];
 
       case PoetryStyle.humorousPlayful:
         final playfulTemplates = [
-          '"$description"真有趣！',
-          '关于"$description"的小确幸',
-          '"$description"让心情变好',
-          '今天也要"$description"鸭！',
+          '$context真有趣！',
+          '关于$context的小确幸',
+          '$context让心情变好',
+          '今天也要$context鸭！',
+          '$context的快乐时光',
         ];
         return playfulTemplates[random.nextInt(playfulTemplates.length)];
 
       case PoetryStyle.warmLiterary:
         final warmTemplates = [
-          '"$description"如诗如画',
-          '关于"$description"的温暖',
-          '"$description"让心更温暖',
-          '感受"$description"的美好',
+          '$context如诗如画',
+          '关于$context的温暖',
+          '$context让心更温暖',
+          '感受$context的美好',
+          '$context的温馨时刻',
         ];
         return warmTemplates[random.nextInt(warmTemplates.length)];
 
       case PoetryStyle.minimalTags:
-        return '#$description';
+        return '#$context';
 
       case PoetryStyle.sciFiImagination:
         final sciFiTemplates = [
-          '"$description"的量子态',
-          '在"$description"中发现未来',
-          '"$description"的时空坐标',
-          '探索"$description"的维度',
+          '$context的量子态',
+          '在$context中发现未来',
+          '$context的时空坐标',
+          '探索$context的维度',
+          '$context的科幻想象',
         ];
         return sciFiTemplates[random.nextInt(sciFiTemplates.length)];
 
       case PoetryStyle.deepPhilosophical:
         final philosophicalTemplates = [
-          '关于"$description"的思考',
-          '"$description"的哲学意义',
-          '从"$description"中感悟',
-          '"$description"的智慧',
+          '关于$context的思考',
+          '$context的哲学意义',
+          '从$context中感悟',
+          '$context的智慧',
+          '$context的人生哲理',
         ];
         return philosophicalTemplates[
             random.nextInt(philosophicalTemplates.length)];
@@ -87,13 +110,13 @@ class AIPoetryService {
       case PoetryStyle.blindBox:
         // 盲盒模式：随机选择所有风格中的一句
         final allTemplates = [
-          '在"$description"中寻找诗意',
-          '"$description"如诗如画',
-          '"$description"真有趣！',
-          '"$description"让心更温暖',
-          '"$description"的哲学意义',
-          '#$description',
-          '"$description"的量子态',
+          '在$context中寻找诗意',
+          '$context如诗如画',
+          '$context真有趣！',
+          '$context让心更温暖',
+          '$context的哲学意义',
+          '#$context',
+          '$context的量子态',
         ];
         return allTemplates[random.nextInt(allTemplates.length)];
     }

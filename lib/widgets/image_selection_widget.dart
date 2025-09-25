@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'common/fallback_background.dart';
 
 class ImageSelectionWidget extends StatelessWidget {
   final List<File> selectedImages;
@@ -14,30 +15,28 @@ class ImageSelectionWidget extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: selectedImages.isEmpty
-          ? _EmptyState(onTap: onPickImage)
-          : _ImageGrid(
-              images: selectedImages,
-              onRemoveImage: onRemoveImage,
-              onAddMore: onPickImage,
+  Widget build(BuildContext context) => Container(
+        width: double.infinity,
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.grey.withOpacity(0.1),
+              spreadRadius: 1,
+              blurRadius: 4,
+              offset: const Offset(0, 2),
             ),
-    );
-  }
+          ],
+        ),
+        child: selectedImages.isEmpty
+            ? _EmptyState(onTap: onPickImage)
+            : _ImageGrid(
+                images: selectedImages,
+                onRemoveImage: onRemoveImage,
+                onAddMore: onPickImage,
+              ),
+      );
 }
 
 class _EmptyState extends StatelessWidget {
@@ -64,8 +63,8 @@ class _EmptyState extends StatelessWidget {
             Text(
               '点击选择图片',
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                color: Theme.of(context).primaryColor,
-              ),
+                    color: Theme.of(context).primaryColor,
+                  ),
             ),
           ],
         ),
@@ -136,34 +135,39 @@ class _ImageItem extends StatelessWidget {
   const _ImageItem({required this.image, required this.onRemove});
 
   @override
-  Widget build(BuildContext context) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: Stack(
-        children: [
-          Container(
-            width: double.infinity,
-            height: double.infinity,
-            child: Image.file(image, fit: BoxFit.cover),
-          ),
-          Positioned(
-            top: 4,
-            right: 4,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Colors.black.withOpacity(0.6),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.close, color: Colors.white, size: 16),
-                onPressed: onRemove,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints(minWidth: 24, minHeight: 24),
+  Widget build(BuildContext context) => ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Stack(
+          children: [
+            Container(
+              width: double.infinity,
+              height: double.infinity,
+              child: Image.file(
+                image,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return FallbackBackgrounds.imageSelection();
+                },
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
+            Positioned(
+              top: 4,
+              right: 4,
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.6),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: IconButton(
+                  icon: const Icon(Icons.close, color: Colors.white, size: 16),
+                  onPressed: onRemove,
+                  padding: EdgeInsets.zero,
+                  constraints:
+                      const BoxConstraints(minWidth: 24, minHeight: 24),
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
 }

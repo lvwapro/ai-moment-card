@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:ai_poetry_card/models/poetry_card.dart';
-import 'package:ai_poetry_card/services/card_design_service.dart';
+import 'package:ai_poetry_card/widgets/common/fallback_background.dart';
 
 class PoetryCardWidget extends StatelessWidget {
   final PoetryCard card;
@@ -17,9 +17,6 @@ class PoetryCardWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final designService = CardDesignService();
-    final config = designService.getTemplateConfig(card.template);
-
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -41,9 +38,30 @@ class PoetryCardWidget extends StatelessWidget {
             children: [
               // 背景图片
               Positioned.fill(
-                child: Image.file(
-                  card.image,
-                  fit: BoxFit.cover,
+                child: FutureBuilder<bool>(
+                  future: card.image.exists(),
+                  builder: (context, snapshot) {
+                    if (snapshot.connectionState == ConnectionState.waiting) {
+                      return Container(
+                        color: Colors.grey.shade300,
+                        child: const Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    }
+
+                    if (snapshot.hasData && snapshot.data == true) {
+                      return Image.file(
+                        card.image,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return FallbackBackgrounds.cardPreview();
+                        },
+                      );
+                    } else {
+                      return FallbackBackgrounds.cardPreview();
+                    }
+                  },
                 ),
               ),
 
@@ -74,10 +92,10 @@ class PoetryCardWidget extends StatelessWidget {
                     // 主要文案
                     Text(
                       card.poetry,
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: Colors.white,
-                        fontSize: config['fontSize']?.toDouble() ?? 18,
-                        fontWeight: config['fontWeight'] ?? FontWeight.w500,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
                         height: 1.4,
                       ),
                       maxLines: 4,
@@ -136,31 +154,7 @@ class PoetryCardWidget extends StatelessWidget {
                 ),
               ),
 
-              // 水印
-              Positioned(
-                top: 16,
-                right: 16,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.6),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: const Text(
-                    '诗意瞬间',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                ),
-              ),
-
-              // 模板标签
+              // 风格标签
               Positioned(
                 top: 16,
                 left: 16,
@@ -174,7 +168,7 @@ class PoetryCardWidget extends StatelessWidget {
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
-                    designService.getTemplateName(card.template),
+                    _getStyleDisplayName(card.style),
                     style: TextStyle(
                       color: Colors.grey.shade700,
                       fontSize: 10,

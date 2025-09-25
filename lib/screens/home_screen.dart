@@ -4,6 +4,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 
+import '../models/poetry_card.dart';
 import '../providers/app_state.dart';
 import '../providers/card_generator.dart';
 import '../providers/history_manager.dart';
@@ -196,11 +197,6 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _generateCard() async {
-    if (_selectedImages.isEmpty) {
-      _pickImage();
-      return;
-    }
-
     final cardGenerator = Provider.of<CardGenerator>(context, listen: false);
     final appState = Provider.of<AppState>(context, listen: false);
 
@@ -209,12 +205,22 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
-      // 使用第一张图片生成卡片
-      final card = await cardGenerator.generateCard(
-        _selectedImages.first,
-        appState.selectedStyle,
-        userDescription: _description.isNotEmpty ? _description : null,
-      );
+      PoetryCard card;
+
+      if (_selectedImages.isEmpty) {
+        // 没有选择图片时，使用默认图片生成卡片
+        card = await cardGenerator.generateCardWithDefaultImage(
+          appState.selectedStyle,
+          userDescription: _description.isNotEmpty ? _description : null,
+        );
+      } else {
+        // 使用第一张图片生成卡片
+        card = await cardGenerator.generateCard(
+          _selectedImages.first,
+          appState.selectedStyle,
+          userDescription: _description.isNotEmpty ? _description : null,
+        );
+      }
 
       // 保存卡片到历史记录
       final historyManager = Provider.of<HistoryManager>(
@@ -251,39 +257,39 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-    backgroundColor: AppTheme.backgroundColor,
-    appBar: _buildAppBar(context),
-    body: SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          ImageSelectionWidget(
-            selectedImages: _selectedImages,
-            onPickImage: _pickImage,
-            onRemoveImage: _removeImage,
+        backgroundColor: AppTheme.backgroundColor,
+        appBar: _buildAppBar(context),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              ImageSelectionWidget(
+                selectedImages: _selectedImages,
+                onPickImage: _pickImage,
+                onRemoveImage: _removeImage,
+              ),
+              const SizedBox(height: 24),
+              DescriptionInputWidget(
+                controller: _descriptionController,
+                description: _description,
+                isListening: _isListening,
+                onStartListening: _startListening,
+                onStopListening: _stopListening,
+                onClear: () => _descriptionController.clear(),
+              ),
+              const SizedBox(height: 24),
+              const StyleSelectorWidget(),
+              const SizedBox(height: 24),
+              GenerateButtonWidget(
+                isGenerating: _isGenerating,
+                onPressed: _generateCard,
+              ),
+              const SizedBox(height: 16),
+              _buildHintText(context),
+            ],
           ),
-          const SizedBox(height: 24),
-          DescriptionInputWidget(
-            controller: _descriptionController,
-            description: _description,
-            isListening: _isListening,
-            onStartListening: _startListening,
-            onStopListening: _stopListening,
-            onClear: () => _descriptionController.clear(),
-          ),
-          const SizedBox(height: 24),
-          const StyleSelectorWidget(),
-          const SizedBox(height: 24),
-          GenerateButtonWidget(
-            isGenerating: _isGenerating,
-            onPressed: _generateCard,
-          ),
-          const SizedBox(height: 16),
-          _buildHintText(context),
-        ],
-      ),
-    ),
-  );
+        ),
+      );
 
   AppBar _buildAppBar(BuildContext context) {
     return AppBar(

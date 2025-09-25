@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:ai_poetry_card/models/poetry_card.dart';
 import 'package:ai_poetry_card/widgets/poetry_card_widget.dart';
 import 'package:ai_poetry_card/providers/history_manager.dart';
+import 'package:ai_poetry_card/providers/card_generator.dart';
 import 'package:ai_poetry_card/services/image_save_service.dart';
 
 class CardDetailScreen extends StatefulWidget {
@@ -21,112 +22,182 @@ class CardDetailScreen extends StatefulWidget {
 
 class _CardDetailScreenState extends State<CardDetailScreen> {
   final GlobalKey _cardKey = GlobalKey();
+  bool _isRegenerating = false;
+  late PoetryCard _currentCard;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.grey.shade50,
-      appBar: AppBar(
-        title: const Text('卡片详情'),
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.share),
-            onPressed: () => _shareCard(context),
-          ),
-          IconButton(
-            icon: const Icon(Icons.save_alt),
-            onPressed: () => _saveCard(context),
-          ),
-          PopupMenuButton<String>(
-            onSelected: (value) {
-              switch (value) {
-                case 'copy':
-                  _copyText(context);
-                  break;
-                case 'delete':
-                  _deleteCard(context);
-                  break;
-              }
-            },
-            itemBuilder: (context) => [
-              const PopupMenuItem(
-                value: 'copy',
-                child: Row(
+  void initState() {
+    super.initState();
+    _currentCard = widget.card;
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        backgroundColor: Colors.grey.shade50,
+        appBar: AppBar(
+          title: const Text('卡片详情'),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.share),
+              onPressed: () => _shareCard(context),
+            ),
+            IconButton(
+              icon: const Icon(Icons.save_alt),
+              onPressed: () => _saveCard(context),
+            ),
+            PopupMenuButton<String>(
+              onSelected: (value) {
+                switch (value) {
+                  case 'copy':
+                    _copyText(context);
+                    break;
+                  case 'delete':
+                    _deleteCard(context);
+                    break;
+                }
+              },
+              itemBuilder: (context) => [
+                const PopupMenuItem(
+                  value: 'copy',
+                  child: Row(
+                    children: [
+                      Icon(Icons.copy),
+                      SizedBox(width: 8),
+                      Text('复制文案'),
+                    ],
+                  ),
+                ),
+                const PopupMenuItem(
+                  value: 'delete',
+                  child: Row(
+                    children: [
+                      Icon(Icons.delete, color: Colors.red),
+                      SizedBox(width: 8),
+                      Text('删除卡片', style: TextStyle(color: Colors.red)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        body: SingleChildScrollView(
+          child: Column(
+            children: [
+              // 卡片展示
+              Container(
+                padding: const EdgeInsets.all(16),
+                child: RepaintBoundary(
+                  key: _cardKey,
+                  child: PoetryCardWidget(
+                    card: _currentCard,
+                    showControls: false,
+                  ),
+                ),
+              ),
+
+              // 卡片信息
+              Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                padding: const EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.grey.withOpacity(0.1),
+                      spreadRadius: 1,
+                      blurRadius: 10,
+                      offset: const Offset(0, 2),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Icon(Icons.copy),
-                    SizedBox(width: 8),
-                    Text('复制文案'),
+                    Text(
+                      '卡片信息',
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                    ),
+                    const SizedBox(height: 16),
+                    _buildPoetrySection(),
+                    const SizedBox(height: 16),
+                    _buildInfoRow(
+                        '风格', _getStyleDisplayName(_currentCard.style)),
+                    _buildInfoRow(
+                        '创建时间', _formatDateTime(_currentCard.createdAt)),
                   ],
                 ),
               ),
-              const PopupMenuItem(
-                value: 'delete',
-                child: Row(
-                  children: [
-                    Icon(Icons.delete, color: Colors.red),
-                    SizedBox(width: 8),
-                    Text('删除卡片', style: TextStyle(color: Colors.red)),
-                  ],
+
+              const SizedBox(height: 20),
+            ],
+          ),
+        ),
+      );
+
+  Widget _buildPoetrySection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.grey.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                '文案',
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: Colors.grey.shade700,
+                    ),
+              ),
+              const Spacer(),
+              IconButton(
+                icon: const Icon(Icons.copy, size: 20),
+                onPressed: () => _copyText(context),
+                tooltip: '复制文案',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(
+                  minWidth: 32,
+                  minHeight: 32,
+                ),
+              ),
+              IconButton(
+                icon: _isRegenerating
+                    ? const SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.refresh, size: 20),
+                onPressed: _isRegenerating ? null : _regeneratePoetry,
+                tooltip: '重新生成文案',
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(
+                  minWidth: 32,
+                  minHeight: 32,
                 ),
               ),
             ],
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // 卡片展示
-            Container(
-              padding: const EdgeInsets.all(16),
-              child: RepaintBoundary(
-                key: _cardKey,
-                child: PoetryCardWidget(
-                  card: widget.card,
-                  showControls: false,
+          const SizedBox(height: 12),
+          Text(
+            _currentCard.poetry,
+            style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                  height: 1.6,
+                  color: Colors.grey.shade800,
                 ),
-              ),
-            ),
-
-            // 卡片信息
-            Container(
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.1),
-                    spreadRadius: 1,
-                    blurRadius: 10,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '卡片信息',
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                  const SizedBox(height: 16),
-                  _buildInfoRow('风格', _getStyleDisplayName(widget.card.style)),
-                  _buildInfoRow(
-                      '模板', _getTemplateDisplayName(widget.card.template)),
-                  _buildInfoRow('创建时间', _formatDateTime(widget.card.createdAt)),
-                ],
-              ),
-            ),
-
-            const SizedBox(height: 20),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -161,7 +232,7 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
   void _shareCard(BuildContext context) async {
     try {
       await Share.share(
-        '我刚刚用AI诗意瞬间卡片生成器创作了一张卡片：\n\n"${widget.card.poetry}"\n\n快来试试吧！',
+        '我刚刚用AI诗意瞬间卡片生成器创作了一张卡片：\n\n"${_currentCard.poetry}"\n\n快来试试吧！',
         subject: '我的诗意瞬间',
       );
     } catch (e) {
@@ -221,10 +292,70 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
   }
 
   void _copyText(BuildContext context) {
-    Clipboard.setData(ClipboardData(text: widget.card.poetry));
+    Clipboard.setData(ClipboardData(text: _currentCard.poetry));
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(content: Text('文案已复制到剪贴板')),
     );
+  }
+
+  void _regeneratePoetry() async {
+    setState(() {
+      _isRegenerating = true;
+    });
+
+    try {
+      final cardGenerator = Provider.of<CardGenerator>(context, listen: false);
+      final historyManager =
+          Provider.of<HistoryManager>(context, listen: false);
+
+      // 重新生成文案
+      final newPoetry = await cardGenerator.regeneratePoetry(
+        _currentCard.image,
+        _currentCard.style,
+      );
+
+      // 创建更新后的卡片
+      final updatedCard = _currentCard.copyWith(
+        poetry: newPoetry,
+        metadata: {
+          ..._currentCard.metadata,
+          'lastRegeneratedAt': DateTime.now().toIso8601String(),
+        },
+      );
+
+      // 更新历史记录中的卡片
+      await historyManager.addCard(updatedCard);
+
+      // 更新当前显示的卡片
+      setState(() {
+        _currentCard = updatedCard;
+      });
+
+      // 显示成功提示
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('文案重新生成成功'),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('重新生成失败：$e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isRegenerating = false;
+        });
+      }
+    }
   }
 
   void _deleteCard(BuildContext context) {
@@ -242,12 +373,9 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
             onPressed: () {
               final historyManager =
                   Provider.of<HistoryManager>(context, listen: false);
-              historyManager.removeCard(widget.card.id);
+              historyManager.removeCard(_currentCard.id);
               Navigator.pop(context); // 关闭对话框
               Navigator.pop(context); // 返回上一页
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('卡片已删除')),
-              );
             },
             child: const Text('删除', style: TextStyle(color: Colors.red)),
           ),
@@ -274,23 +402,6 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
         return '深沉哲思';
       case PoetryStyle.blindBox:
         return '盲盒';
-    }
-  }
-
-  String _getTemplateDisplayName(CardTemplate template) {
-    switch (template) {
-      case CardTemplate.minimal:
-        return '极简';
-      case CardTemplate.elegant:
-        return '优雅';
-      case CardTemplate.romantic:
-        return '浪漫';
-      case CardTemplate.vintage:
-        return '复古';
-      case CardTemplate.nature:
-        return '自然';
-      case CardTemplate.urban:
-        return '都市';
     }
   }
 
