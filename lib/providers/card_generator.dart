@@ -1,5 +1,4 @@
 import 'dart:io';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:ai_poetry_card/models/poetry_card.dart';
 import 'package:ai_poetry_card/services/ai_poetry_service.dart';
@@ -21,17 +20,26 @@ class CardGenerator extends ChangeNotifier {
   }
 
   Future<PoetryCard> generateCard(File image, PoetryStyle style,
-      {String? userDescription}) async {
+      {String? userDescription,
+      List<String>? localImagePaths,
+      List<String>? cloudImageUrls}) async {
     _isGenerating = true;
     notifyListeners();
 
     try {
       // 1. 检查图片文件是否存在，如果不存在则生成默认图片
       File safeImage;
-      if (await image.exists()) {
+
+      if (cloudImageUrls != null && cloudImageUrls.isNotEmpty) {
+        // 使用云端图片URL的第一张
+        final firstCloudUrl = cloudImageUrls.first;
+        safeImage = File(firstCloudUrl);
+      } else if (await image.exists()) {
+        // 使用传入的图片文件
         safeImage = image;
+        print('🖼️ 使用传入的图片文件作为背景: ${image.path}');
       } else {
-        // 如果原图片不存在，生成默认图片
+        // 生成默认图片
         final userProfile = _userProfileService?.currentProfile;
         safeImage = await DefaultImageService.generateDefaultImage(
           interests: userProfile?.interests,
@@ -51,91 +59,29 @@ class CardGenerator extends ChangeNotifier {
       );
       _currentPoetry = poetry;
 
-      // 3. 生成二维码数据
-      final qrCodeData = _generateQrCodeData(poetry);
-
-      // 4. 创建卡片对象
+      // 3. 创建卡片对象
       final card = PoetryCard(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         image: safeImage,
         poetry: poetry,
         style: style,
         createdAt: DateTime.now(),
-        qrCodeData: qrCodeData,
         metadata: {
           'generatedAt': DateTime.now().toIso8601String(),
-          'imageSize': '${safeImage.lengthSync()}',
+          'imageSize': safeImage.path.startsWith('http')
+              ? 'URL'
+              : '${safeImage.lengthSync()}',
+          'localImagePaths': localImagePaths ?? [],
+          'cloudImageUrls': cloudImageUrls ?? [],
         },
       );
 
+      print('✅ 卡片生成成功: ${card.id}');
       return card;
-    } finally {
-      _isGenerating = false;
-      notifyListeners();
-    }
-  }
-
-  String _generateQrCodeData(String poetry) {
-    // 生成包含隐藏诗句的二维码数据
-    final hiddenPoems = [
-      '时光荏苒，岁月如诗',
-      '每一个瞬间都值得被珍藏',
-      '生活如诗，诗意如画',
-      '在平凡中发现美好',
-      '用心感受，用爱记录',
-    ];
-
-    final random = Random();
-    final hiddenPoem = hiddenPoems[random.nextInt(hiddenPoems.length)];
-
-    return 'poetry://card?poem=${Uri.encodeComponent(hiddenPoem)}&time=${DateTime.now().millisecondsSinceEpoch}';
-  }
-
-  /// 使用默认图片生成卡片
-  Future<PoetryCard> generateCardWithDefaultImage(PoetryStyle style,
-      {String? userDescription}) async {
-    _isGenerating = true;
-    notifyListeners();
-
-    try {
-      // 1. 生成默认图片（基于用户信息）
-      final userProfile = _userProfileService?.currentProfile;
-      final defaultImage = await DefaultImageService.generateDefaultImage(
-        interests: userProfile?.interests,
-        personality: userProfile?.personalityTypes.isNotEmpty == true
-            ? userProfile!.personalityTypes.map((p) => p.name).join('、')
-            : null,
-      );
-
-      // 2. 生成AI文案（基于用户描述或随机生成）
-      final userDescriptionText = _userProfileService?.getUserDescription();
-      final poetry = await _poetryService.generatePoetry(
-        defaultImage,
-        style,
-        userDescription: userDescription,
-        userProfile: userDescriptionText,
-      );
-      _currentPoetry = poetry;
-
-      // 3. 生成二维码数据
-      final qrCodeData = _generateQrCodeData(poetry);
-
-      // 4. 创建卡片对象
-      final card = PoetryCard(
-        id: DateTime.now().millisecondsSinceEpoch.toString(),
-        image: defaultImage,
-        poetry: poetry,
-        style: style,
-        createdAt: DateTime.now(),
-        qrCodeData: qrCodeData,
-        metadata: {
-          'generatedAt': DateTime.now().toIso8601String(),
-          'imageSize': '${defaultImage.lengthSync()}',
-          'isDefaultImage': true,
-        },
-      );
-
-      return card;
+    } catch (e) {
+      print('❌ CardGenerator生成失败: $e');
+      print('❌ 错误类型: ${e.runtimeType}');
+      rethrow; // 重新抛出错误，让调用者处理
     } finally {
       _isGenerating = false;
       notifyListeners();
@@ -144,17 +90,27 @@ class CardGenerator extends ChangeNotifier {
 
   /// 重新生成文案（保持图片和风格不变）
   Future<String> regeneratePoetry(File image, PoetryStyle style,
-      {String? userDescription}) async {
+      {String? userDescription,
+      List<String>? localImagePaths,
+      List<String>? cloudImageUrls}) async {
     _isGenerating = true;
     notifyListeners();
 
     try {
-      // 检查图片文件是否存在，如果不存在则生成默认图片
+      // 优先使用云端图片URL的第一张，否则使用传入的图片文件，最后生成默认图片
       File safeImage;
-      if (await image.exists()) {
+
+      if (cloudImageUrls != null && cloudImageUrls.isNotEmpty) {
+        // 使用云端图片URL的第一张
+        final firstCloudUrl = cloudImageUrls.first;
+        print('🖼️ 重新生成文案使用云端图片: $firstCloudUrl');
+        safeImage = File(firstCloudUrl);
+      } else if (await image.exists()) {
+        // 使用传入的图片文件
         safeImage = image;
+        print('🖼️ 重新生成文案使用传入的图片文件: ${image.path}');
       } else {
-        // 如果原图片不存在，生成默认图片
+        // 生成默认图片
         final userProfile = _userProfileService?.currentProfile;
         safeImage = await DefaultImageService.generateDefaultImage(
           interests: userProfile?.interests,
@@ -162,6 +118,7 @@ class CardGenerator extends ChangeNotifier {
               ? userProfile!.personalityTypes.map((p) => p.name).join('、')
               : null,
         );
+        print('🖼️ 重新生成文案使用默认图片');
       }
 
       // 重新生成AI文案

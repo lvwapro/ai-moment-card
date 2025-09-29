@@ -1,16 +1,39 @@
+import 'package:ai_poetry_card/providers/app_state.dart';
+import 'package:ai_poetry_card/screens/history_screen.dart';
+import 'package:ai_poetry_card/screens/home_screen.dart';
+import 'package:ai_poetry_card/screens/onboarding_screen.dart';
+import 'package:ai_poetry_card/services/user_profile_service.dart';
+import 'package:ai_poetry_card/services/cos_upload_service.dart';
+import 'utils/localization_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
-import 'package:ai_poetry_card/providers/app_state.dart';
-import 'package:ai_poetry_card/providers/card_generator.dart';
-import 'package:ai_poetry_card/providers/history_manager.dart';
-import 'package:ai_poetry_card/services/user_profile_service.dart';
-import 'package:ai_poetry_card/screens/home_screen.dart';
-import 'package:ai_poetry_card/screens/onboarding_screen.dart';
-import 'package:ai_poetry_card/screens/history_screen.dart';
-import 'package:ai_poetry_card/theme/app_theme.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+import 'providers/card_generator.dart';
+import 'providers/history_manager.dart';
+import 'theme/app_theme.dart';
+
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // 加载 .env 文件
+  try {
+    await dotenv.load(fileName: ".env");
+    print('✅ .env 文件加载成功');
+  } catch (e) {
+    print('⚠️ .env 文件加载失败: $e');
+    print('⚠️ 将使用默认配置或环境变量');
+  }
+
+  // 初始化腾讯云COS服务
+  try {
+    await CosUploadService.initialize();
+    print('COS服务初始化成功');
+  } catch (e) {
+    print('COS服务初始化失败: $e');
+  }
+
   runApp(const PoetryCardApp());
 }
 
@@ -18,37 +41,35 @@ class PoetryCardApp extends StatelessWidget {
   const PoetryCardApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AppState()),
-        ChangeNotifierProvider(create: (_) => CardGenerator()),
-        ChangeNotifierProvider(create: (_) => HistoryManager()),
-        ChangeNotifierProvider(create: (_) => UserProfileService()),
-      ],
-      child: MaterialApp(
-        title: 'AI诗意瞬间卡片',
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.system,
-        home: const AppInitializer(),
-        debugShowCheckedModeBanner: false,
-        routes: {
-          '/history': (context) => const HistoryScreen(),
-        },
-        localizationsDelegates: const [
-          GlobalMaterialLocalizations.delegate,
-          GlobalWidgetsLocalizations.delegate,
-          GlobalCupertinoLocalizations.delegate,
+  Widget build(BuildContext context) => MultiProvider(
+        providers: [
+          ChangeNotifierProvider(create: (_) => AppState()),
+          ChangeNotifierProvider(create: (_) => CardGenerator()),
+          ChangeNotifierProvider(create: (_) => HistoryManager()),
+          ChangeNotifierProvider(create: (_) => UserProfileService()),
         ],
-        supportedLocales: const [
-          Locale('zh', 'CN'),
-          Locale('en', 'US'),
-        ],
-        locale: const Locale('zh', 'CN'),
-      ),
-    );
-  }
+        child: MaterialApp(
+          title: 'AI诗意瞬间卡片',
+          theme: AppTheme.lightTheme,
+          darkTheme: AppTheme.darkTheme,
+          themeMode: ThemeMode.system,
+          home: const AppInitializer(),
+          debugShowCheckedModeBanner: false,
+          routes: {
+            '/history': (context) => const HistoryScreen(),
+          },
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('zh', 'CN'),
+            Locale('en', 'US'),
+          ],
+          // 不设置locale，让系统自动选择语言
+        ),
+      );
 }
 
 class AppInitializer extends StatefulWidget {
@@ -81,14 +102,14 @@ class _AppInitializerState extends State<AppInitializer> {
   @override
   Widget build(BuildContext context) {
     if (_isLoading) {
-      return const Scaffold(
+      return Scaffold(
         body: Center(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('正在初始化...'),
+              const CircularProgressIndicator(),
+              const SizedBox(height: 16),
+              Text(context.l10n('正在初始化...')),
             ],
           ),
         ),

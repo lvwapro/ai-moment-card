@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ai_poetry_card/utils/localization_extension.dart';
 
 class OnboardingOptionalInfoPage extends StatelessWidget {
   final String? occupation;
@@ -22,14 +23,14 @@ class OnboardingOptionalInfoPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '其他信息（可选）',
+            context.l10n('其他信息（可选）'),
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
           ),
           const SizedBox(height: 8),
           Text(
-            '这些信息将帮助我们生成更精准的文案',
+            context.l10n('这些信息将帮助我们生成更精准的文案'),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Colors.grey.shade600,
                 ),
@@ -40,16 +41,16 @@ class OnboardingOptionalInfoPage extends StatelessWidget {
               children: [
                 _buildTextField(
                   context: context,
-                  label: '职业',
-                  hint: '例如：设计师、教师、程序员',
+                  label: context.l10n('职业'),
+                  hint: context.l10n('例如：设计师、教师、程序员'),
                   value: occupation,
                   onChanged: onOccupationChanged,
                 ),
                 const SizedBox(height: 20),
                 _buildTextField(
                   context: context,
-                  label: '所在地区',
-                  hint: '例如：北京、上海、深圳',
+                  label: context.l10n('所在地区'),
+                  hint: context.l10n('例如：北京、上海、深圳'),
                   value: location,
                   onChanged: onLocationChanged,
                 ),
@@ -69,7 +70,7 @@ class OnboardingOptionalInfoPage extends StatelessWidget {
                       const SizedBox(width: 12),
                       Expanded(
                         child: Text(
-                          '这些信息是可选的，您可以随时跳过',
+                          context.l10n('这些信息是可选的，您可以随时跳过'),
                           style: TextStyle(
                             color: Colors.blue.shade700,
                             fontSize: 14,

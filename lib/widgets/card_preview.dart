@@ -2,6 +2,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ai_poetry_card/providers/app_state.dart';
+import '../utils/localization_extension.dart';
 
 class CardPreview extends StatelessWidget {
   final File? image;
@@ -14,22 +15,20 @@ class CardPreview extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) {
-    return Consumer<AppState>(
-      builder: (context, appState, child) {
-        return Padding(
+  Widget build(BuildContext context) => Consumer<AppState>(
+        builder: (context, appState, child) => Padding(
           padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // 标题
               Text(
-                '预览卡片',
+                context.l10n('预览卡片'),
                 style: Theme.of(context).textTheme.headlineSmall,
               ),
               const SizedBox(height: 8),
               Text(
-                'AI将根据你的选择生成精美的卡片',
+                context.l10n('AI将根据你的选择生成精美的卡片'),
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
 
@@ -58,7 +57,9 @@ class CardPreview extends StatelessWidget {
                     onPressed: appState.canGenerate ? onGenerate : null,
                     icon: const Icon(Icons.auto_awesome),
                     label: Text(
-                      appState.canGenerate ? '生成卡片' : '今日使用次数已用完',
+                      appState.canGenerate
+                          ? context.l10n('生成卡片')
+                          : context.l10n('今日使用次数已用完'),
                     ),
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
@@ -91,12 +92,12 @@ class CardPreview extends StatelessWidget {
                       ),
                       const SizedBox(height: 16),
                       Text(
-                        '请先选择图片',
+                        context.l10n('请先选择图片'),
                         style: Theme.of(context).textTheme.titleMedium,
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        '返回上一步选择一张照片',
+                        context.l10n('返回上一步选择一张照片'),
                         style: Theme.of(context).textTheme.bodyMedium,
                       ),
                     ],
@@ -105,10 +106,8 @@ class CardPreview extends StatelessWidget {
               ],
             ],
           ),
-        );
-      },
-    );
-  }
+        ),
+      );
 }
 
 class _CardPreviewWidget extends StatelessWidget {
@@ -172,7 +171,7 @@ class _CardPreviewWidget extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    _getPreviewText(),
+                    _getPreviewText(context),
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 16,
@@ -195,7 +194,7 @@ class _CardPreviewWidget extends StatelessWidget {
                           borderRadius: BorderRadius.circular(12),
                         ),
                         child: Text(
-                          _getStyleName(),
+                          _getStyleName(context),
                           style: const TextStyle(
                             color: Colors.white,
                             fontSize: 12,
@@ -222,8 +221,8 @@ class _CardPreviewWidget extends StatelessWidget {
                   color: Colors.black.withOpacity(0.5),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: const Text(
-                  '诗意瞬间',
+                child: Text(
+                  context.l10n('诗意瞬间'),
                   style: TextStyle(
                     color: Colors.white,
                     fontSize: 10,
@@ -238,29 +237,29 @@ class _CardPreviewWidget extends StatelessWidget {
     );
   }
 
-  String _getPreviewText() {
+  String _getPreviewText(BuildContext context) {
     switch (style.toString()) {
       case 'PoetryStyle.modernPoetic':
-        return '时光如诗，岁月如歌...';
+        return context.l10n('时光如诗，岁月如歌...');
       case 'PoetryStyle.classical':
-        return '山重水复疑无路...';
+        return context.l10n('山重水复疑无路...');
       case 'PoetryStyle.playful':
-        return '今天也要加油鸭！...';
+        return context.l10n('今天也要加油鸭！...');
       default:
-        return 'AI正在创作中...';
+        return context.l10n('AI正在创作中...');
     }
   }
 
-  String _getStyleName() {
+  String _getStyleName(BuildContext context) {
     switch (style.toString()) {
       case 'PoetryStyle.modernPoetic':
-        return '现代诗';
+        return context.l10n('现代诗');
       case 'PoetryStyle.classical':
-        return '古诗';
+        return context.l10n('古诗');
       case 'PoetryStyle.playful':
-        return '俏皮话';
+        return context.l10n('俏皮话');
       default:
-        return '诗意';
+        return context.l10n('诗意');
     }
   }
 }
@@ -288,7 +287,7 @@ class _SettingsSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '卡片设置',
+                context.l10n('卡片设置'),
                 style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 16),
@@ -297,7 +296,7 @@ class _SettingsSection extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('显示二维码'),
+                  Text(context.l10n('显示二维码')),
                   Switch(
                     value: appState.showQrCode,
                     onChanged: (value) {
@@ -313,7 +312,7 @@ class _SettingsSection extends StatelessWidget {
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const Text('文案风格'),
+                  Text(context.l10n('文案风格')),
                   Container(
                     padding: const EdgeInsets.symmetric(
                       horizontal: 12,

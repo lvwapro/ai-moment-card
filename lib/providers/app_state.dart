@@ -15,7 +15,7 @@ class AppState extends ChangeNotifier {
   bool _showQrCode = true;
 
   // 限制设置
-  static const int freeTrialLimit = 10;
+  static const int freeTrialLimit = 100;
   static const int premiumLimit = 999;
 
   // Getters
@@ -29,6 +29,7 @@ class AppState extends ChangeNotifier {
 
   AppState() {
     _loadSettings();
+    _refreshVipStatus();
   }
 
   Future<void> _loadSettings() async {
@@ -123,5 +124,30 @@ class AppState extends ChangeNotifier {
       case PoetryStyle.blindBox:
         return '随机惊喜，未知体验';
     }
+  }
+
+  /// 刷新 VIP 状态
+  Future<void> _refreshVipStatus() async {
+    try {
+      final isVip = false;
+      if (_isPremium != isVip) {
+        _isPremium = isVip;
+        await _savePremiumStatus();
+        notifyListeners();
+      }
+    } catch (e) {
+      print('刷新 VIP 状态失败: $e');
+    }
+  }
+
+  /// 手动刷新 VIP 状态
+  Future<void> refreshVipStatus() async {
+    await _refreshVipStatus();
+  }
+
+  /// 保存会员状态
+  Future<void> _savePremiumStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_isPremiumKey, _isPremium);
   }
 }

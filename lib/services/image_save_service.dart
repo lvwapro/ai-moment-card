@@ -22,11 +22,12 @@ class ImageSaveService {
       // 获取渲染边界
       RenderRepaintBoundary boundary = repaintBoundaryKey.currentContext!
           .findRenderObject() as RenderRepaintBoundary;
-      
+
       // 转换为图片
       ui.Image image = await boundary.toImage(pixelRatio: 3.0);
-      ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-      
+      ByteData? byteData =
+          await image.toByteData(format: ui.ImageByteFormat.png);
+
       if (byteData == null) {
         return false;
       }
@@ -35,6 +36,7 @@ class ImageSaveService {
       await Gal.putImageBytes(
         byteData.buffer.asUint8List(),
         name: 'AI诗意卡片_${DateTime.now().millisecondsSinceEpoch}',
+        album: 'AI诗意卡片', // 指定相册名称
       );
 
       return true;
@@ -53,7 +55,10 @@ class ImageSaveService {
       }
 
       // 保存到相册
-      await Gal.putImage(file.path);
+      await Gal.putImage(
+        file.path,
+        album: 'AI诗意卡片', // 指定相册名称
+      );
 
       return true;
     } catch (e) {
@@ -66,14 +71,14 @@ class ImageSaveService {
   Future<bool> _requestPermission() async {
     // 检查当前权限状态
     var status = await Permission.photos.status;
-    
+
     if (status.isGranted) {
       return true;
     }
 
     // 请求权限
     status = await Permission.photos.request();
-    
+
     if (status.isGranted) {
       return true;
     }
@@ -89,7 +94,7 @@ class ImageSaveService {
   /// 获取权限状态描述
   Future<String> getPermissionStatus() async {
     var status = await Permission.photos.status;
-    
+
     switch (status) {
       case PermissionStatus.granted:
         return '已授权';

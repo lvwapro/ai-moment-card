@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../utils/localization_extension.dart';
 
 class EmptyStateWidget extends StatelessWidget {
   final bool hasCards;
@@ -25,14 +26,16 @@ class EmptyStateWidget extends StatelessWidget {
             ),
             const SizedBox(height: 24),
             Text(
-              hasCards ? '没有找到相关卡片' : '还没有创作过卡片',
+              hasCards ? context.l10n('没有找到相关卡片') : context.l10n('还没有创作过卡片'),
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     color: Colors.grey.shade600,
                   ),
             ),
             const SizedBox(height: 8),
             Text(
-              hasCards ? '尝试调整搜索条件或筛选器' : '开始创作你的第一张诗意卡片吧',
+              hasCards
+                  ? context.l10n('尝试调整搜索条件或筛选器')
+                  : context.l10n('开始创作你的第一张诗意卡片吧'),
               style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                     color: Colors.grey.shade500,
                   ),
@@ -43,7 +46,7 @@ class EmptyStateWidget extends StatelessWidget {
               ElevatedButton.icon(
                 onPressed: () => Navigator.pop(context),
                 icon: const Icon(Icons.add),
-                label: const Text('开始创作'),
+                label: Text(context.l10n('开始创作')),
               ),
             ],
           ],

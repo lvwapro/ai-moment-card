@@ -3,16 +3,19 @@ import 'package:flutter/material.dart';
 
 import '../models/time_filter.dart';
 import 'time_filter_widget.dart';
+import '../utils/localization_extension.dart';
 
 class HistoryFilterBar extends StatelessWidget {
   final String searchQuery;
   final PoetryStyle? selectedStyle;
   final TimeFilterType? selectedTimeFilter;
   final DateTimeRange? customTimeRange;
+  final bool isGridView;
   final ValueChanged<String> onSearchChanged;
   final ValueChanged<PoetryStyle?> onStyleChanged;
   final ValueChanged<TimeFilterType?> onTimeFilterChanged;
   final ValueChanged<DateTimeRange?> onCustomTimeRangeChanged;
+  final ValueChanged<bool> onViewModeChanged;
 
   const HistoryFilterBar({
     super.key,
@@ -20,10 +23,12 @@ class HistoryFilterBar extends StatelessWidget {
     required this.selectedStyle,
     required this.selectedTimeFilter,
     required this.customTimeRange,
+    required this.isGridView,
     required this.onSearchChanged,
     required this.onStyleChanged,
     required this.onTimeFilterChanged,
     required this.onCustomTimeRangeChanged,
+    required this.onViewModeChanged,
   });
 
   @override
@@ -44,12 +49,17 @@ class HistoryFilterBar extends StatelessWidget {
             // 搜索框
             TextField(
               onChanged: onSearchChanged,
+              style: TextStyle(color: Theme.of(context).primaryColor),
               decoration: InputDecoration(
-                hintText: '搜索文案内容...',
-                prefixIcon: const Icon(Icons.search),
+                hintText: context.l10n('搜索文案内容...'),
+                hintStyle: TextStyle(
+                    color: Theme.of(context).primaryColor.withOpacity(0.6)),
+                prefixIcon:
+                    Icon(Icons.search, color: Theme.of(context).primaryColor),
                 suffixIcon: searchQuery.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear),
+                        icon: Icon(Icons.clear,
+                            color: Theme.of(context).primaryColor),
                         onPressed: () => onSearchChanged(''),
                       )
                     : null,
@@ -66,33 +76,45 @@ class HistoryFilterBar extends StatelessWidget {
             const SizedBox(height: 12),
 
             // 筛选器
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
+            Row(
               children: [
-                // 风格筛选
-                _FilterChip(
-                  label: '风格',
-                  value: selectedStyle != null
-                      ? _getStyleName(selectedStyle!)
-                      : null,
-                  onTap: () => _showStyleFilter(context),
-                ),
+                Expanded(
+                  child: Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: [
+                      // 风格筛选
+                      _FilterChip(
+                        label: context.l10n('风格'),
+                        value: selectedStyle != null
+                            ? _getStyleName(selectedStyle!)
+                            : null,
+                        onTap: () => _showStyleFilter(context),
+                      ),
 
-                // 时间筛选
-                _FilterChip(
-                  label: '时间',
-                  value: selectedTimeFilter != null
-                      ? TimeFilterWidget.getTimeFilterDisplayValue(
-                          selectedTimeFilter, customTimeRange)
-                      : null,
-                  onTap: () => TimeFilterWidget.showTimeFilter(
-                    context,
-                    selectedTimeFilter: selectedTimeFilter,
-                    customTimeRange: customTimeRange,
-                    onTimeFilterChanged: onTimeFilterChanged,
-                    onCustomTimeRangeChanged: onCustomTimeRangeChanged,
+                      // 时间筛选
+                      _FilterChip(
+                        label: context.l10n('时间'),
+                        value: selectedTimeFilter != null
+                            ? TimeFilterWidget.getTimeFilterDisplayValue(
+                                selectedTimeFilter, customTimeRange)
+                            : null,
+                        onTap: () => TimeFilterWidget.showTimeFilter(
+                          context,
+                          selectedTimeFilter: selectedTimeFilter,
+                          customTimeRange: customTimeRange,
+                          onTimeFilterChanged: onTimeFilterChanged,
+                          onCustomTimeRangeChanged: onCustomTimeRangeChanged,
+                        ),
+                      ),
+                    ],
                   ),
+                ),
+                const SizedBox(width: 8),
+                // 展示样式按钮
+                _ViewModeButton(
+                  isGridView: isGridView,
+                  onTap: () => onViewModeChanged(!isGridView),
                 ),
               ],
             ),
@@ -112,15 +134,15 @@ class HistoryFilterBar extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                '选择风格',
+                context.l10n('选择风格'),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 16),
               ...PoetryStyle.values.map((style) {
                 final isSelected = selectedStyle == style;
                 return ListTile(
-                  title: Text(_getStyleName(style)),
-                  subtitle: Text(_getStyleDescription(style)),
+                  title: Text(context.l10n(_getStyleName(style))),
+                  subtitle: Text(context.l10n(_getStyleDescription(style))),
                   leading: Radio<PoetryStyle>(
                     value: style,
                     groupValue: selectedStyle,
@@ -138,7 +160,7 @@ class HistoryFilterBar extends StatelessWidget {
               if (selectedStyle != null) ...[
                 const Divider(),
                 ListTile(
-                  title: const Text('清除筛选'),
+                  title: Text(context.l10n('清除筛选')),
                   leading: const Icon(Icons.clear),
                   onTap: () {
                     onStyleChanged(null);
@@ -225,9 +247,7 @@ class _FilterChip extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  color: value != null
-                      ? Theme.of(context).primaryColor
-                      : Colors.grey.shade600,
+                  color: Theme.of(context).primaryColor,
                   fontSize: 12,
                   fontWeight: FontWeight.w500,
                 ),
@@ -252,6 +272,30 @@ class _FilterChip extends StatelessWidget {
                     : Colors.grey.shade600,
               ),
             ],
+          ),
+        ),
+      );
+}
+
+class _ViewModeButton extends StatelessWidget {
+  final bool isGridView;
+  final VoidCallback onTap;
+
+  const _ViewModeButton({
+    required this.isGridView,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) => InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(8),
+        child: Container(
+          padding: const EdgeInsets.all(8),
+          child: Icon(
+            isGridView ? Icons.list : Icons.grid_view,
+            color: Theme.of(context).primaryColor,
+            size: 20,
           ),
         ),
       );

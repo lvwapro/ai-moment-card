@@ -5,13 +5,14 @@ import '../providers/history_manager.dart';
 import '../models/poetry_card.dart';
 import '../widgets/settings_card_widget.dart';
 import '../widgets/user_info_card_widget.dart';
+import '../utils/localization_extension.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: const Text('设置')),
+        appBar: AppBar(title: Text(context.l10n('设置'))),
         body: ListView(
           children: [
             const UserInfoCardWidget(),
@@ -31,19 +32,19 @@ class _PreferencesSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Consumer<AppState>(
         builder: (context, appState, child) => SettingsCardWidget(
-          title: '偏好设置',
+          title: context.l10n('偏好设置'),
           children: [
             SettingItemWidget(
               icon: Icons.style,
-              title: '默认文案风格',
+              title: context.l10n('默认文案风格'),
               subtitle: appState.getStyleDisplayName(appState.selectedStyle),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _showStyleSelector(context, appState),
             ),
             SettingItemWidget(
               icon: Icons.qr_code,
-              title: '显示二维码',
-              subtitle: '在卡片上显示二维码',
+              title: context.l10n('显示二维码'),
+              subtitle: context.l10n('在卡片上显示二维码'),
               trailing: Switch(
                 value: appState.showQrCode,
                 onChanged: (value) {
@@ -101,12 +102,12 @@ class _DataSection extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Consumer<HistoryManager>(
         builder: (context, historyManager, child) => SettingsCardWidget(
-          title: '数据管理',
+          title: context.l10n('数据管理'),
           children: [
             SettingItemWidget(
               icon: Icons.history,
-              title: '历史记录',
-              subtitle: '共 ${historyManager.totalCount} 张卡片',
+              title: context.l10n('历史记录'),
+              subtitle: context.l10n('共 ${historyManager.totalCount} 张卡片'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 Navigator.pushNamed(context, '/history');
@@ -114,19 +115,20 @@ class _DataSection extends StatelessWidget {
             ),
             SettingItemWidget(
               icon: Icons.download,
-              title: '导出数据',
-              subtitle: '导出所有卡片数据',
+              title: context.l10n('导出数据'),
+              subtitle: context.l10n('导出所有卡片数据'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () {
                 ScaffoldMessenger.of(
                   context,
-                ).showSnackBar(const SnackBar(content: Text('导出功能开发中...')));
+                ).showSnackBar(
+                    SnackBar(content: Text(context.l10n('导出功能开发中...'))));
               },
             ),
             SettingItemWidget(
               icon: Icons.delete_forever,
               title: '清空历史',
-              subtitle: '删除所有历史记录',
+              subtitle: context.l10n('删除所有历史记录'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _showClearHistoryDialog(context, historyManager),
             ),
@@ -141,12 +143,12 @@ class _DataSection extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('清空历史记录'),
-        content: const Text('确定要清空所有历史记录吗？此操作不可撤销。'),
+        title: Text(context.l10n('清空历史记录')),
+        content: Text(context.l10n('确定要清空所有历史记录吗？此操作不可撤销。')),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('取消'),
+            child: Text(context.l10n('取消')),
           ),
           ElevatedButton(
             onPressed: () {
@@ -154,13 +156,13 @@ class _DataSection extends StatelessWidget {
               historyManager.clearHistory();
               ScaffoldMessenger.of(
                 context,
-              ).showSnackBar(const SnackBar(content: Text('历史记录已清空')));
+              ).showSnackBar(SnackBar(content: Text(context.l10n('历史记录已清空'))));
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
             ),
-            child: const Text('清空'),
+            child: Text(context.l10n('清空')),
           ),
         ],
       ),
@@ -178,12 +180,13 @@ class _AboutSection extends StatelessWidget {
           SettingItemWidget(
             icon: Icons.feedback,
             title: '意见反馈',
-            subtitle: '告诉我们你的想法',
+            subtitle: context.l10n('告诉我们你的想法'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
               ScaffoldMessenger.of(
                 context,
-              ).showSnackBar(const SnackBar(content: Text('反馈功能开发中...')));
+              ).showSnackBar(
+                  SnackBar(content: Text(context.l10n('反馈功能开发中...'))));
             },
           ),
           SettingItemWidget(
@@ -194,7 +197,8 @@ class _AboutSection extends StatelessWidget {
             onTap: () {
               ScaffoldMessenger.of(
                 context,
-              ).showSnackBar(const SnackBar(content: Text('隐私政策页面开发中...')));
+              ).showSnackBar(
+                  SnackBar(content: Text(context.l10n('隐私政策页面开发中...'))));
             },
           ),
         ],

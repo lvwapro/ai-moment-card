@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ai_poetry_card/utils/localization_extension.dart';
 import 'package:ai_poetry_card/models/user_profile.dart';
 
 class OnboardingPersonalityPage extends StatelessWidget {
@@ -19,14 +20,14 @@ class OnboardingPersonalityPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '您的性格特点？',
+            context.l10n('您的性格特点？'),
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
           ),
           const SizedBox(height: 8),
           Text(
-            '可以选择多个，这将影响文案的风格和语调',
+            context.l10n('可以选择多个，这将影响文案的风格和语调'),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Colors.grey.shade600,
                 ),
@@ -48,28 +49,28 @@ class OnboardingPersonalityPage extends StatelessWidget {
 
                 switch (personality) {
                   case PersonalityType.introverted:
-                    personalityText = '内向';
+                    personalityText = context.l10n('内向');
                     break;
                   case PersonalityType.extroverted:
-                    personalityText = '外向';
+                    personalityText = context.l10n('外向');
                     break;
                   case PersonalityType.artistic:
-                    personalityText = '文艺';
+                    personalityText = context.l10n('文艺');
                     break;
                   case PersonalityType.practical:
-                    personalityText = '实用主义';
+                    personalityText = context.l10n('实用主义');
                     break;
                   case PersonalityType.romantic:
-                    personalityText = '浪漫主义';
+                    personalityText = context.l10n('浪漫主义');
                     break;
                   case PersonalityType.humorous:
-                    personalityText = '幽默风趣';
+                    personalityText = context.l10n('幽默风趣');
                     break;
                   case PersonalityType.philosophical:
-                    personalityText = '哲学思辨';
+                    personalityText = context.l10n('哲学思辨');
                     break;
                   case PersonalityType.adventurous:
-                    personalityText = '冒险精神';
+                    personalityText = context.l10n('冒险精神');
                     break;
                 }
 

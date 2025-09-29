@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state.dart';
+import '../utils/localization_extension.dart';
 
 class UserInfoCardWidget extends StatelessWidget {
   const UserInfoCardWidget({super.key});
@@ -49,7 +50,9 @@ class UserInfoCardWidget extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      appState.isPremium ? '专业版用户' : '免费版用户',
+                      appState.isPremium
+                          ? context.l10n('专业版用户')
+                          : context.l10n('免费版用户'),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 18,
@@ -58,7 +61,9 @@ class UserInfoCardWidget extends StatelessWidget {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      appState.isPremium ? '享受无限创作体验' : '试用版用户',
+                      appState.isPremium
+                          ? context.l10n('享受无限创作体验')
+                          : context.l10n('试用版用户'),
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.9),
                         fontSize: 14,
@@ -70,7 +75,8 @@ class UserInfoCardWidget extends StatelessWidget {
                         children: [
                           Expanded(
                             child: LinearProgressIndicator(
-                              value: appState.usedCount / 10.0,
+                              value: appState.usedCount /
+                                  appState.totalLimit.toDouble(),
                               backgroundColor: Colors.white.withOpacity(0.3),
                               valueColor: const AlwaysStoppedAnimation<Color>(
                                   Colors.white),
@@ -79,7 +85,7 @@ class UserInfoCardWidget extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           Text(
-                            '${appState.usedCount}/10',
+                            '${appState.usedCount}/${appState.totalLimit}',
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.9),
                               fontSize: 12,
@@ -99,7 +105,7 @@ class UserInfoCardWidget extends StatelessWidget {
                     foregroundColor: Colors.white,
                     backgroundColor: Colors.white.withOpacity(0.2),
                   ),
-                  child: const Text('升级'),
+                  child: Text(context.l10n('升级')),
                 ),
             ],
           ),
@@ -107,38 +113,41 @@ class UserInfoCardWidget extends StatelessWidget {
       );
 
   void _showUpgradeDialog(BuildContext context) {
+    final appState = Provider.of<AppState>(context, listen: false);
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('升级到专业版'),
-        content: const Column(
+        title: Text(context.l10n('升级到专业版')),
+        content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('当前：试用版（10张卡片）'),
-            SizedBox(height: 8),
-            Text('专业版特权：'),
-            SizedBox(height: 8),
-            Text('• 无限生成次数'),
-            Text('• 所有高级模板'),
-            Text('• 独家字体样式'),
-            Text('• 优先技术支持'),
-            Text('• 无水印导出'),
+            Text(context
+                .l10n('当前：试用版（{0}张卡片）')
+                .replaceAll('{0}', '${appState.totalLimit}')),
+            const SizedBox(height: 8),
+            Text(context.l10n('专业版特权：')),
+            const SizedBox(height: 8),
+            Text(context.l10n('• 无限生成次数')),
+            Text(context.l10n('• 所有高级模板')),
+            Text(context.l10n('• 独家字体样式')),
+            Text(context.l10n('• 优先技术支持')),
+            Text(context.l10n('• 无水印导出')),
           ],
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('稍后再说'),
+            child: Text(context.l10n('稍后再说')),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.pop(context);
               ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('支付功能开发中...')),
+                SnackBar(content: Text(context.l10n('支付功能开发中...'))),
               );
             },
-            child: const Text('立即升级'),
+            child: Text(context.l10n('立即升级')),
           ),
         ],
       ),

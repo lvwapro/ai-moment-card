@@ -17,7 +17,6 @@ class PoetryCard {
   final String poetry;
   final PoetryStyle style;
   final DateTime createdAt;
-  final String? qrCodeData;
   final Map<String, dynamic> metadata;
 
   PoetryCard({
@@ -26,7 +25,6 @@ class PoetryCard {
     required this.poetry,
     required this.style,
     required this.createdAt,
-    this.qrCodeData,
     this.metadata = const {},
   });
 
@@ -37,7 +35,6 @@ class PoetryCard {
       'poetry': poetry,
       'style': style.name,
       'createdAt': createdAt.toIso8601String(),
-      'qrCodeData': qrCodeData,
       'metadata': metadata,
     };
   }
@@ -52,7 +49,6 @@ class PoetryCard {
         orElse: () => PoetryStyle.blindBox,
       ),
       createdAt: DateTime.parse(json['createdAt']),
-      qrCodeData: json['qrCodeData'],
       metadata: Map<String, dynamic>.from(json['metadata'] ?? {}),
     );
   }
@@ -63,7 +59,6 @@ class PoetryCard {
     String? poetry,
     PoetryStyle? style,
     DateTime? createdAt,
-    String? qrCodeData,
     Map<String, dynamic>? metadata,
   }) {
     return PoetryCard(
@@ -72,7 +67,6 @@ class PoetryCard {
       poetry: poetry ?? this.poetry,
       style: style ?? this.style,
       createdAt: createdAt ?? this.createdAt,
-      qrCodeData: qrCodeData ?? this.qrCodeData,
       metadata: metadata ?? this.metadata,
     );
   }

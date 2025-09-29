@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ai_poetry_card/utils/localization_extension.dart';
 import 'package:ai_poetry_card/models/user_profile.dart';
 
 class OnboardingGenderPage extends StatelessWidget {
@@ -19,14 +20,14 @@ class OnboardingGenderPage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '您的性别是？',
+            context.l10n('您的性别是？'),
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
           ),
           const SizedBox(height: 8),
           Text(
-            '这将帮助我们调整文案的语言风格',
+            context.l10n('这将帮助我们调整文案的语言风格'),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Colors.grey.shade600,
                 ),
@@ -41,15 +42,15 @@ class OnboardingGenderPage extends StatelessWidget {
 
                 switch (gender) {
                   case Gender.male:
-                    genderText = '男性';
+                    genderText = context.l10n('男性');
                     genderIcon = Icons.male;
                     break;
                   case Gender.female:
-                    genderText = '女性';
+                    genderText = context.l10n('女性');
                     genderIcon = Icons.female;
                     break;
                   case Gender.other:
-                    genderText = '其他';
+                    genderText = context.l10n('其他');
                     genderIcon = Icons.person;
                     break;
                 }

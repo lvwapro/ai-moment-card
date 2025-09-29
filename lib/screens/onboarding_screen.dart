@@ -8,6 +8,7 @@ import '../widgets/onboarding/onboarding_interests_page.dart';
 import 'package:ai_poetry_card/widgets/onboarding/onboarding_optional_info_page.dart';
 import '../widgets/onboarding/onboarding_personality_page.dart';
 import 'package:ai_poetry_card/widgets/onboarding/onboarding_welcome_page.dart';
+import '../utils/localization_extension.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -126,7 +127,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             Row(
               children: [
                 Text(
-                  '完善个人信息',
+                  context.l10n('完善个人信息'),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         fontWeight: FontWeight.bold,
                       ),
@@ -166,14 +167,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     curve: Curves.easeInOut,
                   );
                 },
-                child: const Text('上一步'),
+                child: Text(context.l10n('上一步')),
               ),
             ),
           if (_currentPage > 0) const SizedBox(width: 16),
           Expanded(
             child: ElevatedButton(
               onPressed: _canProceed() ? _handleNext : null,
-              child: Text(_currentPage == 6 ? '完成' : '下一步'),
+              child: Text(
+                  _currentPage == 6 ? context.l10n('完成') : context.l10n('下一步')),
             ),
           ),
         ],
@@ -239,7 +241,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('保存信息失败：$e')),
+          SnackBar(content: Text(context.l10n('保存信息失败：$e'))),
         );
       }
     }

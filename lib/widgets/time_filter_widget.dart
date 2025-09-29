@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ai_poetry_card/models/time_filter.dart';
+import '../utils/localization_extension.dart';
 
 /// 时间筛选相关的UI组件
 class TimeFilterWidget {
@@ -24,22 +25,24 @@ class TimeFilterWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                '选择时间范围',
+                context.l10n('选择时间范围'),
                 style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 16),
-              ...TimeFilterType.values.map((type) => _buildTimeFilterOption(
-                    context,
-                    type,
-                    selectedTimeFilter,
-                    customTimeRange,
-                    onTimeFilterChanged,
-                    onCustomTimeRangeChanged,
-                  )),
+              ...TimeFilterType.values.map(
+                (type) => _buildTimeFilterOption(
+                  context,
+                  type,
+                  selectedTimeFilter,
+                  customTimeRange,
+                  onTimeFilterChanged,
+                  onCustomTimeRangeChanged,
+                ),
+              ),
               if (selectedTimeFilter != null) ...[
                 const Divider(),
                 ListTile(
-                  title: const Text('清除筛选'),
+                  title: Text(context.l10n('清除筛选')),
                   leading: const Icon(Icons.clear),
                   onTap: () {
                     onTimeFilterChanged(null);
@@ -113,14 +116,14 @@ class TimeFilterWidget {
   }
 
   /// 显示自定义时间范围选择器
-  static void _showCustomTimeRangePicker(
+  static Future<void> _showCustomTimeRangePicker(
     BuildContext context, {
     required DateTimeRange? customTimeRange,
     required ValueChanged<TimeFilterType?> onTimeFilterChanged,
     required ValueChanged<DateTimeRange?> onCustomTimeRangeChanged,
   }) async {
     final now = DateTime.now();
-    final firstDate = DateTime(now.year - 1, 1, 1);
+    final firstDate = DateTime(now.year - 1, 1);
     final lastDate = now.add(const Duration(days: 1));
 
     final DateTimeRange? picked = await showDateRangePicker(

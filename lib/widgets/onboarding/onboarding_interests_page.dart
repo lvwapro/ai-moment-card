@@ -1,3 +1,5 @@
+import '../../utils/localization_extension.dart';
+
 import 'package:flutter/material.dart';
 
 class OnboardingInterestsPage extends StatelessWidget {
@@ -32,71 +34,69 @@ class OnboardingInterestsPage extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(24),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            '您的兴趣爱好？',
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              context.l10n('您的兴趣爱好？'),
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              context.l10n('选择您感兴趣的内容，这将丰富文案的主题'),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey.shade600,
+                  ),
+            ),
+            const SizedBox(height: 32),
+            Expanded(
+              child: GridView.builder(
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 3,
+                  childAspectRatio: 1.2,
+                  crossAxisSpacing: 8,
+                  mainAxisSpacing: 8,
                 ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '选择您感兴趣的内容，这将丰富文案的主题',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey.shade600,
-                ),
-          ),
-          const SizedBox(height: 32),
-          Expanded(
-            child: GridView.builder(
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                childAspectRatio: 1.2,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-              ),
-              itemCount: _interestOptions.length,
-              itemBuilder: (context, index) {
-                final interest = _interestOptions[index];
-                final isSelected = selectedInterests.contains(interest);
+                itemCount: _interestOptions.length,
+                itemBuilder: (context, index) {
+                  final interest = _interestOptions[index];
+                  final isSelected = selectedInterests.contains(interest);
 
-                return GestureDetector(
-                  onTap: () => onInterestToggled(interest),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: isSelected
-                          ? Theme.of(context).primaryColor
-                          : Colors.white,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(
+                  return GestureDetector(
+                    onTap: () => onInterestToggled(interest),
+                    child: Container(
+                      decoration: BoxDecoration(
                         color: isSelected
                             ? Theme.of(context).primaryColor
-                            : Colors.grey.shade300,
-                        width: 1,
+                            : Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: isSelected
+                              ? Theme.of(context).primaryColor
+                              : Colors.grey.shade300,
+                          width: 1,
+                        ),
                       ),
-                    ),
-                    child: Center(
-                      child: Text(
-                        interest,
-                        style: TextStyle(
-                          fontSize: 12,
-                          fontWeight: FontWeight.w500,
-                          color: isSelected ? Colors.white : Colors.black87,
+                      child: Center(
+                        child: Text(
+                          interest,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                            color: isSelected ? Colors.white : Colors.black87,
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
+          ],
+        ),
+      );
 }

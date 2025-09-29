@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ai_poetry_card/utils/localization_extension.dart';
 
 class OnboardingAgePage extends StatelessWidget {
   final int? selectedAge;
@@ -18,14 +19,14 @@ class OnboardingAgePage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            '您的年龄是？',
+            context.l10n('您的年龄是？'),
             style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
           ),
           const SizedBox(height: 8),
           Text(
-            '这将帮助我们生成更符合您年龄段的文案风格',
+            context.l10n('这将帮助我们生成更符合您年龄段的文案风格'),
             style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                   color: Colors.grey.shade600,
                 ),
