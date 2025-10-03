@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:ai_poetry_card/utils/localization_extension.dart';
+import 'package:ai_poetry_card/services/language_service.dart';
 
 class OnboardingCompletePage extends StatelessWidget {
   const OnboardingCompletePage({super.key});

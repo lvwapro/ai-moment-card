@@ -7,7 +7,7 @@ import '../providers/app_state.dart';
 import '../providers/card_generator.dart';
 import '../providers/history_manager.dart';
 import '../theme/app_theme.dart';
-import '../utils/localization_extension.dart';
+import 'package:ai_poetry_card/services/language_service.dart';
 import '../widgets/enhanced_image_selection_widget.dart';
 import '../widgets/description_input_widget.dart';
 import '../widgets/style_selector_widget.dart';

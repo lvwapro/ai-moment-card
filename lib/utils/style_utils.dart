@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/poetry_card.dart';
-import 'localization_extension.dart';
+import 'package:ai_poetry_card/services/language_service.dart';
 
 /// 风格工具类 - 统一管理风格相关的显示和操作
 class StyleUtils {

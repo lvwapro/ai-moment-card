@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state.dart';
-import '../utils/localization_extension.dart';
+import 'package:ai_poetry_card/services/language_service.dart';
 
 class UserInfoCardWidget extends StatelessWidget {
   const UserInfoCardWidget({super.key});

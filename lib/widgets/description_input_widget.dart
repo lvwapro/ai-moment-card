@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
-import '../utils/localization_extension.dart';
+import 'package:ai_poetry_card/services/language_service.dart';
 
 //hct
 class DescriptionInputWidget extends StatelessWidget {

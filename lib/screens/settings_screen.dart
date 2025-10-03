@@ -5,7 +5,7 @@ import '../providers/history_manager.dart';
 import '../models/poetry_card.dart';
 import '../widgets/settings_card_widget.dart';
 import '../widgets/user_info_card_widget.dart';
-import '../utils/localization_extension.dart';
+import 'package:ai_poetry_card/services/language_service.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});

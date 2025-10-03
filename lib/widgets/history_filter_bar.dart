@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 
 import '../models/time_filter.dart';
 import 'time_filter_widget.dart';
-import '../utils/localization_extension.dart';
+import 'package:ai_poetry_card/services/language_service.dart';
 
 class HistoryFilterBar extends StatelessWidget {
   final String searchQuery;

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ai_poetry_card/models/time_filter.dart';
-import '../utils/localization_extension.dart';
+import 'package:ai_poetry_card/services/language_service.dart';
 
 /// 时间筛选相关的UI组件
 class TimeFilterWidget {

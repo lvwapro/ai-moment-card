@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../models/poetry_card.dart';
 import '../providers/card_generator.dart';
-import '../utils/localization_extension.dart';
+import 'package:ai_poetry_card/services/language_service.dart';
 import '../utils/style_utils.dart';
 
 /// 卡片信息展示组件

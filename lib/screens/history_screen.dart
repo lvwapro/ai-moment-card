@@ -7,7 +7,7 @@ import '../providers/history_manager.dart';
 import '../widgets/empty_state_widget.dart';
 import '../widgets/history_card_widget.dart';
 import '../widgets/history_filter_bar.dart';
-import '../utils/localization_extension.dart';
+import 'package:ai_poetry_card/services/language_service.dart';
 
 class HistoryScreen extends StatefulWidget {
   const HistoryScreen({super.key});

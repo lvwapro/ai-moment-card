@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/poetry_card.dart';
 import 'common/fallback_background.dart';
 import '../screens/card_detail_screen.dart';
-import '../utils/localization_extension.dart';
+import 'package:ai_poetry_card/services/language_service.dart';
 import '../utils/style_utils.dart';
 
 class HistoryCardWidget extends StatelessWidget {

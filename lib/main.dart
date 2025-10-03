@@ -4,7 +4,7 @@ import 'package:ai_poetry_card/screens/home_screen.dart';
 import 'package:ai_poetry_card/screens/onboarding_screen.dart';
 import 'package:ai_poetry_card/services/user_profile_service.dart';
 import 'package:ai_poetry_card/services/cos_upload_service.dart';
-import 'utils/localization_extension.dart';
+import 'services/language_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';

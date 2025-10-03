@@ -8,7 +8,8 @@ import '../widgets/onboarding/onboarding_interests_page.dart';
 import 'package:ai_poetry_card/widgets/onboarding/onboarding_optional_info_page.dart';
 import '../widgets/onboarding/onboarding_personality_page.dart';
 import 'package:ai_poetry_card/widgets/onboarding/onboarding_welcome_page.dart';
-import '../utils/localization_extension.dart';
+import 'package:ai_poetry_card/services/language_service.dart';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
