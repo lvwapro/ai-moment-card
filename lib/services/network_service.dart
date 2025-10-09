@@ -17,7 +17,9 @@ class NetworkService {
   late Dio _dio;
 
   // 环境配置
+  // 如果域名无法解析，可以尝试使用 IP 地址
   String get baseUrl => 'https://a.mostsnews.com/';
+  // String get baseUrl => 'https://104.21.72.208/'; // 备用 IP（需要配置 Host header）
 
   // 认证信息
   String? _token;
@@ -30,9 +32,9 @@ class NetworkService {
   void init() {
     _dio = Dio(BaseOptions(
       baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 10),
-      receiveTimeout: const Duration(seconds: 10),
-      sendTimeout: const Duration(seconds: 10),
+      connectTimeout: const Duration(seconds: 15), // 减少到15秒，更快失败
+      receiveTimeout: const Duration(seconds: 60), // 接收数据超时保持60秒
+      sendTimeout: const Duration(seconds: 30), // 发送超时减少到30秒
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
@@ -81,7 +83,6 @@ class NetworkService {
     _token = token;
     _bundleId = bundleId;
     _deviceId = deviceId;
-    print(' 认证信息已设置: bundleId=$bundleId, deviceId=$deviceId');
   }
 
   // 获取设备ID - 真实设备ID + bundleId 进行MD5哈希
@@ -109,11 +110,6 @@ class NetworkService {
       final digest = md5.convert(bytes);
       final deviceId = digest.toString();
 
-      print('真实设备ID: $realDeviceId');
-      print('Bundle ID: $bundleId');
-      print('组合ID: $combinedId');
-      print('MD5哈希后设备ID: $deviceId');
-
       return deviceId;
     } catch (e) {
       print('获取设备ID失败: $e');
@@ -138,13 +134,8 @@ class NetworkService {
       final bundleId = await getBundleId();
       final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000; // 秒级时间戳
 
-      print('正在生成Token...');
-      print('Bundle ID: $bundleId');
-      print('Timestamp: $timestamp');
-
       // 按照 bundle-id-timestamp-toodan 格式生成内容
       final content = '$bundleId-$timestamp-toodan';
-      print('Token内容: $content');
 
       // 使用SHA256哈希密钥，与Node.js保持一致
       final keyBytes = utf8.encode(_secretKey);
@@ -158,7 +149,6 @@ class NetworkService {
       final encrypted = encrypter.encrypt(content);
       final token = encrypted.base16; // 使用hex格式，与Node.js一致
 
-      print('Token生成成功: $token');
       return token;
     } catch (e) {
       print('Token生成异常: $e');
@@ -171,7 +161,6 @@ class NetworkService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('device_id', deviceId);
-      print('DeviceId已保存: $deviceId');
     } catch (e) {
       print('保存DeviceId失败: $e');
     }
@@ -185,6 +174,24 @@ class NetworkService {
     } catch (e) {
       print('获取DeviceId失败: $e');
       return null;
+    }
+  }
+
+  // 测试网络连接（异步执行，不阻塞主流程）
+  Future<bool> testConnection() async {
+    try {
+      await _dio.get(
+        '',
+        options: Options(
+          sendTimeout: const Duration(seconds: 10),
+          receiveTimeout: const Duration(seconds: 10),
+          validateStatus: (status) => status! < 500, // 4xx 也算成功，说明服务器可达
+        ),
+      );
+
+      return true;
+    } catch (e) {
+      return false;
     }
   }
 
@@ -202,9 +209,12 @@ class NetworkService {
         setAuthInfo(token, bundleId, deviceId);
         // 保存deviceId到本地
         await saveDeviceId(deviceId);
+
+        // 异步测试网络连接，不等待结果（不阻塞初始化）
+        testConnection();
+
         return true;
       } else {
-        print('Token生成失败');
         return false;
       }
     } catch (e) {
@@ -239,11 +249,15 @@ class NetworkService {
     Options? options,
   }) async {
     try {
+      // 确保 Content-Type 始终被设置
+      final mergedOptions = options ?? Options();
+      mergedOptions.contentType = Headers.jsonContentType;
+
       return await _dio.post<T>(
         path,
         data: data,
         queryParameters: queryParameters,
-        options: options,
+        options: mergedOptions,
       );
     } on DioException catch (e) {
       _handleError(e);

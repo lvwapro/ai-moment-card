@@ -4,6 +4,7 @@ import 'package:ai_poetry_card/screens/home_screen.dart';
 import 'package:ai_poetry_card/screens/onboarding_screen.dart';
 import 'package:ai_poetry_card/services/user_profile_service.dart';
 import 'package:ai_poetry_card/services/cos_upload_service.dart';
+import 'package:ai_poetry_card/services/network_service.dart';
 import 'services/language_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -20,16 +21,27 @@ void main() async {
   // 加载 .env 文件
   try {
     await dotenv.load(fileName: ".env");
-    print('✅ .env 文件加载成功');
   } catch (e) {
-    print('⚠️ .env 文件加载失败: $e');
-    print('⚠️ 将使用默认配置或环境变量');
+    print('.env 文件加载失败: $e');
+  }
+
+  // 初始化语言服务
+  try {
+    await LanguageService().initialize();
+  } catch (e) {
+    print('语言服务初始化失败: $e');
+  }
+
+  // 初始化网络服务
+  try {
+    await NetworkService().initializeAuth();
+  } catch (e) {
+    print('网络服务初始化失败: $e');
   }
 
   // 初始化腾讯云COS服务
   try {
     await CosUploadService.initialize();
-    print('COS服务初始化成功');
   } catch (e) {
     print('COS服务初始化失败: $e');
   }
