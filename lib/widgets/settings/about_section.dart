@@ -1,8 +1,10 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../services/language_service.dart';
 import '../../screens/privacy_policy_screen.dart';
+import '../../screens/user_agreement_screen.dart';
 import '../settings_card_widget.dart';
 
 /// 关于部分
@@ -10,36 +12,45 @@ class AboutSection extends StatelessWidget {
   const AboutSection({super.key});
 
   @override
-  Widget build(BuildContext context) => SettingsCardWidget(
-        title: context.l10n('关于'),
-        children: [
-          SettingItemWidget(
-            icon: Icons.info,
-            title: context.l10n('版本信息'),
-            subtitle: 'v1.0.0',
-          ),
-          SettingItemWidget(
-            icon: Icons.feedback,
-            title: context.l10n('意见反馈'),
-            subtitle: context.l10n('告诉我们你的想法'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => _openFeedback(context),
-          ),
-          SettingItemWidget(
-            icon: Icons.privacy_tip,
-            title: context.l10n('隐私政策'),
-            subtitle: context.l10n('了解我们如何保护你的隐私'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const PrivacyPolicyScreen(),
-                ),
-              );
-            },
-          ),
-        ],
+  Widget build(BuildContext context) => Consumer<LanguageService>(
+        builder: (context, languageService, child) => SettingsCardWidget(
+          title: context.l10n('关于'),
+          children: [
+            SettingItemWidget(
+              icon: Icons.info,
+              title: context.l10n('版本信息'),
+              subtitle: 'v1.0.0',
+            ),
+            SettingItemWidget(
+              icon: Icons.feedback,
+              title: context.l10n('意见反馈'),
+              subtitle: context.l10n('告诉我们你的想法'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _openFeedback(context),
+            ),
+            SettingItemWidget(
+              icon: Icons.description,
+              title: context.l10n('用户协议'),
+              subtitle: context.l10n('查看服务条款'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _openUserAgreement(context),
+            ),
+            SettingItemWidget(
+              icon: Icons.privacy_tip,
+              title: context.l10n('隐私政策'),
+              subtitle: context.l10n('了解我们如何保护你的隐私'),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const PrivacyPolicyScreen(),
+                  ),
+                );
+              },
+            ),
+          ],
+        ),
       );
 
   /// 打开意见反馈
@@ -97,6 +108,16 @@ class AboutSection extends StatelessWidget {
             child: Text(context.l10n('关闭')),
           ),
         ],
+      ),
+    );
+  }
+
+  /// 打开用户协议
+  void _openUserAgreement(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const UserAgreementScreen(),
       ),
     );
   }

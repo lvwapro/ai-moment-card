@@ -14,8 +14,10 @@ class DataSection extends StatelessWidget {
   const DataSection({super.key});
 
   @override
-  Widget build(BuildContext context) => Consumer<HistoryManager>(
-        builder: (context, historyManager, child) => SettingsCardWidget(
+  Widget build(BuildContext context) =>
+      Consumer2<HistoryManager, LanguageService>(
+        builder: (context, historyManager, languageService, child) =>
+            SettingsCardWidget(
           title: context.l10n('数据管理'),
           children: [
             SettingItemWidget(

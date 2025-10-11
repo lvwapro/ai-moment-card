@@ -162,6 +162,12 @@ class EnglishTranslations {
     // 新增的翻译
     '升级': 'Upgrade',
     '升级到专业版': 'Upgrade to Pro',
+    '解锁无限生成和所有功能': 'Unlock unlimited generations and all features',
+    '无限生成': 'Unlimited',
+    '高级风格': 'Premium Styles',
+    '无广告': 'Ad-Free',
+    '优先支持': 'Priority Support',
+    '升级成功！': 'Upgrade successful!',
     '当前：试用版（{0}张卡片）': 'Current: Trial ({0} cards)',
     '专业版特权：': 'Pro Benefits:',
     '• 无限生成次数': '• Unlimited generations',
@@ -213,6 +219,27 @@ class EnglishTranslations {
     '历史记录': 'History',
     '共 {0} 张卡片': '{0} cards in total',
     '版本信息': 'Version Info',
+    '用户协议': 'User Agreement',
+    'AI诗意瞬间卡片用户协议': 'AI Poetry Moment Card User Agreement',
+    '查看服务条款': 'View terms of service',
+    '服务条款': 'Terms of Service',
+    '欢迎使用AI诗意瞬间卡片。使用本应用前，请您仔细阅读并理解本协议。一旦您开始使用本应用，即表示您已同意本协议的所有条款。':
+        'Welcome to AI Poetry Moment Card. Before using this application, please read and understand this agreement carefully. Once you start using this application, it means that you have agreed to all the terms of this agreement.',
+    '服务内容': 'Service Content',
+    '本应用提供基于AI技术的文案生成服务，包括但不限于：诗意文案生成、多平台文案创作、图片识别与描述等功能。':
+        'This application provides AI-based copywriting services, including but not limited to: poetic copywriting generation, multi-platform copywriting creation, image recognition and description.',
+    '用户责任': 'User Responsibilities',
+    '用户应合法使用本应用，不得利用本应用生成违法、违规或侵犯他人权益的内容。用户对使用本应用生成的内容负有完全责任。':
+        'Users should use this application legally and shall not use this application to generate illegal, non-compliant or content that infringes on the rights of others. Users are fully responsible for the content generated using this application.',
+    '知识产权': 'Intellectual Property',
+    '本应用及其所有相关内容（包括但不限于软件、图标、文字、图片）的知识产权归开发者所有。用户生成的内容归用户所有。':
+        'The intellectual property rights of this application and all its related content (including but not limited to software, icons, text, images) belong to the developer. User-generated content belongs to the user.',
+    '免责声明': 'Disclaimer',
+    'AI生成的内容仅供参考，我们不对内容的准确性、完整性或适用性作出保证。用户应自行判断并承担使用风险。':
+        'AI-generated content is for reference only. We do not guarantee the accuracy, completeness or applicability of the content. Users should make their own judgments and assume the risk of use.',
+    '协议修改': 'Agreement Modification',
+    '我们保留随时修改本协议的权利。修改后的协议将在应用内公布，继续使用即视为接受修改后的协议。':
+        'We reserve the right to modify this agreement at any time. The modified agreement will be announced in the application, and continued use shall be deemed acceptance of the modified agreement.',
     '了解我们如何保护你的隐私': 'Learn how we protect your privacy',
     '隐私政策': 'Privacy Policy',
     '意见反馈': 'Feedback',

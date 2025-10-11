@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state.dart';
+import '../services/revenue_cat_service.dart';
 import 'package:ai_poetry_card/services/language_service.dart';
 
 class UserInfoCardWidget extends StatelessWidget {
@@ -112,45 +113,50 @@ class UserInfoCardWidget extends StatelessWidget {
         ),
       );
 
-  void _showUpgradeDialog(BuildContext context) {
+  Future<void> _showUpgradeDialog(BuildContext context) async {
     final appState = Provider.of<AppState>(context, listen: false);
+    final revenueCatService = RevenueCatService();
+
+    // 显示loading
     showDialog(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.l10n('升级到专业版')),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(context
-                .l10n('当前：试用版（{0}张卡片）')
-                .replaceAll('{0}', '${appState.totalLimit}')),
-            const SizedBox(height: 8),
-            Text(context.l10n('专业版特权：')),
-            const SizedBox(height: 8),
-            Text(context.l10n('• 无限生成次数')),
-            Text(context.l10n('• 所有高级模板')),
-            Text(context.l10n('• 独家字体样式')),
-            Text(context.l10n('• 优先技术支持')),
-            Text(context.l10n('• 无水印导出')),
-          ],
+      barrierDismissible: false,
+      builder: (context) => const Center(
+        child: CircularProgressIndicator(
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text(context.l10n('稍后再说')),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(content: Text(context.l10n('支付功能开发中...'))),
-              );
-            },
-            child: Text(context.l10n('立即升级')),
-          ),
-        ],
       ),
     );
+
+    // 打开付费墙
+    final success = await revenueCatService.showIAPPaywall();
+
+    // 关闭loading
+    if (context.mounted) {
+      Navigator.pop(context);
+    }
+
+    if (success) {
+      // 刷新VIP状态
+      await appState.refreshVipStatus();
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n('升级成功！')),
+            backgroundColor: Colors.green,
+          ),
+        );
+      }
+    } else {
+      // 如果RevenueCat未启用，显示提示
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n('支付功能开发中...')),
+          ),
+        );
+      }
+    }
   }
 }

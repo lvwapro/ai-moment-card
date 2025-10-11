@@ -4,7 +4,7 @@ import 'package:ai_poetry_card/screens/home_screen.dart';
 import 'package:ai_poetry_card/screens/onboarding_screen.dart';
 import 'package:ai_poetry_card/services/user_profile_service.dart';
 import 'package:ai_poetry_card/services/cos_upload_service.dart';
-import 'package:ai_poetry_card/services/network_service.dart';
+import 'package:ai_poetry_card/services/init_service.dart';
 import 'services/language_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -32,11 +32,11 @@ void main() async {
     print('语言服务初始化失败: $e');
   }
 
-  // 初始化网络服务
+  // 初始化应用（包括网络、用户、RevenueCat等）
   try {
-    await NetworkService().initializeAuth();
+    await InitService.initApp();
   } catch (e) {
-    print('网络服务初始化失败: $e');
+    print('应用初始化失败: $e');
   }
 
   // 初始化腾讯云COS服务

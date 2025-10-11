@@ -12,15 +12,15 @@ class SettingsScreen extends StatelessWidget {
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(title: Text(context.l10n('设置'))),
         body: ListView(
-          children: const [
-            UserInfoCardWidget(),
-            SizedBox(height: 16),
-            PreferencesSection(),
-            SizedBox(height: 16),
-            DataSection(),
-            SizedBox(height: 16),
-            AboutSection(),
-            SizedBox(height: 32),
+          children: [
+            const UserInfoCardWidget(),
+            const SizedBox(height: 16),
+            const PreferencesSection(),
+            const SizedBox(height: 16),
+            const DataSection(),
+            const SizedBox(height: 16),
+            const AboutSection(),
+            const SizedBox(height: 32),
           ],
         ),
       );

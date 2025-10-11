@@ -43,7 +43,6 @@ class LanguageService extends ChangeNotifier {
       if (savedLanguage != null && savedLanguage.isNotEmpty) {
         // 使用用户之前保存的语言设置
         _currentLanguage = savedLanguage;
-        print('从本地存储加载语言设置: $_currentLanguage');
       } else {
         // 如果没有保存的语言设置，检测系统语言
         _currentLanguage = _detectSystemLanguage();
