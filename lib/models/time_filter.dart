@@ -1,50 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:ai_poetry_card/services/language_service.dart';
 
 /// 时间筛选类型
 enum TimeFilterType {
-  all, // 全部
   today, // 今天
   thisWeek, // 本周
   thisMonth, // 本月
   last3Months, // 近3个月
-  custom, // 自定义
+  lastYear, // 一年内
+  beforeLastYear, // 一年前
 }
 
 /// 时间筛选辅助类
 class TimeFilterHelper {
-  /// 获取时间筛选类型的显示名称
+  /// 获取时间筛选类型的显示名称（支持多语言）
   static String getTimeFilterName(TimeFilterType type) {
     switch (type) {
-      case TimeFilterType.all:
-        return '全部';
       case TimeFilterType.today:
-        return '今天';
+        return LanguageService.to.getText('今天');
       case TimeFilterType.thisWeek:
-        return '本周';
+        return LanguageService.to.getText('本周');
       case TimeFilterType.thisMonth:
-        return '本月';
+        return LanguageService.to.getText('本月');
       case TimeFilterType.last3Months:
-        return '近3个月';
-      case TimeFilterType.custom:
-        return '自定义';
-    }
-  }
-
-  /// 获取时间筛选类型的描述
-  static String getTimeFilterDescription(TimeFilterType type) {
-    switch (type) {
-      case TimeFilterType.all:
-        return '显示所有时间';
-      case TimeFilterType.today:
-        return '今天创建的卡片';
-      case TimeFilterType.thisWeek:
-        return '本周创建的卡片';
-      case TimeFilterType.thisMonth:
-        return '本月创建的卡片';
-      case TimeFilterType.last3Months:
-        return '近3个月创建的卡片';
-      case TimeFilterType.custom:
-        return '自定义时间范围';
+        return LanguageService.to.getText('近3个月');
+      case TimeFilterType.lastYear:
+        return LanguageService.to.getText('一年内');
+      case TimeFilterType.beforeLastYear:
+        return LanguageService.to.getText('一年前');
     }
   }
 
@@ -54,8 +37,6 @@ class TimeFilterHelper {
     final today = DateTime(now.year, now.month, now.day);
 
     switch (type) {
-      case TimeFilterType.all:
-        return null; // 不限制时间范围
       case TimeFilterType.today:
         return DateTimeRange(
           start: today,
@@ -72,8 +53,13 @@ class TimeFilterHelper {
       case TimeFilterType.last3Months:
         final startOf3MonthsAgo = DateTime(now.year, now.month - 3, now.day);
         return DateTimeRange(start: startOf3MonthsAgo, end: now);
-      case TimeFilterType.custom:
-        return null; // 需要用户自定义选择
+      case TimeFilterType.lastYear:
+        final startOfLastYear = DateTime(now.year - 1, now.month, now.day);
+        return DateTimeRange(start: startOfLastYear, end: now);
+      case TimeFilterType.beforeLastYear:
+        final endOfBeforeLastYear = DateTime(now.year - 1, now.month, now.day);
+        return DateTimeRange(
+            start: DateTime(2000, 1, 1), end: endOfBeforeLastYear);
     }
   }
 

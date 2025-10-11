@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ai_poetry_card/models/poetry_card.dart';
+import '../utils/style_utils.dart';
 
 class HistoryManager extends ChangeNotifier {
   static const String _historyKey = 'poetry_cards_history';
@@ -103,31 +104,10 @@ class HistoryManager extends ChangeNotifier {
     final lowercaseQuery = query.toLowerCase();
     return _cards.where((card) {
       return card.poetry.toLowerCase().contains(lowercaseQuery) ||
-          _getStyleDisplayName(card.style)
+          StyleUtils.getStyleDisplayName(card.style)
               .toLowerCase()
               .contains(lowercaseQuery);
     }).toList();
-  }
-
-  String _getStyleDisplayName(PoetryStyle style) {
-    switch (style) {
-      case PoetryStyle.modernPoetic:
-        return '现代诗意';
-      case PoetryStyle.classicalElegant:
-        return '古风雅韵';
-      case PoetryStyle.humorousPlayful:
-        return '幽默俏皮';
-      case PoetryStyle.warmLiterary:
-        return '文艺暖心';
-      case PoetryStyle.minimalTags:
-        return '极简摘要';
-      case PoetryStyle.sciFiImagination:
-        return '科幻想象';
-      case PoetryStyle.deepPhilosophical:
-        return '深沉哲思';
-      case PoetryStyle.blindBox:
-        return '盲盒';
-    }
   }
 
   // 多选相关方法

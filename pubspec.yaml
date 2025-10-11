@@ -62,12 +62,19 @@ dependencies:
   
   # 分享功能
   share_plus: ^7.2.1
+  url_launcher: ^6.2.2
   
   # 文件操作
   path_provider: ^2.1.1
   
   # 保存到相册
   gal: ^2.3.0
+  
+  # Lottie动画
+  lottie: ^3.1.2
+  
+  # Excel导出
+  excel: ^4.0.3
   
 
 dev_dependencies:
@@ -82,6 +89,7 @@ flutter:
     - assets/images/
     - assets/images/backgrounds/
     - assets/fonts/
+    - assets/animation/
     - .env
   
   # fonts:

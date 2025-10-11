@@ -11,8 +11,8 @@ class AIPoetryService {
   final NetworkService _networkService = NetworkService();
   final LocationService _locationService = LocationService();
 
-  // 真实的AI文案生成服务
-  Future<String> generatePoetry(File image, PoetryStyle style,
+  // 真实的AI文案生成服务 - 返回包含所有平台文案的数据
+  Future<Map<String, dynamic>> generatePoetryData(File image, PoetryStyle style,
       {String? userDescription, String? userProfile}) async {
     try {
       // 1. 获取图片URL
@@ -66,34 +66,41 @@ class AIPoetryService {
       if (response.data != null && response.data['success'] == true) {
         final data = response.data['data'];
 
-        // 根据不同平台选择合适的文案，优先使用朋友圈文案
-        String copywriting = '';
-        if (data['pengyouquan'] != null &&
-            data['pengyouquan'].toString().isNotEmpty) {
-          copywriting = data['pengyouquan'];
-        } else if (data['xiaohongshu'] != null &&
-            data['xiaohongshu'].toString().isNotEmpty) {
-          copywriting = data['xiaohongshu'];
-        } else if (data['weibo'] != null &&
-            data['weibo'].toString().isNotEmpty) {
-          copywriting = data['weibo'];
-        } else if (data['douyin'] != null &&
-            data['douyin'].toString().isNotEmpty) {
-          copywriting = data['douyin'];
-        } else {
-          copywriting = _getFallbackPoetry(style);
-        }
-
-        return copywriting;
+        // 返回完整的数据结构
+        return {
+          'title': data['title'],
+          'author': data['author'],
+          'time': data['time'],
+          'content': data['content'],
+          'shiju': data['shiju'],
+          'weibo': data['weibo'],
+          'xiaohongshu': data['xiaohongshu'],
+          'pengyouquan': data['pengyouquan'],
+          'douyin': data['douyin'],
+        };
       } else {
         print('API返回错误: ${response.data?['message'] ?? response.data}');
-        return _getFallbackPoetry(style);
+        return _getFallbackPoetryData(style);
       }
     } catch (e) {
       print('生成文案异常: $e');
-      // 出错时返回备用文案
-      return _getFallbackPoetry(style);
+      // 出错时返回备用文案数据
+      return _getFallbackPoetryData(style);
     }
+  }
+
+  // 兼容旧接口 - 仅返回默认文案（朋友圈）
+  Future<String> generatePoetry(File image, PoetryStyle style,
+      {String? userDescription, String? userProfile}) async {
+    final data = await generatePoetryData(image, style,
+        userDescription: userDescription, userProfile: userProfile);
+
+    // 优先返回朋友圈文案
+    return data['pengyouquan'] ??
+        data['xiaohongshu'] ??
+        data['weibo'] ??
+        data['douyin'] ??
+        _getFallbackPoetry(style);
   }
 
   // 获取图片URL
@@ -144,6 +151,22 @@ class AIPoetryService {
       case PoetryStyle.blindBox:
         return 'random';
     }
+  }
+
+  // 获取备用文案数据（API失败时使用）
+  Map<String, dynamic> _getFallbackPoetryData(PoetryStyle style) {
+    final fallbackText = _getFallbackPoetry(style);
+    return {
+      'title': '离线文案',
+      'author': 'AI助手',
+      'time': '现代',
+      'content': fallbackText,
+      'shiju': fallbackText,
+      'weibo': fallbackText,
+      'xiaohongshu': fallbackText,
+      'pengyouquan': fallbackText,
+      'douyin': fallbackText,
+    };
   }
 
   // 获取备用文案（API失败时使用）

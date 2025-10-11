@@ -55,31 +55,34 @@ class PoetryCardApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MultiProvider(
         providers: [
+          ChangeNotifierProvider(create: (_) => LanguageService()),
           ChangeNotifierProvider(create: (_) => AppState()),
           ChangeNotifierProvider(create: (_) => CardGenerator()),
           ChangeNotifierProvider(create: (_) => HistoryManager()),
           ChangeNotifierProvider(create: (_) => UserProfileService()),
         ],
-        child: MaterialApp(
-          title: 'AI诗意瞬间卡片',
-          theme: AppTheme.lightTheme,
-          darkTheme: AppTheme.darkTheme,
-          themeMode: ThemeMode.system,
-          home: const AppInitializer(),
-          debugShowCheckedModeBanner: false,
-          routes: {
-            '/history': (context) => const HistoryScreen(),
-          },
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [
-            Locale('zh', 'CN'),
-            Locale('en', 'US'),
-          ],
-          // 不设置locale，让系统自动选择语言
+        child: Consumer<LanguageService>(
+          builder: (context, languageService, _) => MaterialApp(
+            title: 'AI诗意瞬间卡片',
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: ThemeMode.system,
+            home: const AppInitializer(),
+            debugShowCheckedModeBanner: false,
+            routes: {
+              '/history': (context) => const HistoryScreen(),
+            },
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [
+              Locale('zh', 'CN'),
+              Locale('en', 'US'),
+            ],
+            locale: languageService.currentLocale, // 使用当前设置的语言
+          ),
         ),
       );
 }

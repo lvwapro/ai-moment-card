@@ -1,9 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/poetry_card.dart';
 import 'common/fallback_background.dart';
 import '../screens/card_detail_screen.dart';
 import 'package:ai_poetry_card/services/language_service.dart';
 import '../utils/style_utils.dart';
+import '../theme/app_theme.dart';
 
 class HistoryCardWidget extends StatelessWidget {
   final PoetryCard card;
@@ -51,39 +53,47 @@ class HistoryCardWidget extends StatelessWidget {
                 offset: const Offset(0, 2),
               ),
             ],
-            border: showSelection && isSelected
-                ? Border.all(color: Theme.of(context).primaryColor, width: 2)
-                : null,
+            border: null,
           ),
           child: Stack(
             children: [
-              isCompact ? _CompactView(card: card) : _CardListView(card: card),
-              if (showSelection)
+              isCompact
+                  ? _CompactView(
+                      card: card,
+                      showSelection: showSelection,
+                      isSelected: isSelected,
+                    )
+                  : _CardListView(
+                      card: card,
+                      showSelection: showSelection,
+                      isSelected: isSelected,
+                    ),
+              // 右下角选择标记
+              if (showSelection && isSelected)
                 Positioned(
-                  top: 8,
+                  bottom: 8,
                   right: 8,
                   child: Container(
                     width: 24,
-                    height: 24,
+                    height: 16,
                     decoration: BoxDecoration(
-                      color: isSelected
-                          ? Theme.of(context).primaryColor
-                          : Colors.white,
-                      shape: BoxShape.circle,
-                      border: Border.all(
-                        color: isSelected
-                            ? Theme.of(context).primaryColor
-                            : Colors.grey.shade400,
-                        width: 2,
+                      color: Colors.grey, // 背景改为灰色
+                      borderRadius: BorderRadius.circular(8), // 减少圆角
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.2),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: const Center(
+                      child: Icon(
+                        Icons.check,
+                        color: Colors.white, // 勾选图标改为白色
+                        size: 12, // 减小图标尺寸以适应容器
                       ),
                     ),
-                    child: isSelected
-                        ? const Icon(
-                            Icons.check,
-                            color: Colors.white,
-                            size: 16,
-                          )
-                        : null,
                   ),
                 ),
             ],
@@ -94,8 +104,14 @@ class HistoryCardWidget extends StatelessWidget {
 
 class _CompactView extends StatelessWidget {
   final PoetryCard card;
+  final bool showSelection;
+  final bool isSelected;
 
-  const _CompactView({required this.card});
+  const _CompactView({
+    required this.card,
+    required this.showSelection,
+    required this.isSelected,
+  });
 
   @override
   Widget build(BuildContext context) => Column(
@@ -115,30 +131,7 @@ class _CompactView extends StatelessWidget {
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(16),
                 ),
-                child: FutureBuilder<bool>(
-                  future: card.image.exists(),
-                  builder: (context, snapshot) {
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return Container(
-                        child: const Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      );
-                    }
-
-                    if (snapshot.hasData && snapshot.data == true) {
-                      return Image.file(
-                        card.image,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return FallbackBackgrounds.historyCard();
-                        },
-                      );
-                    } else {
-                      return FallbackBackgrounds.historyCard();
-                    }
-                  },
-                ),
+                child: _buildHistoryCardImage(card, context),
               ),
             ),
           ),
@@ -148,47 +141,48 @@ class _CompactView extends StatelessWidget {
             flex: 2,
             child: Padding(
               padding: const EdgeInsets.all(12),
-              child: Column(
+              child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    card.poetry,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: Theme.of(context).primaryColor,
+                  // 文字内容
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          card.poetry,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    color: Theme.of(context).primaryColor,
+                                  ),
                         ),
-                  ),
-                  const Spacer(),
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color:
-                              Theme.of(context).primaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          StyleUtils.getStyleDisplayName(context, card.style),
-                          style: TextStyle(
-                            color: Theme.of(context).primaryColor,
-                            fontSize: 10,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-                      const Spacer(),
-                      Text(
-                        _formatDate(context, card.createdAt),
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Theme.of(context).primaryColor,
+                        const Spacer(),
+                        Row(
+                          children: [
+                            Text(
+                              StyleUtils.getStyleDisplayName(card.style),
+                              style: const TextStyle(
+                                color: AppTheme.chipText,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
                             ),
-                      ),
-                    ],
+                            const Spacer(),
+                            Text(
+                              _formatDate(context, card.createdAt),
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .bodySmall
+                                  ?.copyWith(
+                                    color: Theme.of(context).primaryColor,
+                                  ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 ],
               ),
@@ -200,8 +194,14 @@ class _CompactView extends StatelessWidget {
 
 class _CardListView extends StatelessWidget {
   final PoetryCard card;
+  final bool showSelection;
+  final bool isSelected;
 
-  const _CardListView({required this.card});
+  const _CardListView({
+    required this.card,
+    required this.showSelection,
+    required this.isSelected,
+  });
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -236,32 +236,21 @@ class _CardListView extends StatelessWidget {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 12), // 标签上方较大间距
                   Row(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color:
-                              Theme.of(context).primaryColor.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Text(
-                          StyleUtils.getStyleDisplayName(context, card.style),
-                          style: TextStyle(
-                            color: Theme.of(context).primaryColor,
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                          ),
+                      Text(
+                        StyleUtils.getStyleDisplayName(card.style),
+                        style: const TextStyle(
+                          color: AppTheme.chipText,
+                          fontSize: 12,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
                       const SizedBox(width: 8),
                     ],
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 4), // 标签下方较小间距
                   Text(
                     _formatDate(context, card.createdAt),
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
@@ -270,12 +259,6 @@ class _CardListView extends StatelessWidget {
                   ),
                 ],
               ),
-            ),
-
-            // 箭头
-            Icon(
-              Icons.chevron_right,
-              color: Theme.of(context).primaryColor,
             ),
           ],
         ),
@@ -297,30 +280,11 @@ String _formatDate(BuildContext context, DateTime date) {
   }
 }
 
-/// 构建历史卡片图片，支持本地文件和网络URL
-Widget _buildHistoryCardImage(PoetryCard card, BuildContext context) {
-  // 检查是否是URL（以http开头）
-  if (card.image.path.startsWith('http')) {
-    return Image.network(
-      card.image.path,
-      fit: BoxFit.cover,
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return Container(
-          color: Theme.of(context).primaryColor.withOpacity(0.1),
-          child: const Center(
-            child: CircularProgressIndicator(),
-          ),
-        );
-      },
-      errorBuilder: (context, error, stackTrace) {
-        return FallbackBackgrounds.historyCard();
-      },
-    );
-  } else {
-    // 本地文件
-    return FutureBuilder<bool>(
-      future: card.image.exists(),
+/// 构建历史卡片图片，支持本地文件和网络URL，优先使用本地图片
+Widget _buildHistoryCardImage(PoetryCard card, BuildContext context) =>
+    FutureBuilder<ImageProvider?>(
+      key: ValueKey(card.id), // 使用卡片ID作为key，避免不必要的重建
+      future: _getHistoryCardImageProvider(card),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return Container(
@@ -331,18 +295,64 @@ Widget _buildHistoryCardImage(PoetryCard card, BuildContext context) {
           );
         }
 
-        if (snapshot.hasData && snapshot.data == true) {
-          return Image.file(
-            card.image,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              return FallbackBackgrounds.historyCard();
-            },
+        if (snapshot.hasData && snapshot.data != null) {
+          return RepaintBoundary(
+            child: Image(
+              image: snapshot.data!,
+              fit: BoxFit.cover,
+              gaplessPlayback: true, // 避免图片闪烁
+              errorBuilder: (context, error, stackTrace) {
+                return FallbackBackgrounds.historyCard();
+              },
+            ),
           );
         } else {
           return FallbackBackgrounds.historyCard();
         }
       },
     );
+
+/// 智能获取图片Provider：优先本地图片，其次云端图片
+Future<ImageProvider?> _getHistoryCardImageProvider(PoetryCard card) async {
+  // 1. 优先尝试本地图片路径
+  final localPaths = card.metadata['localImagePaths'] as List<dynamic>?;
+  if (localPaths != null && localPaths.isNotEmpty) {
+    for (var path in localPaths) {
+      try {
+        final localFile = File(path.toString());
+        if (await localFile.exists()) {
+          return FileImage(localFile);
+        }
+      } catch (e) {
+        // 继续尝试下一个
+      }
+    }
   }
+
+  // 2. 尝试云端图片URL
+  final cloudUrls = card.metadata['cloudImageUrls'] as List<dynamic>?;
+  if (cloudUrls != null && cloudUrls.isNotEmpty) {
+    for (var url in cloudUrls) {
+      if (url.toString().startsWith('http')) {
+        return NetworkImage(url.toString());
+      }
+    }
+  }
+
+  // 3. 使用卡片当前的图片路径
+  if (card.image.path.startsWith('http')) {
+    return NetworkImage(card.image.path);
+  } else {
+    // 检查本地文件是否存在
+    try {
+      if (await card.image.exists()) {
+        return FileImage(card.image);
+      }
+    } catch (e) {
+      // 忽略错误
+    }
+  }
+
+  // 4. 都不可用，返回null使用备用背景
+  return null;
 }

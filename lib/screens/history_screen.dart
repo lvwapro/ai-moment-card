@@ -20,7 +20,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
   String _searchQuery = '';
   PoetryStyle? _selectedStyle;
   TimeFilterType? _selectedTimeFilter;
-  DateTimeRange? _customTimeRange;
   bool _isGridView = false;
   bool _isMultiSelectMode = false;
 
@@ -48,9 +47,19 @@ class _HistoryScreenState extends State<HistoryScreen> {
                 style: TextStyle(color: Theme.of(context).primaryColor),
               ),
         leading: _isMultiSelectMode
-            ? IconButton(
-                icon: Icon(Icons.close, color: Theme.of(context).primaryColor),
-                onPressed: _exitMultiSelectMode,
+            ? Consumer<HistoryManager>(
+                builder: (context, historyManager, child) => IconButton(
+                  icon: Icon(Icons.select_all,
+                      color: Theme.of(context).primaryColor),
+                  onPressed: () {
+                    if (historyManager.selectedCount ==
+                        historyManager.totalCount) {
+                      historyManager.clearSelection();
+                    } else {
+                      historyManager.selectAllCards();
+                    }
+                  },
+                ),
               )
             : IconButton(
                 icon: Icon(Icons.arrow_back,
@@ -66,7 +75,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
         searchQuery: _searchQuery,
         selectedStyle: _selectedStyle,
         selectedTimeFilter: _selectedTimeFilter,
-        customTimeRange: _customTimeRange,
         isGridView: _isGridView,
         onSearchChanged: (query) {
           setState(() {
@@ -81,11 +89,6 @@ class _HistoryScreenState extends State<HistoryScreen> {
         onTimeFilterChanged: (timeFilter) {
           setState(() {
             _selectedTimeFilter = timeFilter;
-          });
-        },
-        onCustomTimeRangeChanged: (timeRange) {
-          setState(() {
-            _customTimeRange = timeRange;
           });
         },
         onViewModeChanged: (isGridView) {
@@ -135,14 +138,7 @@ class _HistoryScreenState extends State<HistoryScreen> {
 
     // 时间过滤
     if (_selectedTimeFilter != null) {
-      DateTimeRange? timeRange;
-
-      if (_selectedTimeFilter == TimeFilterType.custom &&
-          _customTimeRange != null) {
-        timeRange = _customTimeRange;
-      } else {
-        timeRange = TimeFilterHelper.getTimeRange(_selectedTimeFilter!);
-      }
+      final timeRange = TimeFilterHelper.getTimeRange(_selectedTimeFilter!);
 
       if (timeRange != null) {
         cards = cards
@@ -167,23 +163,15 @@ class _HistoryScreenState extends State<HistoryScreen> {
   List<Widget> _buildMultiSelectActions() => [
         Consumer<HistoryManager>(
           builder: (context, historyManager, child) => IconButton(
-            icon: Icon(Icons.select_all, color: Theme.of(context).primaryColor),
-            onPressed: () {
-              if (historyManager.selectedCount == historyManager.totalCount) {
-                historyManager.clearSelection();
-              } else {
-                historyManager.selectAllCards();
-              }
-            },
-          ),
-        ),
-        Consumer<HistoryManager>(
-          builder: (context, historyManager, child) => IconButton(
             icon: Icon(Icons.delete, color: Theme.of(context).primaryColor),
             onPressed: historyManager.selectedCount > 0
                 ? () => _showDeleteSelectedDialog()
                 : null,
           ),
+        ),
+        IconButton(
+          icon: Icon(Icons.close, color: Theme.of(context).primaryColor),
+          onPressed: _exitMultiSelectMode,
         ),
       ];
 
@@ -256,9 +244,11 @@ class _ListGridView extends StatelessWidget {
         itemBuilder: (context, index) {
           final card = cards[index];
           return Container(
+            key: ValueKey(card.id),
             margin: const EdgeInsets.only(bottom: 16),
             child: Consumer<HistoryManager>(
               builder: (context, historyManager, child) => HistoryCardWidget(
+                key: ValueKey('card_${card.id}'),
                 card: card,
                 showSelection: isMultiSelectMode,
                 isSelected: historyManager.isCardSelected(card.id),
@@ -294,7 +284,9 @@ class _GridView extends StatelessWidget {
         itemBuilder: (context, index) {
           final card = cards[index];
           return Consumer<HistoryManager>(
+            key: ValueKey(card.id),
             builder: (context, historyManager, child) => HistoryCardWidget(
+              key: ValueKey('grid_card_${card.id}'),
               card: card,
               isCompact: true,
               showSelection: isMultiSelectMode,

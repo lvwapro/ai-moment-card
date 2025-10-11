@@ -1,6 +1,10 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:ai_poetry_card/models/poetry_card.dart';
 import 'package:ai_poetry_card/widgets/common/fallback_background.dart';
+import '../providers/app_state.dart';
+import '../utils/style_utils.dart';
 
 class PoetryCardWidget extends StatelessWidget {
   final PoetryCard card;
@@ -63,17 +67,19 @@ class PoetryCardWidget extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // 主要文案
-                      Text(
-                        card.poetry,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.w500,
-                          height: 1.4,
+                      // 主要文案（根据默认平台显示）
+                      Consumer<AppState>(
+                        builder: (context, appState, child) => Text(
+                          _getDisplayContent(appState.defaultPlatform),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w500,
+                            height: 1.4,
+                          ),
+                          maxLines: 4,
+                          overflow: TextOverflow.ellipsis,
                         ),
-                        maxLines: 4,
-                        overflow: TextOverflow.ellipsis,
                       ),
 
                       const SizedBox(height: 16),
@@ -93,7 +99,7 @@ class PoetryCardWidget extends StatelessWidget {
                               borderRadius: BorderRadius.circular(16),
                             ),
                             child: Text(
-                              _getStyleDisplayName(card.style),
+                              StyleUtils.getStyleDisplayName(card.style),
                               style: const TextStyle(
                                 color: Colors.white,
                                 fontSize: 12,
@@ -102,48 +108,32 @@ class PoetryCardWidget extends StatelessWidget {
                             ),
                           ),
 
-                          Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(1),
-                              child: Image.asset(
-                                'assets/images/qrcode.png',
-                                width: 50,
-                                height: 50,
-                                fit: BoxFit.contain,
-                              ),
-                            ),
+                          // 二维码（根据设置显示）
+                          Consumer<AppState>(
+                            builder: (context, appState, child) {
+                              if (!appState.showQrCode) {
+                                return const SizedBox.shrink();
+                              }
+                              return Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(1),
+                                  child: Image.asset(
+                                    'assets/images/qrcode.png',
+                                    width: 50,
+                                    height: 50,
+                                    fit: BoxFit.contain,
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                         ],
                       ),
                     ],
-                  ),
-                ),
-
-                // 风格标签
-                Positioned(
-                  top: 16,
-                  left: 16,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.9),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      _getStyleDisplayName(card.style),
-                      style: TextStyle(
-                        color: Colors.grey.shade700,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
                   ),
                 ),
               ],
@@ -152,76 +142,99 @@ class PoetryCardWidget extends StatelessWidget {
         ),
       );
 
-  String _getStyleDisplayName(PoetryStyle style) {
-    switch (style) {
-      case PoetryStyle.modernPoetic:
-        return '现代诗意';
-      case PoetryStyle.classicalElegant:
-        return '古风雅韵';
-      case PoetryStyle.humorousPlayful:
-        return '幽默俏皮';
-      case PoetryStyle.warmLiterary:
-        return '文艺暖心';
-      case PoetryStyle.minimalTags:
-        return '极简摘要';
-      case PoetryStyle.sciFiImagination:
-        return '科幻想象';
-      case PoetryStyle.deepPhilosophical:
-        return '深沉哲思';
-      case PoetryStyle.blindBox:
-        return '盲盒';
+  /// 根据默认平台获取要显示的文案内容
+  String _getDisplayContent(PlatformType platform) {
+    switch (platform) {
+      case PlatformType.douyin:
+        return card.douyin ?? card.poetry;
+      case PlatformType.xiaohongshu:
+        return card.xiaohongshu ?? card.poetry;
+      case PlatformType.weibo:
+        return card.weibo ?? card.poetry;
+      case PlatformType.pengyouquan:
+        return card.pengyouquan ?? card.poetry;
+      case PlatformType.shiju:
+        return card.shiju ?? card.poetry;
     }
   }
 
   /// 构建背景图片，支持本地文件和网络URL
   Widget _buildBackgroundImage(PoetryCard card) {
-    // 检查是否是URL（以http开头）
-    if (card.image.path.startsWith('http')) {
-      print('🖼️ 显示网络图片: ${card.image.path}');
-      return Image.network(
-        card.image.path,
-        fit: BoxFit.cover,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
+    return FutureBuilder<ImageProvider?>(
+      future: _getImageProvider(card),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
           return Container(
             color: Colors.grey.shade300,
             child: const Center(
               child: CircularProgressIndicator(),
             ),
           );
-        },
-        errorBuilder: (context, error, stackTrace) {
-          print('❌ 网络图片加载失败: ${card.image.path}');
-          return FallbackBackgrounds.cardPreview();
-        },
-      );
-    } else {
-      // 本地文件
-      return FutureBuilder<bool>(
-        future: card.image.exists(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Container(
-              color: Colors.grey.shade300,
-              child: const Center(
-                child: CircularProgressIndicator(),
-              ),
-            );
-          }
+        }
 
-          if (snapshot.hasData && snapshot.data == true) {
-            return Image.file(
-              card.image,
-              fit: BoxFit.cover,
-              errorBuilder: (context, error, stackTrace) {
-                return FallbackBackgrounds.cardPreview();
-              },
-            );
-          } else {
-            return FallbackBackgrounds.cardPreview();
+        if (snapshot.hasData && snapshot.data != null) {
+          return Image(
+            image: snapshot.data!,
+            fit: BoxFit.cover,
+            errorBuilder: (context, error, stackTrace) {
+              print('❌ 图片加载失败，使用备用背景');
+              return FallbackBackgrounds.cardPreview();
+            },
+          );
+        } else {
+          return FallbackBackgrounds.cardPreview();
+        }
+      },
+    );
+  }
+
+  /// 智能获取图片Provider：优先本地图片，其次云端图片
+  Future<ImageProvider?> _getImageProvider(PoetryCard card) async {
+    // 1. 优先尝试本地图片路径
+    final localPaths = card.metadata['localImagePaths'] as List<dynamic>?;
+    if (localPaths != null && localPaths.isNotEmpty) {
+      for (var path in localPaths) {
+        try {
+          final localFile = File(path.toString());
+          if (await localFile.exists()) {
+            print('🖼️ 使用本地图片: $path');
+            return FileImage(localFile);
           }
-        },
-      );
+        } catch (e) {
+          print('⚠️ 本地图片检查失败: $path, 错误: $e');
+        }
+      }
     }
+
+    // 2. 尝试云端图片URL
+    final cloudUrls = card.metadata['cloudImageUrls'] as List<dynamic>?;
+    if (cloudUrls != null && cloudUrls.isNotEmpty) {
+      for (var url in cloudUrls) {
+        if (url.toString().startsWith('http')) {
+          print('🖼️ 使用云端图片: $url');
+          return NetworkImage(url.toString());
+        }
+      }
+    }
+
+    // 3. 使用卡片当前的图片路径
+    if (card.image.path.startsWith('http')) {
+      print('🖼️ 使用卡片URL图片: ${card.image.path}');
+      return NetworkImage(card.image.path);
+    } else {
+      // 检查本地文件是否存在
+      try {
+        if (await card.image.exists()) {
+          print('🖼️ 使用卡片本地图片: ${card.image.path}');
+          return FileImage(card.image);
+        }
+      } catch (e) {
+        print('⚠️ 卡片图片检查失败: ${card.image.path}, 错误: $e');
+      }
+    }
+
+    // 4. 都不可用，返回null使用备用背景
+    print('⚠️ 所有图片源都不可用，将使用备用背景');
+    return null;
   }
 }

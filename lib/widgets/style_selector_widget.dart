@@ -4,8 +4,8 @@ import '../providers/app_state.dart';
 import '../models/poetry_card.dart';
 import 'package:ai_poetry_card/services/language_service.dart';
 import '../utils/style_utils.dart';
+import '../theme/app_theme.dart';
 
-//hct
 class StyleSelectorWidget extends StatelessWidget {
   const StyleSelectorWidget({super.key});
 
@@ -30,7 +30,7 @@ class StyleSelectorWidget extends StatelessWidget {
             const SizedBox(height: 12),
             Consumer<AppState>(
               builder: (context, appState, child) {
-                final styleOptions = StyleUtils.getStyleOptions(context);
+                final styleOptions = StyleUtils.getStyleOptions();
                 final styleRows = StyleUtils.groupStylesIntoRows(styleOptions);
 
                 return Column(
@@ -92,22 +92,37 @@ class _StyleOption extends StatelessWidget {
   @override
   Widget build(BuildContext context) => InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(20),
         child: Container(
-          height: 60, // 固定高度
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+          constraints: const BoxConstraints(
+            minHeight: 40, // 最小高度
+          ),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
           decoration: BoxDecoration(
             color: isSelected
-                ? Theme.of(context).primaryColor.withOpacity(0.15)
-                : Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(8),
+                // ? AppTheme.primaryDark // 更深的选中背景
+                ? Theme.of(context).primaryColor
+                : Colors.white, // 白色未选中背景
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: isSelected
+                    ? AppTheme.primaryDark.withOpacity(0.3) // 选中状态深色阴影
+                    : Colors.black.withOpacity(0.1), // 未选中状态浅色阴影
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ], // 所有状态都有阴影
           ),
           child: Center(
             child: Text(
               title,
               style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    color: Theme.of(context).primaryColor,
+                    color: isSelected
+                        ? Colors.white // 白色选中文字
+                        : const Color(0xFF333333), // 深色未选中文字
                     fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    fontSize: 13, // 稍微减小字体
                   ),
               textAlign: TextAlign.center,
               maxLines: 2,

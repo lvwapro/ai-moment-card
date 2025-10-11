@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ai_poetry_card/providers/app_state.dart';
 import 'package:ai_poetry_card/services/language_service.dart';
+import '../utils/style_utils.dart';
+import '../theme/app_theme.dart';
 
 class CardPreview extends StatelessWidget {
   final File? image;
@@ -76,7 +78,7 @@ class CardPreview extends StatelessWidget {
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.grey.withOpacity(0.1),
+                        color: AppTheme.shadowColor,
                         spreadRadius: 1,
                         blurRadius: 4,
                         offset: const Offset(0, 2),
@@ -88,7 +90,7 @@ class CardPreview extends StatelessWidget {
                       Icon(
                         Icons.image_not_supported,
                         size: 64,
-                        color: Colors.grey.shade400,
+                        color: AppTheme.textTertiary,
                       ),
                       const SizedBox(height: 16),
                       Text(
@@ -276,7 +278,7 @@ class _SettingsSection extends StatelessWidget {
             borderRadius: BorderRadius.circular(16),
             boxShadow: [
               BoxShadow(
-                color: Colors.grey.withOpacity(0.1),
+                color: AppTheme.shadowColor,
                 spreadRadius: 1,
                 blurRadius: 4,
                 offset: const Offset(0, 2),
@@ -323,7 +325,7 @@ class _SettingsSection extends StatelessWidget {
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
-                      appState.getStyleDisplayName(appState.selectedStyle),
+                      StyleUtils.getStyleDisplayName(appState.selectedStyle),
                       style: TextStyle(
                         color: Theme.of(context).primaryColor,
                         fontSize: 12,

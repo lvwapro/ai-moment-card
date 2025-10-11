@@ -12,11 +12,11 @@ import '../widgets/enhanced_image_selection_widget.dart';
 import '../widgets/description_input_widget.dart';
 import '../widgets/style_selector_widget.dart';
 import '../widgets/generate_button_widget.dart';
+import '../widgets/loading_overlay.dart';
 import 'card_detail_screen.dart';
 import 'history_screen.dart';
 import 'settings_screen.dart';
 
-// hct
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -120,9 +120,6 @@ class _HomeScreenState extends State<HomeScreen> {
           _uploadedUrls.clear();
           _localImagePaths.clear();
         });
-        print('🧹 生成卡片后清空图片数组');
-        print('🧹 清空后的localImagePaths: $_localImagePaths');
-        print('🧹 清空后的cloudImageUrls: $_uploadedUrls');
       }
     } catch (e) {
       // 显示错误信息
@@ -144,32 +141,38 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) => Scaffold(
         backgroundColor: AppTheme.backgroundColor,
         appBar: _buildAppBar(context),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            children: [
-              EnhancedImageSelectionWidget(
-                onDataChanged: _onDataChanged,
-                onUploadFailed: _onUploadFailed,
+        body: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                children: [
+                  EnhancedImageSelectionWidget(
+                    onDataChanged: _onDataChanged,
+                    onUploadFailed: _onUploadFailed,
+                  ),
+                  const SizedBox(height: 24),
+                  const StyleSelectorWidget(),
+                  const SizedBox(height: 24),
+                  DescriptionInputWidget(
+                    controller: _descriptionController,
+                    description: _description,
+                    onClear: () => _descriptionController.clear(),
+                  ),
+                  const SizedBox(height: 24),
+                  GenerateButtonWidget(
+                    isGenerating: _isGenerating,
+                    hasImages: _uploadedUrls.isNotEmpty,
+                    onPressed: _generateCard,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildHintText(context),
+                ],
               ),
-              const SizedBox(height: 24),
-              DescriptionInputWidget(
-                controller: _descriptionController,
-                description: _description,
-                onClear: () => _descriptionController.clear(),
-              ),
-              const SizedBox(height: 24),
-              const StyleSelectorWidget(),
-              const SizedBox(height: 24),
-              GenerateButtonWidget(
-                isGenerating: _isGenerating,
-                hasImages: _uploadedUrls.isNotEmpty,
-                onPressed: _generateCard,
-              ),
-              const SizedBox(height: 16),
-              _buildHintText(context),
-            ],
-          ),
+            ),
+            // 全屏loading动画
+            if (_isGenerating) const LoadingOverlay(),
+          ],
         ),
       );
 

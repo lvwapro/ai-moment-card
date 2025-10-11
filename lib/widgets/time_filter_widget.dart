@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:ai_poetry_card/models/time_filter.dart';
 import 'package:ai_poetry_card/services/language_service.dart';
+import '../theme/app_theme.dart';
 
 /// 时间筛选相关的UI组件
 class TimeFilterWidget {
@@ -8,9 +9,7 @@ class TimeFilterWidget {
   static void showTimeFilter(
     BuildContext context, {
     required TimeFilterType? selectedTimeFilter,
-    required DateTimeRange? customTimeRange,
     required ValueChanged<TimeFilterType?> onTimeFilterChanged,
-    required ValueChanged<DateTimeRange?> onCustomTimeRangeChanged,
   }) {
     showModalBottomSheet(
       context: context,
@@ -24,9 +23,11 @@ class TimeFilterWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                context.l10n('选择时间范围'),
-                style: Theme.of(context).textTheme.titleLarge,
+              Center(
+                child: Text(
+                  context.l10n('选择时间范围'),
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
               ),
               const SizedBox(height: 16),
               ...TimeFilterType.values.map(
@@ -34,21 +35,36 @@ class TimeFilterWidget {
                   context,
                   type,
                   selectedTimeFilter,
-                  customTimeRange,
                   onTimeFilterChanged,
-                  onCustomTimeRangeChanged,
                 ),
               ),
               if (selectedTimeFilter != null) ...[
                 const Divider(),
-                ListTile(
-                  title: Text(context.l10n('清除筛选')),
-                  leading: const Icon(Icons.clear),
+                InkWell(
                   onTap: () {
                     onTimeFilterChanged(null);
-                    onCustomTimeRangeChanged(null);
                     Navigator.pop(context);
                   },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.clear,
+                          color: Color(0xFF666666), // 与文字颜色一致
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          context.l10n('清除筛选'),
+                          style: const TextStyle(
+                            color: Color(0xFF666666), // 灰色文字
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ],
@@ -63,102 +79,52 @@ class TimeFilterWidget {
     BuildContext context,
     TimeFilterType type,
     TimeFilterType? selectedTimeFilter,
-    DateTimeRange? customTimeRange,
     ValueChanged<TimeFilterType?> onTimeFilterChanged,
-    ValueChanged<DateTimeRange?> onCustomTimeRangeChanged,
   ) {
     final isSelected = selectedTimeFilter == type;
 
-    return ListTile(
-      title: Text(TimeFilterHelper.getTimeFilterName(type)),
-      subtitle: Text(TimeFilterHelper.getTimeFilterDescription(type)),
-      leading: Radio<TimeFilterType>(
-        value: type,
-        groupValue: selectedTimeFilter,
-        onChanged: (value) => _handleTimeFilterSelection(
-          context,
-          value,
-          customTimeRange,
-          onTimeFilterChanged,
-          onCustomTimeRangeChanged,
-        ),
+    return Container(
+      margin: const EdgeInsets.only(bottom: 4), // 减小间距
+      decoration: BoxDecoration(
+        color: isSelected
+            ? Colors.white // 选中背景为白色
+            : Colors.transparent, // 未选中透明
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: isSelected
+            ? [
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.1),
+                  blurRadius: 8,
+                  offset: const Offset(0, 2),
+                ),
+              ]
+            : null, // 选中时有阴影
       ),
-      onTap: () => _handleTimeFilterSelection(
-        context,
-        isSelected ? null : type,
-        customTimeRange,
-        onTimeFilterChanged,
-        onCustomTimeRangeChanged,
-      ),
-    );
-  }
-
-  /// 处理时间过滤器选择
-  static void _handleTimeFilterSelection(
-    BuildContext context,
-    TimeFilterType? value,
-    DateTimeRange? customTimeRange,
-    ValueChanged<TimeFilterType?> onTimeFilterChanged,
-    ValueChanged<DateTimeRange?> onCustomTimeRangeChanged,
-  ) {
-    if (value == TimeFilterType.custom) {
-      _showCustomTimeRangePicker(
-        context,
-        customTimeRange: customTimeRange,
-        onTimeFilterChanged: onTimeFilterChanged,
-        onCustomTimeRangeChanged: onCustomTimeRangeChanged,
-      );
-    } else {
-      onTimeFilterChanged(value);
-      onCustomTimeRangeChanged(null);
-      Navigator.pop(context);
-    }
-  }
-
-  /// 显示自定义时间范围选择器
-  static Future<void> _showCustomTimeRangePicker(
-    BuildContext context, {
-    required DateTimeRange? customTimeRange,
-    required ValueChanged<TimeFilterType?> onTimeFilterChanged,
-    required ValueChanged<DateTimeRange?> onCustomTimeRangeChanged,
-  }) async {
-    final now = DateTime.now();
-    final firstDate = DateTime(now.year - 1, 1);
-    final lastDate = now.add(const Duration(days: 1));
-
-    final DateTimeRange? picked = await showDateRangePicker(
-      context: context,
-      firstDate: firstDate,
-      lastDate: lastDate,
-      initialDateRange: customTimeRange ??
-          DateTimeRange(
-            start: now.subtract(const Duration(days: 7)),
-            end: now,
+      child: ListTile(
+        title: Center(
+          child: Text(
+            TimeFilterHelper.getTimeFilterName(type),
+            style: TextStyle(
+              color: isSelected
+                  ? AppTheme.primaryColor // 主题色选中文字
+                  : const Color(0xFF666666), // 灰色未选中文字
+              fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
+            ),
           ),
-      locale: const Locale('zh', 'CN'),
+        ),
+        onTap: () {
+          onTimeFilterChanged(isSelected ? null : type);
+          Navigator.pop(context);
+        },
+      ),
     );
-
-    if (picked != null) {
-      onTimeFilterChanged(TimeFilterType.custom);
-      onCustomTimeRangeChanged(picked);
-      Navigator.pop(context);
-    }
   }
 
   /// 获取时间筛选的显示值
   static String getTimeFilterDisplayValue(
     TimeFilterType? selectedTimeFilter,
-    DateTimeRange? customTimeRange,
   ) {
     if (selectedTimeFilter == null) return '';
-
-    if (selectedTimeFilter == TimeFilterType.custom &&
-        customTimeRange != null) {
-      final start = customTimeRange.start;
-      final end = customTimeRange.end;
-      return '${start.month}/${start.day} - ${end.month}/${end.day}';
-    }
-
     return TimeFilterHelper.getTimeFilterName(selectedTimeFilter);
   }
 }

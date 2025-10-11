@@ -45,8 +45,11 @@ class GenerateButtonWidget extends StatelessWidget {
                 ? Theme.of(context).primaryColor.withOpacity(0.3)
                 : Theme.of(context).primaryColor,
             foregroundColor: Colors.white,
+            elevation: (isGenerating || !hasImages) ? 0 : 4, // 禁用状态无阴影，启用状态有阴影
+            shadowColor:
+                Theme.of(context).primaryColor.withOpacity(0.3), // 阴影颜色
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(20), // 增加圆角
             ),
           ),
         ),

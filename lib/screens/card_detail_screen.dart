@@ -1,5 +1,6 @@
 import 'package:ai_poetry_card/models/poetry_card.dart';
 import 'package:ai_poetry_card/providers/history_manager.dart';
+import 'package:ai_poetry_card/providers/card_generator.dart';
 import '../services/image_save_service.dart';
 import 'package:ai_poetry_card/widgets/card_info_widget.dart';
 import 'package:flutter/material.dart';
@@ -8,6 +9,7 @@ import 'package:share_plus/share_plus.dart';
 
 import 'package:ai_poetry_card/services/language_service.dart';
 import '../widgets/poetry_card_widget.dart';
+import '../widgets/loading_overlay.dart';
 
 /// 卡片详情/结果展示屏幕
 /// 支持两种模式：详情查看模式和结果展示模式
@@ -28,6 +30,7 @@ class CardDetailScreen extends StatefulWidget {
 class _CardDetailScreenState extends State<CardDetailScreen> {
   final GlobalKey _cardKey = GlobalKey();
   late PoetryCard _currentCard;
+  bool _isRegenerating = false;
 
   @override
   void initState() {
@@ -52,43 +55,78 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
               style: TextStyle(color: Theme.of(context).primaryColor)),
           backgroundColor: Colors.transparent,
           elevation: 0,
-        ),
-        body: Column(
-          children: [
-            // 卡片展示
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    // 卡片展示
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      child: RepaintBoundary(
-                        key: _cardKey,
-                        child: PoetryCardWidget(
-                          card: _currentCard,
-                          showControls: false,
+          actions: widget.isResultMode
+              ? [
+                  // 重新生成图标按钮
+                  _isRegenerating
+                      ? Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                Theme.of(context).primaryColor,
+                              ),
+                            ),
+                          ),
+                        )
+                      : IconButton(
+                          icon: Icon(
+                            Icons.refresh,
+                            color: Theme.of(context).primaryColor,
+                          ),
+                          onPressed: _regenerateCard,
+                          tooltip: context.l10n('重新生成文案'),
                         ),
-                      ),
-                    ),
+                ]
+              : null,
+        ),
+        body: Stack(
+          children: [
+            Column(
+              children: [
+                // 卡片展示
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        // 卡片展示
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          child: RepaintBoundary(
+                            key: _cardKey,
+                            child: PoetryCardWidget(
+                              card: _currentCard,
+                              showControls: false,
+                            ),
+                          ),
+                        ),
 
-                    // 卡片信息（两种模式都显示）
-                    CardInfoWidget(
-                      card: _currentCard,
-                      onPoetryUpdated: (updatedCard) {
-                        setState(() {
-                          _currentCard = updatedCard;
-                        });
-                      },
+                        // 卡片信息（包含各平台文案）
+                        CardInfoWidget(
+                          card: _currentCard,
+                          onPoetryUpdated: (updatedCard) {
+                            setState(() {
+                              _currentCard = updatedCard;
+                            });
+                          },
+                        ),
+
+                        const SizedBox(height: 20),
+                      ],
                     ),
-                    const SizedBox(height: 20),
-                  ],
+                  ),
                 ),
-              ),
+
+                // 结果模式：底部操作按钮
+                _buildResultActions(context),
+              ],
             ),
 
-            // 结果模式：底部操作按钮
-            _buildResultActions(context),
+            // 重新生成时的全屏loading遮罩
+            if (_isRegenerating) const LoadingOverlay(),
           ],
         ),
       );
@@ -125,7 +163,8 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
                 ),
               ],
             ),
-            if (widget.isResultMode)
+            if (widget.isResultMode) ...[
+              const SizedBox(height: 8),
               SizedBox(
                 width: double.infinity,
                 child: TextButton.icon(
@@ -137,6 +176,7 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
                   ),
                 ),
               ),
+            ],
           ],
         ),
       );
@@ -202,6 +242,57 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(context.l10n('保存失败：$e'))),
       );
+    }
+  }
+
+  /// 重新生成文案
+  void _regenerateCard() async {
+    setState(() {
+      _isRegenerating = true;
+    });
+
+    try {
+      final cardGenerator = Provider.of<CardGenerator>(context, listen: false);
+
+      // 调用重新生成卡片方法
+      final newCard = await cardGenerator.regenerateCard(_currentCard);
+
+      // 更新当前卡片
+      setState(() {
+        _currentCard = newCard;
+      });
+
+      // 更新历史记录中的卡片（addCard会自动更新已存在的卡片）
+      if (widget.isResultMode) {
+        Provider.of<HistoryManager>(context, listen: false).addCard(newCard);
+      }
+
+      // 显示成功提示
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n('文案重新生成成功')),
+            backgroundColor: Colors.green,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n('重新生成失败：$e')),
+            backgroundColor: Colors.red,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isRegenerating = false;
+        });
+      }
     }
   }
 

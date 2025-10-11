@@ -9,6 +9,8 @@ class EnglishTranslations {
         'AI will generate unique copy based on your image and selected style',
     '瞬间文案': 'Moment Copy',
     'AI创作中...': 'AI creating...',
+    'AI小助手努力创作中...': 'AI assistant is creating...',
+    '稍等一下，马上就好~': 'Just a moment, almost done~',
     '生成文案': 'Generate copy',
 
     // 导航
@@ -65,6 +67,8 @@ class EnglishTranslations {
     '本月': 'This Month',
     '上月': 'Last Month',
     '近3个月': 'Last 3 Months',
+    '一年内': 'Last Year',
+    '一年前': 'Before Last Year',
     '近6个月': 'Last 6 Months',
     '今年': 'This Year',
     '去年': 'Last Year',
@@ -181,6 +185,70 @@ class EnglishTranslations {
     '重新生成失败：': 'Regeneration failed: ',
     '添加更多图片': 'Add More Images',
     '保存信息失败：': 'Failed to save information: ',
+    '语言已切换为中文': 'Language switched to Chinese',
+    '语言已切换为英文': 'Language switched to English',
+    '正在重新生成...': 'Regenerating...',
+    '已复制到剪贴板': 'Copied to clipboard',
+    '选择语言': 'Select Language',
+    '各平台文案': 'Platform Copywriting',
+    '原诗': 'Original Poem',
+    '诗句': 'Verse',
+    '朋友圈': 'WeChat Moments',
+    '小红书': 'Xiaohongshu',
+    '微博': 'Weibo',
+    '抖音': 'Douyin',
+    '拍照失败：': 'Camera failed: ',
+    '上传失败：': 'Upload failed: ',
+    '需要相册权限': 'Photo Library Access Required',
+    '请在设置中允许访问相册，以便选择图片。':
+        'Please allow access to your photo library in Settings to select photos.',
+    '需要相机权限': 'Camera Access Required',
+    '请在设置中允许访问相机，以便拍照。':
+        'Please allow access to your camera in Settings to take photos.',
+    '上传图片': 'Upload Image',
+    '选择图片来源': 'Select Image Source',
+    '请选择您想要添加图片的方式': 'Please select how you want to add images',
+    '选择默认风格': 'Select Default Style',
+    '清空历史': 'Clear History',
+    '历史记录': 'History',
+    '共 {0} 张卡片': '{0} cards in total',
+    '版本信息': 'Version Info',
+    '了解我们如何保护你的隐私': 'Learn how we protect your privacy',
+    '隐私政策': 'Privacy Policy',
+    '意见反馈': 'Feedback',
+    '语言设置': 'Language Settings',
+    '告诉我们你的想法': 'Tell us what you think',
+    // Privacy Policy
+    '数据收集': 'Data Collection',
+    '我们收集的信息包括：\n• 您上传的照片\n• 生成的文案内容\n• 应用使用统计数据':
+        'Information we collect includes:\n• Photos you upload\n• Generated content\n• App usage statistics',
+    '数据使用': 'Data Usage',
+    '我们使用收集的数据用于：\n• 提供AI文案生成服务\n• 改进产品体验\n• 技术支持和问题排查':
+        'We use collected data for:\n• Providing AI content generation services\n• Improving product experience\n• Technical support and troubleshooting',
+    '数据存储': 'Data Storage',
+    '• 本地数据：存储在您的设备上\n• 云端数据：使用腾讯云COS服务存储\n• 我们采用行业标准的安全措施保护您的数据':
+        '• Local data: Stored on your device\n• Cloud data: Stored using Tencent Cloud COS service\n• We use industry-standard security measures to protect your data',
+    '数据共享': 'Data Sharing',
+    '我们不会向第三方出售或共享您的个人数据。':
+        'We will not sell or share your personal data with third parties.',
+    '您的权利': 'Your Rights',
+    '您有权：\n• 随时删除您的历史记录\n• 导出您的数据\n• 停止使用本应用':
+        'You have the right to:\n• Delete your history at any time\n• Export your data\n• Stop using this application',
+    '联系我们': 'Contact Us',
+    '如有任何问题或疑虑，请通过意见反馈功能联系我们。':
+        'If you have any questions or concerns, please contact us through the feedback feature.',
+    '最后更新：2025年10月': 'Last updated: October 2025',
+    // Export Data
+    '没有可导出的数据': 'No data to export',
+    '正在准备导出数据...': 'Preparing to export data...',
+    'AI诗意卡片数据导出': 'AI Poetry Card Data Export',
+    '数据导出成功': 'Data exported successfully',
+    '导出失败：{0}': 'Export failed: {0}',
+    // Feedback
+    'AI诗意卡片 - 用户反馈': 'AI Poetry Card - User Feedback',
+    '感谢您的反馈！': 'Thank you for your feedback!',
+    '请通过以下方式联系我们：': 'Please contact us via:',
+    '关闭': 'Close',
 
     // 新增的翻译
     '显示二维码': 'Show QR Code',
@@ -206,11 +274,13 @@ class EnglishTranslations {
     ' 张卡片': ' cards',
     '导出所有卡片数据': 'Export all card data',
     '删除所有历史记录': 'Delete all history records',
-    '告诉我们你的想法': 'Tell us your thoughts',
 
     // 设置页面标题
     '偏好设置': 'Preferences',
     '默认文案风格': 'Default Text Style',
+    '默认显示文案': 'Default Display Content',
+    '选择默认显示文案': 'Select Default Display Content',
+    '默认': 'Default',
     '数据管理': 'Data Management',
     '导出数据': 'Export Data',
 
@@ -245,7 +315,6 @@ class EnglishTranslations {
     '盲盒': 'Blind Box',
     '已选择 ': 'Selected ',
     ' 项': ' items',
-    '清空历史': 'Clear History',
 
     // 新增的widgets翻译
     '没有找到相关卡片': 'No related cards found',
@@ -315,7 +384,6 @@ class EnglishTranslations {
     '次数已用完': 'Usage limit reached',
     '无限生成\n高级模板\n独家字体\n优先支持':
         'Unlimited generation\nPremium templates\nExclusive fonts\nPriority support',
-    '选择图片来源': 'Select Image Source',
   };
 
   static String getText(String key) => translations[key] ?? key;

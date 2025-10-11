@@ -1,64 +1,63 @@
-import 'package:flutter/material.dart';
 import '../models/poetry_card.dart';
 import 'package:ai_poetry_card/services/language_service.dart';
 
 /// 风格工具类 - 统一管理风格相关的显示和操作
 class StyleUtils {
-  /// 获取风格的中文显示名称
-  static String getStyleDisplayName(BuildContext context, PoetryStyle style) {
+  /// 获取风格的显示名称
+  static String getStyleDisplayName(PoetryStyle style) {
     switch (style) {
       case PoetryStyle.modernPoetic:
-        return context.l10n('现代诗意');
+        return LanguageService.to.getText('现代诗意');
       case PoetryStyle.classicalElegant:
-        return context.l10n('古风雅韵');
+        return LanguageService.to.getText('古风雅韵');
       case PoetryStyle.humorousPlayful:
-        return context.l10n('幽默俏皮');
+        return LanguageService.to.getText('幽默俏皮');
       case PoetryStyle.warmLiterary:
-        return context.l10n('文艺暖心');
+        return LanguageService.to.getText('文艺暖心');
       case PoetryStyle.minimalTags:
-        return context.l10n('极简摘要');
+        return LanguageService.to.getText('极简摘要');
       case PoetryStyle.sciFiImagination:
-        return context.l10n('科幻想象');
+        return LanguageService.to.getText('科幻想象');
       case PoetryStyle.deepPhilosophical:
-        return context.l10n('深沉哲思');
+        return LanguageService.to.getText('深沉哲思');
       case PoetryStyle.blindBox:
-        return context.l10n('盲盒');
+        return LanguageService.to.getText('盲盒');
     }
   }
 
   /// 获取所有风格选项的配置数据
-  static List<Map<String, dynamic>> getStyleOptions(BuildContext context) => [
+  static List<Map<String, dynamic>> getStyleOptions() => [
         {
           'style': PoetryStyle.blindBox,
-          'title': context.l10n('盲盒'),
+          'title': getStyleDisplayName(PoetryStyle.blindBox),
         },
         {
           'style': PoetryStyle.modernPoetic,
-          'title': context.l10n('现代诗意'),
+          'title': getStyleDisplayName(PoetryStyle.modernPoetic),
         },
         {
           'style': PoetryStyle.classicalElegant,
-          'title': context.l10n('古风雅韵'),
+          'title': getStyleDisplayName(PoetryStyle.classicalElegant),
         },
         {
           'style': PoetryStyle.humorousPlayful,
-          'title': context.l10n('幽默俏皮'),
+          'title': getStyleDisplayName(PoetryStyle.humorousPlayful),
         },
         {
           'style': PoetryStyle.warmLiterary,
-          'title': context.l10n('文艺暖心'),
+          'title': getStyleDisplayName(PoetryStyle.warmLiterary),
         },
         {
           'style': PoetryStyle.minimalTags,
-          'title': context.l10n('极简摘要'),
+          'title': getStyleDisplayName(PoetryStyle.minimalTags),
         },
         {
           'style': PoetryStyle.sciFiImagination,
-          'title': context.l10n('科幻想象'),
+          'title': getStyleDisplayName(PoetryStyle.sciFiImagination),
         },
         {
           'style': PoetryStyle.deepPhilosophical,
-          'title': context.l10n('深沉哲思'),
+          'title': getStyleDisplayName(PoetryStyle.deepPhilosophical),
         },
       ];
 

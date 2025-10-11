@@ -3,18 +3,18 @@ import 'package:flutter/material.dart';
 
 import '../models/time_filter.dart';
 import 'time_filter_widget.dart';
+import '../utils/style_utils.dart';
+import '../theme/app_theme.dart';
 import 'package:ai_poetry_card/services/language_service.dart';
 
-class HistoryFilterBar extends StatelessWidget {
+class HistoryFilterBar extends StatefulWidget {
   final String searchQuery;
   final PoetryStyle? selectedStyle;
   final TimeFilterType? selectedTimeFilter;
-  final DateTimeRange? customTimeRange;
   final bool isGridView;
   final ValueChanged<String> onSearchChanged;
   final ValueChanged<PoetryStyle?> onStyleChanged;
   final ValueChanged<TimeFilterType?> onTimeFilterChanged;
-  final ValueChanged<DateTimeRange?> onCustomTimeRangeChanged;
   final ValueChanged<bool> onViewModeChanged;
 
   const HistoryFilterBar({
@@ -22,14 +22,39 @@ class HistoryFilterBar extends StatelessWidget {
     required this.searchQuery,
     required this.selectedStyle,
     required this.selectedTimeFilter,
-    required this.customTimeRange,
     required this.isGridView,
     required this.onSearchChanged,
     required this.onStyleChanged,
     required this.onTimeFilterChanged,
-    required this.onCustomTimeRangeChanged,
     required this.onViewModeChanged,
   });
+
+  @override
+  State<HistoryFilterBar> createState() => _HistoryFilterBarState();
+}
+
+class _HistoryFilterBarState extends State<HistoryFilterBar> {
+  final FocusNode _searchFocusNode = FocusNode();
+  bool _isSearchFocused = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _searchFocusNode.addListener(_onFocusChange);
+  }
+
+  @override
+  void dispose() {
+    _searchFocusNode.removeListener(_onFocusChange);
+    _searchFocusNode.dispose();
+    super.dispose();
+  }
+
+  void _onFocusChange() {
+    setState(() {
+      _isSearchFocused = _searchFocusNode.hasFocus;
+    });
+  }
 
   @override
   Widget build(BuildContext context) => Container(
@@ -47,74 +72,81 @@ class HistoryFilterBar extends StatelessWidget {
         child: Column(
           children: [
             // 搜索框
-            TextField(
-              onChanged: onSearchChanged,
-              style: TextStyle(color: Theme.of(context).primaryColor),
-              decoration: InputDecoration(
-                hintText: context.l10n('搜索文案内容...'),
-                hintStyle: TextStyle(
-                    color: Theme.of(context).primaryColor.withOpacity(0.6)),
-                prefixIcon:
-                    Icon(Icons.search, color: Theme.of(context).primaryColor),
-                suffixIcon: searchQuery.isNotEmpty
-                    ? IconButton(
-                        icon: Icon(Icons.clear,
-                            color: Theme.of(context).primaryColor),
-                        onPressed: () => onSearchChanged(''),
-                      )
-                    : null,
-                border: InputBorder.none,
-                enabledBorder: InputBorder.none,
-                focusedBorder: InputBorder.none,
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
+            Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                boxShadow: _isSearchFocused
+                    ? [
+                        BoxShadow(
+                          color: Colors.black.withOpacity(0.08),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : null, // 只在获得焦点时显示阴影
+              ),
+              child: TextField(
+                focusNode: _searchFocusNode,
+                onChanged: widget.onSearchChanged,
+                style: const TextStyle(color: Color(0xFF333333)), // 输入文字颜色
+                decoration: InputDecoration(
+                  filled: true,
+                  hintText: context.l10n('搜索文案内容...'),
+                  hintStyle: const TextStyle(
+                      color: Color.fromARGB(255, 162, 161, 161)), // 提示文字颜色
+                  prefixIcon: const Icon(
+                    Icons.search,
+                    color: Color(0xFF666666), // 搜索图标颜色
+                  ),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: BorderSide.none,
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: BorderSide.none,
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(20),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
               ),
             ),
-
             const SizedBox(height: 12),
 
             // 筛选器
-            Row(
+            Wrap(
+              alignment: WrapAlignment.center,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              spacing: 8,
+              runSpacing: 8,
               children: [
-                Expanded(
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      // 风格筛选
-                      _FilterChip(
-                        label: context.l10n('风格'),
-                        value: selectedStyle != null
-                            ? _getStyleName(selectedStyle!)
-                            : null,
-                        onTap: () => _showStyleFilter(context),
-                      ),
-
-                      // 时间筛选
-                      _FilterChip(
-                        label: context.l10n('时间'),
-                        value: selectedTimeFilter != null
-                            ? TimeFilterWidget.getTimeFilterDisplayValue(
-                                selectedTimeFilter, customTimeRange)
-                            : null,
-                        onTap: () => TimeFilterWidget.showTimeFilter(
-                          context,
-                          selectedTimeFilter: selectedTimeFilter,
-                          customTimeRange: customTimeRange,
-                          onTimeFilterChanged: onTimeFilterChanged,
-                          onCustomTimeRangeChanged: onCustomTimeRangeChanged,
-                        ),
-                      ),
-                    ],
+                // 风格筛选
+                _FilterChip(
+                  label: context.l10n('风格'),
+                  value: widget.selectedStyle != null
+                      ? StyleUtils.getStyleDisplayName(widget.selectedStyle!)
+                      : null,
+                  onTap: () => _showStyleFilter(context),
+                ),
+                // 时间筛选
+                _FilterChip(
+                  label: context.l10n('时间'),
+                  value: widget.selectedTimeFilter != null
+                      ? TimeFilterWidget.getTimeFilterDisplayValue(
+                          widget.selectedTimeFilter)
+                      : null,
+                  onTap: () => TimeFilterWidget.showTimeFilter(
+                    context,
+                    selectedTimeFilter: widget.selectedTimeFilter,
+                    onTimeFilterChanged: widget.onTimeFilterChanged,
                   ),
                 ),
-                const SizedBox(width: 8),
-                // 展示样式按钮
+                // 视图切换按钮
                 _ViewModeButton(
-                  isGridView: isGridView,
-                  onTap: () => onViewModeChanged(!isGridView),
+                  isGridView: widget.isGridView,
+                  onTap: () => widget.onViewModeChanged(!widget.isGridView),
                 ),
               ],
             ),
@@ -133,39 +165,79 @@ class HistoryFilterBar extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                context.l10n('选择风格'),
-                style: Theme.of(context).textTheme.titleLarge,
+              Center(
+                child: Text(
+                  context.l10n('选择风格'),
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
               ),
               const SizedBox(height: 16),
               ...PoetryStyle.values.map((style) {
-                final isSelected = selectedStyle == style;
-                return ListTile(
-                  title: Text(context.l10n(_getStyleName(style))),
-                  subtitle: Text(context.l10n(_getStyleDescription(style))),
-                  leading: Radio<PoetryStyle>(
-                    value: style,
-                    groupValue: selectedStyle,
-                    onChanged: (value) {
-                      onStyleChanged(value);
+                final isSelected = widget.selectedStyle == style;
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 4), // 减小间距
+                  decoration: BoxDecoration(
+                    color: isSelected
+                        ? Colors.white // 选中背景为白色
+                        : Colors.transparent, // 未选中透明
+                    borderRadius: BorderRadius.circular(12),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.1),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : null, // 选中时有阴影
+                  ),
+                  child: ListTile(
+                    title: Center(
+                      child: Text(
+                        StyleUtils.getStyleDisplayName(style),
+                        style: TextStyle(
+                          color: isSelected
+                              ? AppTheme.primaryColor // 主题色选中文字
+                              : const Color(0xFF666666), // 灰色未选中文字
+                          fontWeight:
+                              isSelected ? FontWeight.w600 : FontWeight.normal,
+                        ),
+                      ),
+                    ),
+                    onTap: () {
+                      widget.onStyleChanged(isSelected ? null : style);
                       Navigator.pop(context);
                     },
                   ),
-                  onTap: () {
-                    onStyleChanged(isSelected ? null : style);
-                    Navigator.pop(context);
-                  },
                 );
               }).toList(),
-              if (selectedStyle != null) ...[
+              if (widget.selectedStyle != null) ...[
                 const Divider(),
-                ListTile(
-                  title: Text(context.l10n('清除筛选')),
-                  leading: const Icon(Icons.clear),
+                InkWell(
                   onTap: () {
-                    onStyleChanged(null);
+                    widget.onStyleChanged(null);
                     Navigator.pop(context);
                   },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const Icon(
+                          Icons.clear,
+                          color: Color(0xFF666666), // 与文字颜色一致
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          context.l10n('清除筛选'),
+                          style: const TextStyle(
+                            color: Color(0xFF666666), // 灰色文字
+                            fontSize: 16,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ],
             ],
@@ -173,48 +245,6 @@ class HistoryFilterBar extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  String _getStyleName(PoetryStyle style) {
-    switch (style) {
-      case PoetryStyle.modernPoetic:
-        return '现代诗意';
-      case PoetryStyle.classicalElegant:
-        return '古风雅韵';
-      case PoetryStyle.humorousPlayful:
-        return '幽默俏皮';
-      case PoetryStyle.warmLiterary:
-        return '文艺暖心';
-      case PoetryStyle.minimalTags:
-        return '极简摘要';
-      case PoetryStyle.sciFiImagination:
-        return '科幻想象';
-      case PoetryStyle.deepPhilosophical:
-        return '深沉哲思';
-      case PoetryStyle.blindBox:
-        return '盲盒';
-    }
-  }
-
-  String _getStyleDescription(PoetryStyle style) {
-    switch (style) {
-      case PoetryStyle.modernPoetic:
-        return '空灵抽象，富有意象和哲思';
-      case PoetryStyle.classicalElegant:
-        return '古典诗词韵律，典雅有文化底蕴';
-      case PoetryStyle.humorousPlayful:
-        return '网络热梗，轻松有趣';
-      case PoetryStyle.warmLiterary:
-        return '治愈系语录，温暖细腻有共鸣';
-      case PoetryStyle.minimalTags:
-        return '极简标签，干净版面';
-      case PoetryStyle.sciFiImagination:
-        return '科幻视角，未来感宏大叙事';
-      case PoetryStyle.deepPhilosophical:
-        return '引发思考，理性深沉';
-      case PoetryStyle.blindBox:
-        return '随机惊喜，未知体验';
-    }
   }
 }
 
@@ -234,12 +264,23 @@ class _FilterChip extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(20),
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          // height: 42, // 适中高度
+          padding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 8), // 适中内边距
           decoration: BoxDecoration(
             color: value != null
-                ? Theme.of(context).primaryColor.withOpacity(0.1)
-                : Colors.grey.shade100,
-            borderRadius: BorderRadius.circular(20),
+                ? Theme.of(context).primaryColor // 选中状态深色背景
+                : Colors.white, // 白色未选中背景
+            borderRadius: BorderRadius.circular(20), // 适中圆角
+            boxShadow: [
+              BoxShadow(
+                color: value != null
+                    ? AppTheme.primaryDark.withOpacity(0.3) // 选中状态深色阴影
+                    : Colors.black.withOpacity(0.1), // 未选中状态浅色阴影
+                blurRadius: 4,
+                offset: const Offset(0, 2),
+              ),
+            ],
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -247,29 +288,31 @@ class _FilterChip extends StatelessWidget {
               Text(
                 label,
                 style: TextStyle(
-                  color: Theme.of(context).primaryColor,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
+                  color: value != null
+                      ? Colors.white // 白色选中文字
+                      : const Color(0xFF333333), // 深色未选中文字
+                  fontSize: 14, // 适中字号
+                  fontWeight: value != null ? FontWeight.w600 : FontWeight.w500,
                 ),
               ),
               if (value != null) ...[
-                const SizedBox(width: 4),
+                const SizedBox(width: 5),
                 Text(
                   ': $value',
-                  style: TextStyle(
-                    color: Theme.of(context).primaryColor,
-                    fontSize: 12,
+                  style: const TextStyle(
+                    color: Colors.white, // 白色选中值文字
+                    fontSize: 14, // 适中字号
                     fontWeight: FontWeight.w600,
                   ),
                 ),
               ],
-              const SizedBox(width: 4),
+              const SizedBox(width: 6), // 增大间距
               Icon(
                 Icons.keyboard_arrow_down,
-                size: 16,
+                size: 18, // 适中图标
                 color: value != null
-                    ? Theme.of(context).primaryColor
-                    : Colors.grey.shade600,
+                    ? Colors.white // 白色选中图标
+                    : const Color(0xFF999999), // 中灰色未选中图标
               ),
             ],
           ),

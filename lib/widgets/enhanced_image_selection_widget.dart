@@ -5,6 +5,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 
 import '../services/cos_upload_service.dart';
+import '../services/language_service.dart';
 import 'common/fallback_background.dart';
 
 /// 增强版图片选择组件 - 集成腾讯云 COS 上传功能
@@ -64,7 +65,7 @@ class _EnhancedImageSelectionWidgetState
         await _uploadImage(File(image.path));
       }
     } catch (e) {
-      widget.onUploadFailed('拍照失败: $e');
+      widget.onUploadFailed('${LanguageService.to.getText('拍照失败：')}$e');
     }
   }
 
@@ -91,7 +92,7 @@ class _EnhancedImageSelectionWidgetState
         await _uploadImage(File(image.path));
       }
     } catch (e) {
-      widget.onUploadFailed('选择图片失败: $e');
+      widget.onUploadFailed('${LanguageService.to.getText('选择图片失败：')}$e');
     }
   }
 
@@ -139,17 +140,13 @@ class _EnhancedImageSelectionWidgetState
       _notifyDataChanged();
 
       // 打印上传成功信息
-      print('✅ 腾讯云上传成功:');
-      print('   照片链接: $url');
-      print('   对象键: ${result['objectKey']}');
-      print('   文件名: ${result['fileName']}');
-      print('   文件大小: ${result['fileSize']} bytes');
+      print('✅ 腾讯云上传成功， 照片链接: $url,文件大小: ${result['fileSize']} bytes');
     } catch (e) {
       setState(() {
         _uploadStatuses[imageFile.path] = UploadStatus.failed;
       });
 
-      widget.onUploadFailed('上传失败: $e');
+      widget.onUploadFailed('${LanguageService.to.getText('上传失败：')}$e');
     }
   }
 
@@ -184,19 +181,19 @@ class _EnhancedImageSelectionWidgetState
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('需要相册权限'),
-        content: const Text('请在设置中允许访问相册，以便选择图片。'),
+        title: Text(context.l10n('需要相册权限')),
+        content: Text(context.l10n('请在设置中允许访问相册，以便选择图片。')),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('取消'),
+            child: Text(context.l10n('取消')),
           ),
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
               openAppSettings();
             },
-            child: const Text('去设置'),
+            child: Text(context.l10n('去设置')),
           ),
         ],
       ),
@@ -208,19 +205,19 @@ class _EnhancedImageSelectionWidgetState
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('需要相机权限'),
-        content: const Text('请在设置中允许访问相机，以便拍照。'),
+        title: Text(context.l10n('需要相机权限')),
+        content: Text(context.l10n('请在设置中允许访问相机，以便拍照。')),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(context).pop(),
-            child: const Text('取消'),
+            child: Text(context.l10n('取消')),
           ),
           TextButton(
             onPressed: () {
               Navigator.of(context).pop();
               openAppSettings();
             },
-            child: const Text('去设置'),
+            child: Text(context.l10n('去设置')),
           ),
         ],
       ),
@@ -271,7 +268,7 @@ class _EmptyState extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            '点击选择并上传图片',
+            context.l10n('上传图片'),
             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                   color: Theme.of(context).primaryColor,
                 ),
@@ -283,14 +280,14 @@ class _EmptyState extends StatelessWidget {
               _buildActionButton(
                 context: context,
                 icon: Icons.camera_alt,
-                label: '拍照',
+                label: context.l10n('拍照'),
                 onTap: () => state._pickImageFromCamera(),
               ),
               const SizedBox(width: 16),
               _buildActionButton(
                 context: context,
                 icon: Icons.photo_library,
-                label: '相册',
+                label: context.l10n('相册'),
                 onTap: () => state._pickImageFromGallery(),
               ),
             ],
@@ -306,16 +303,38 @@ class _EmptyState extends StatelessWidget {
     required String label,
     required VoidCallback onTap,
   }) {
-    return OutlinedButton.icon(
-      onPressed: onTap,
-      icon: Icon(icon, size: 16),
-      label: Text(label),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: Theme.of(context).primaryColor,
-        side: BorderSide(
-          color: Theme.of(context).primaryColor.withOpacity(0.3),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        height: 40, // 与风格选择按钮一致的高度
+        padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 30),
+        decoration: BoxDecoration(
+          color: Colors.white, // 白色背景
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1), // 浅色阴影
+              blurRadius: 4,
+              offset: const Offset(0, 2),
+            ),
+          ], // 所有按钮都有阴影
         ),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 16, color: const Color(0xFF333333)), // 深色图标
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                    color: const Color(0xFF333333), // 深色文字
+                    fontWeight: FontWeight.w500,
+                  ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -344,7 +363,7 @@ class _ImageGrid extends StatelessWidget {
         children: [
           // 图片网格
           Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(4),
             child: GridView.builder(
               shrinkWrap: true,
               physics: const NeverScrollableScrollPhysics(),
@@ -391,14 +410,38 @@ class _ImageGrid extends StatelessWidget {
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: OutlinedButton.icon(
-              onPressed: () => _showImageSourceDialog(context, state),
-              icon: const Icon(Icons.add),
-              label: const Text('添加更多图片'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: Theme.of(context).primaryColor,
-                side: BorderSide(
-                  color: Theme.of(context).primaryColor.withOpacity(0.3),
+            child: InkWell(
+              onTap: () => _showImageSourceDialog(context, state),
+              borderRadius: BorderRadius.circular(20),
+              child: Container(
+                height: 40, // 与风格选择按钮一致的高度
+                padding:
+                    const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white, // 白色背景
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1), // 浅色阴影
+                      blurRadius: 4,
+                      offset: const Offset(0, 2),
+                    ),
+                  ], // 所有按钮都有阴影
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.add,
+                        size: 16, color: Color(0xFF333333)), // 深色图标
+                    const SizedBox(width: 8),
+                    Text(
+                      context.l10n('添加更多图片'),
+                      style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                            color: const Color(0xFF333333), // 深色文字
+                            fontWeight: FontWeight.w500,
+                          ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -413,8 +456,8 @@ class _ImageGrid extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: const Text('选择图片来源'),
-        content: const Text('请选择您想要添加图片的方式'),
+        title: Text(context.l10n('选择图片来源')),
+        content: Text(context.l10n('请选择您想要添加图片的方式')),
         actions: [
           TextButton.icon(
             onPressed: () {
@@ -422,7 +465,7 @@ class _ImageGrid extends StatelessWidget {
               state._pickImageFromCamera();
             },
             icon: const Icon(Icons.camera_alt),
-            label: const Text('拍照'),
+            label: Text(context.l10n('拍照')),
           ),
           TextButton.icon(
             onPressed: () {
@@ -430,7 +473,7 @@ class _ImageGrid extends StatelessWidget {
               state._pickImageFromGallery();
             },
             icon: const Icon(Icons.photo_library),
-            label: const Text('相册'),
+            label: Text(context.l10n('相册')),
           ),
         ],
       ),
@@ -449,7 +492,7 @@ class _UploadedImageItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ClipRRect(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(20),
         child: Stack(
           children: [
             Container(
@@ -502,7 +545,7 @@ class _ImageItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ClipRRect(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(20),
         child: Stack(
           children: [
             Container(
@@ -552,7 +595,7 @@ class _ImageItem extends StatelessWidget {
       height: double.infinity,
       decoration: BoxDecoration(
         color: Colors.black.withOpacity(0.6),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(20),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -580,7 +623,7 @@ class _ImageItem extends StatelessWidget {
         height: double.infinity,
         decoration: BoxDecoration(
           color: Colors.red.withOpacity(0.9),
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(20),
         ),
         child: const Center(
           child: Icon(

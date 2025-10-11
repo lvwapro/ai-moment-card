@@ -14,10 +14,21 @@ enum PoetryStyle {
 class PoetryCard {
   final String id;
   final File image;
-  final String poetry;
+  final String poetry; // 默认显示的文案（通常是朋友圈）
   final PoetryStyle style;
   final DateTime createdAt;
   final Map<String, dynamic> metadata;
+
+  // AI 生成的各平台文案
+  final String? title; // 诗词标题
+  final String? author; // 作者
+  final String? time; // 朝代/时期
+  final String? content; // 完整诗词内容
+  final String? shiju; // 精选诗句
+  final String? weibo; // 微博文案
+  final String? xiaohongshu; // 小红书文案
+  final String? pengyouquan; // 朋友圈文案
+  final String? douyin; // 抖音文案
 
   PoetryCard({
     required this.id,
@@ -26,6 +37,15 @@ class PoetryCard {
     required this.style,
     required this.createdAt,
     this.metadata = const {},
+    this.title,
+    this.author,
+    this.time,
+    this.content,
+    this.shiju,
+    this.weibo,
+    this.xiaohongshu,
+    this.pengyouquan,
+    this.douyin,
   });
 
   Map<String, dynamic> toJson() {
@@ -36,6 +56,15 @@ class PoetryCard {
       'style': style.name,
       'createdAt': createdAt.toIso8601String(),
       'metadata': metadata,
+      'title': title,
+      'author': author,
+      'time': time,
+      'content': content,
+      'shiju': shiju,
+      'weibo': weibo,
+      'xiaohongshu': xiaohongshu,
+      'pengyouquan': pengyouquan,
+      'douyin': douyin,
     };
   }
 
@@ -50,6 +79,15 @@ class PoetryCard {
       ),
       createdAt: DateTime.parse(json['createdAt']),
       metadata: Map<String, dynamic>.from(json['metadata'] ?? {}),
+      title: json['title'],
+      author: json['author'],
+      time: json['time'],
+      content: json['content'],
+      shiju: json['shiju'],
+      weibo: json['weibo'],
+      xiaohongshu: json['xiaohongshu'],
+      pengyouquan: json['pengyouquan'],
+      douyin: json['douyin'],
     );
   }
 
@@ -60,6 +98,15 @@ class PoetryCard {
     PoetryStyle? style,
     DateTime? createdAt,
     Map<String, dynamic>? metadata,
+    String? title,
+    String? author,
+    String? time,
+    String? content,
+    String? shiju,
+    String? weibo,
+    String? xiaohongshu,
+    String? pengyouquan,
+    String? douyin,
   }) {
     return PoetryCard(
       id: id ?? this.id,
@@ -68,6 +115,15 @@ class PoetryCard {
       style: style ?? this.style,
       createdAt: createdAt ?? this.createdAt,
       metadata: metadata ?? this.metadata,
+      title: title ?? this.title,
+      author: author ?? this.author,
+      time: time ?? this.time,
+      content: content ?? this.content,
+      shiju: shiju ?? this.shiju,
+      weibo: weibo ?? this.weibo,
+      xiaohongshu: xiaohongshu ?? this.xiaohongshu,
+      pengyouquan: pengyouquan ?? this.pengyouquan,
+      douyin: douyin ?? this.douyin,
     );
   }
 }

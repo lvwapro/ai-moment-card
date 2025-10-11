@@ -1,3 +1,4 @@
+import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../languages/zh.dart';
@@ -5,14 +6,14 @@ import '../languages/en.dart';
 
 /// 统一语言服务
 /// 管理应用的语言设置和多语言功能
-class LanguageService {
+class LanguageService extends ChangeNotifier {
   static final LanguageService _instance = LanguageService._internal();
   factory LanguageService() => _instance;
   static LanguageService get to => _instance;
   LanguageService._internal();
 
   static const String _languageKey = 'app_language';
-  String _currentLanguage = 'en'; // 默认英语
+  String _currentLanguage = 'zh'; // 默认中文（初始化时会检测系统语言）
 
   /// 获取当前语言
   String getCurrentLanguage() {
@@ -22,10 +23,12 @@ class LanguageService {
   /// 设置语言
   Future<void> setLanguage(String languageCode) async {
     try {
-      _currentLanguage = languageCode;
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString(_languageKey, languageCode);
-      print('语言已设置为: $languageCode');
+      if (_currentLanguage != languageCode) {
+        _currentLanguage = languageCode;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_languageKey, languageCode);
+        notifyListeners(); // 通知监听者语言已改变
+      }
     } catch (e) {
       print('设置语言失败: $e');
     }
@@ -36,17 +39,46 @@ class LanguageService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final savedLanguage = prefs.getString(_languageKey);
+
       if (savedLanguage != null && savedLanguage.isNotEmpty) {
+        // 使用用户之前保存的语言设置
         _currentLanguage = savedLanguage;
         print('从本地存储加载语言设置: $_currentLanguage');
       } else {
-        // 如果没有保存的语言设置，使用系统默认语言
-        _currentLanguage = 'en'; // 可以根据需要修改为系统语言检测
-        print('使用默认语言设置: $_currentLanguage');
+        // 如果没有保存的语言设置，检测系统语言
+        _currentLanguage = _detectSystemLanguage();
+        print('检测到系统语言: $_currentLanguage');
+
+        // 保存检测到的语言
+        await prefs.setString(_languageKey, _currentLanguage);
       }
+
+      notifyListeners();
     } catch (e) {
       print('初始化语言设置失败: $e');
-      _currentLanguage = 'en'; // 失败时使用默认语言
+      _currentLanguage = _detectSystemLanguage(); // 失败时使用系统语言
+    }
+  }
+
+  /// 检测系统语言
+  String _detectSystemLanguage() {
+    try {
+      // 获取系统语言
+      final systemLocale = ui.PlatformDispatcher.instance.locale;
+      final languageCode = systemLocale.languageCode.toLowerCase();
+
+      print('系统语言代码: $languageCode');
+
+      // 如果是中文相关的语言代码，返回 'zh'
+      if (languageCode.startsWith('zh')) {
+        return 'zh';
+      }
+
+      // 其他情况返回英文
+      return 'en';
+    } catch (e) {
+      print('检测系统语言失败: $e，使用默认中文');
+      return 'zh'; // 默认使用中文
     }
   }
 

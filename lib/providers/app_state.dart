@@ -2,17 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ai_poetry_card/models/poetry_card.dart';
 
+// 平台类型枚举
+enum PlatformType {
+  douyin, // 抖音
+  xiaohongshu, // 小红书
+  weibo, // 微博
+  pengyouquan, // 朋友圈
+  shiju, // 诗句
+}
+
 class AppState extends ChangeNotifier {
   static const String _usedCountKey = 'used_count';
   static const String _isPremiumKey = 'is_premium';
   static const String _selectedStyleKey = 'selected_style';
   static const String _showQrCodeKey = 'show_qr_code';
+  static const String _defaultPlatformKey = 'default_platform';
 
   // 用户状态
   bool _isPremium = false;
   int _usedCount = 0;
   PoetryStyle _selectedStyle = PoetryStyle.blindBox;
   bool _showQrCode = true;
+  PlatformType _defaultPlatform = PlatformType.pengyouquan; // 默认朋友圈
 
   // 限制设置
   static const int freeTrialLimit = 100;
@@ -26,6 +37,7 @@ class AppState extends ChangeNotifier {
   bool get canGenerate => _isPremium || _usedCount < freeTrialLimit;
   PoetryStyle get selectedStyle => _selectedStyle;
   bool get showQrCode => _showQrCode;
+  PlatformType get defaultPlatform => _defaultPlatform;
 
   AppState() {
     _loadSettings();
@@ -47,6 +59,14 @@ class AppState extends ChangeNotifier {
       );
     }
 
+    final platformStr = prefs.getString(_defaultPlatformKey);
+    if (platformStr != null) {
+      _defaultPlatform = PlatformType.values.firstWhere(
+        (e) => e.name == platformStr,
+        orElse: () => PlatformType.pengyouquan,
+      );
+    }
+
     notifyListeners();
   }
 
@@ -56,6 +76,7 @@ class AppState extends ChangeNotifier {
     await prefs.setInt(_usedCountKey, _usedCount);
     await prefs.setString(_selectedStyleKey, _selectedStyle.name);
     await prefs.setBool(_showQrCodeKey, _showQrCode);
+    await prefs.setString(_defaultPlatformKey, _defaultPlatform.name);
   }
 
   Future<void> incrementUsage() async {
@@ -84,45 +105,25 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  String getStyleDisplayName(PoetryStyle style) {
-    switch (style) {
-      case PoetryStyle.modernPoetic:
-        return '现代诗意';
-      case PoetryStyle.classicalElegant:
-        return '古风雅韵';
-      case PoetryStyle.humorousPlayful:
-        return '幽默俏皮';
-      case PoetryStyle.warmLiterary:
-        return '文艺暖心';
-      case PoetryStyle.minimalTags:
-        return '极简摘要';
-      case PoetryStyle.sciFiImagination:
-        return '科幻想象';
-      case PoetryStyle.deepPhilosophical:
-        return '深沉哲思';
-      case PoetryStyle.blindBox:
-        return '盲盒';
-    }
+  Future<void> setDefaultPlatform(PlatformType platform) async {
+    _defaultPlatform = platform;
+    await _saveSettings();
+    notifyListeners();
   }
 
-  String getStyleDescription(PoetryStyle style) {
-    switch (style) {
-      case PoetryStyle.modernPoetic:
-        return '空灵抽象，富有意象和哲思';
-      case PoetryStyle.classicalElegant:
-        return '古典诗词韵律，典雅有文化底蕴';
-      case PoetryStyle.humorousPlayful:
-        return '网络热梗，轻松有趣';
-      case PoetryStyle.warmLiterary:
-        return '治愈系语录，温暖细腻有共鸣';
-      case PoetryStyle.minimalTags:
-        return '极简标签，干净版面';
-      case PoetryStyle.sciFiImagination:
-        return '科幻视角，未来感宏大叙事';
-      case PoetryStyle.deepPhilosophical:
-        return '引发思考，理性深沉';
-      case PoetryStyle.blindBox:
-        return '随机惊喜，未知体验';
+  /// 获取平台的显示名称
+  static String getPlatformDisplayName(PlatformType platform) {
+    switch (platform) {
+      case PlatformType.douyin:
+        return '抖音';
+      case PlatformType.xiaohongshu:
+        return '小红书';
+      case PlatformType.weibo:
+        return '微博';
+      case PlatformType.pengyouquan:
+        return '朋友圈';
+      case PlatformType.shiju:
+        return '诗句';
     }
   }
 
