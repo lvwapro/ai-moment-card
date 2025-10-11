@@ -281,36 +281,65 @@ String _formatDate(BuildContext context, DateTime date) {
 }
 
 /// 构建历史卡片图片，支持本地文件和网络URL，优先使用本地图片
-Widget _buildHistoryCardImage(PoetryCard card, BuildContext context) =>
-    FutureBuilder<ImageProvider?>(
-      key: ValueKey(card.id), // 使用卡片ID作为key，避免不必要的重建
-      future: _getHistoryCardImageProvider(card),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Container(
-            color: Theme.of(context).primaryColor.withOpacity(0.1),
-            child: const Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
+Widget _buildHistoryCardImage(PoetryCard card, BuildContext context) {
+  // 首先尝试同步获取本地图片
+  final localPaths = card.metadata['localImagePaths'] as List<dynamic>?;
 
-        if (snapshot.hasData && snapshot.data != null) {
+  if (localPaths != null && localPaths.isNotEmpty) {
+    for (var path in localPaths) {
+      try {
+        final localFile = File(path.toString());
+        if (localFile.existsSync()) {
           return RepaintBoundary(
             child: Image(
-              image: snapshot.data!,
+              image: FileImage(localFile),
               fit: BoxFit.cover,
-              gaplessPlayback: true, // 避免图片闪烁
+              gaplessPlayback: true,
               errorBuilder: (context, error, stackTrace) {
-                return FallbackBackgrounds.historyCard();
+                return _buildFallbackImage(context);
               },
             ),
           );
-        } else {
-          return FallbackBackgrounds.historyCard();
         }
-      },
-    );
+      } catch (e) {
+        // 继续尝试下一个
+      }
+    }
+  }
+
+  // 如果没有本地图片，使用FutureBuilder异步加载
+  return FutureBuilder<ImageProvider?>(
+    key: ValueKey('${card.id}_async'), // 使用不同的key
+    future: _getHistoryCardImageProvider(card),
+    builder: (context, snapshot) {
+      if (snapshot.connectionState == ConnectionState.waiting) {
+        return _buildFallbackImage(context);
+      }
+
+      if (snapshot.hasData && snapshot.data != null) {
+        return RepaintBoundary(
+          child: Image(
+            image: snapshot.data!,
+            fit: BoxFit.cover,
+            gaplessPlayback: true,
+            errorBuilder: (context, error, stackTrace) {
+              return _buildFallbackImage(context);
+            },
+          ),
+        );
+      } else {
+        return _buildFallbackImage(context);
+      }
+    },
+  );
+}
+
+Widget _buildFallbackImage(BuildContext context) {
+  return Container(
+    color: Theme.of(context).primaryColor.withOpacity(0.1),
+    child: FallbackBackgrounds.historyCard(),
+  );
+}
 
 /// 智能获取图片Provider：优先本地图片，其次云端图片
 Future<ImageProvider?> _getHistoryCardImageProvider(PoetryCard card) async {
@@ -334,14 +363,24 @@ Future<ImageProvider?> _getHistoryCardImageProvider(PoetryCard card) async {
   if (cloudUrls != null && cloudUrls.isNotEmpty) {
     for (var url in cloudUrls) {
       if (url.toString().startsWith('http')) {
-        return NetworkImage(url.toString());
+        return NetworkImage(
+          url.toString(),
+          headers: {
+            'Cache-Control': 'max-age=86400', // 缓存1天
+          },
+        );
       }
     }
   }
 
   // 3. 使用卡片当前的图片路径
   if (card.image.path.startsWith('http')) {
-    return NetworkImage(card.image.path);
+    return NetworkImage(
+      card.image.path,
+      headers: {
+        'Cache-Control': 'max-age=86400', // 缓存1天
+      },
+    );
   } else {
     // 检查本地文件是否存在
     try {

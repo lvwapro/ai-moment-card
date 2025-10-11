@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:ai_poetry_card/models/poetry_card.dart';
 import 'package:ai_poetry_card/services/ai_poetry_service.dart';
 import 'package:ai_poetry_card/services/default_image_service.dart';
@@ -17,6 +18,39 @@ class CardGenerator extends ChangeNotifier {
 
   void setUserProfileService(UserProfileService userProfileService) {
     _userProfileService = userProfileService;
+  }
+
+  /// 将临时图片复制到应用的持久化目录
+  Future<String> _savePersistentImage(String tempPath) async {
+    try {
+      final appDir = await getApplicationDocumentsDirectory();
+      final imagesDir = Directory('${appDir.path}/images');
+
+      // 确保目录存在
+      if (!await imagesDir.exists()) {
+        await imagesDir.create(recursive: true);
+      }
+
+      // 生成唯一的文件名
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final extension = tempPath.split('.').last;
+      final fileName = 'img_$timestamp.$extension';
+      final newPath = '${imagesDir.path}/$fileName';
+
+      // 复制文件
+      final tempFile = File(tempPath);
+      if (await tempFile.exists()) {
+        await tempFile.copy(newPath);
+        print('✅ 图片已保存到持久化目录: $newPath');
+        return newPath;
+      } else {
+        print('⚠️ 临时图片不存在: $tempPath');
+        return tempPath; // 返回原路径
+      }
+    } catch (e) {
+      print('❌ 保存图片失败: $e');
+      return tempPath; // 失败时返回原路径
+    }
   }
 
   Future<PoetryCard> generateCard(File image, PoetryStyle style,
@@ -66,7 +100,16 @@ class CardGenerator extends ChangeNotifier {
           '生成失败';
       _currentPoetry = poetry;
 
-      // 3. 创建卡片对象（包含所有平台文案）
+      // 3. 将本地图片保存到持久化目录
+      List<String> persistentImagePaths = [];
+      if (localImagePaths != null && localImagePaths.isNotEmpty) {
+        for (var tempPath in localImagePaths) {
+          final persistentPath = await _savePersistentImage(tempPath);
+          persistentImagePaths.add(persistentPath);
+        }
+      }
+
+      // 4. 创建卡片对象（包含所有平台文案）
       final card = PoetryCard(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         image: safeImage,
@@ -78,7 +121,7 @@ class CardGenerator extends ChangeNotifier {
           'imageSize': safeImage.path.startsWith('http')
               ? 'URL'
               : '${safeImage.lengthSync()}',
-          'localImagePaths': localImagePaths ?? [],
+          'localImagePaths': persistentImagePaths, // 使用持久化路径
           'cloudImageUrls': cloudImageUrls ?? [],
         },
         // 添加所有平台的文案数据
