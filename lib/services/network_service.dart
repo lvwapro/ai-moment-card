@@ -305,6 +305,50 @@ class NetworkService {
     }
   }
 
+  // 获取附近地点（公共API，不需要认证头）
+  Future<Map<String, dynamic>?> getNearbyPlaces({
+    required double longitude,
+    required double latitude,
+    int radius = 1000,
+  }) async {
+    try {
+      print('🗺️ 开始获取附近地点: ($longitude, $latitude, radius=$radius)');
+
+      // 创建独立的Dio实例，不带认证头
+      final publicDio = Dio(BaseOptions(
+        connectTimeout: const Duration(seconds: 15),
+        receiveTimeout: const Duration(seconds: 30),
+        validateStatus: (status) => true,
+      ));
+
+      final response = await publicDio.get(
+        'https://a.mostsnews.com/api/map/nearby',
+        queryParameters: {
+          'longitude': longitude,
+          'latitude': latitude,
+          'radius': radius,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = response.data as Map<String, dynamic>;
+        if (data['success'] == true) {
+          print('✅ 获取附近地点成功');
+          return data;
+        } else {
+          print('⚠️ 获取附近地点失败: ${data['message']}');
+          return null;
+        }
+      } else {
+        print('⚠️ 获取附近地点失败 - HTTP ${response.statusCode}');
+        return null;
+      }
+    } catch (e) {
+      print('⚠️ 获取附近地点异常: ${e.toString().split('\n').first}');
+      return null;
+    }
+  }
+
   void _handleError(DioException e) {
     switch (e.type) {
       case DioExceptionType.connectionTimeout:

@@ -146,6 +146,9 @@ class EnglishTranslations {
     '语音识别初始化失败': 'Speech recognition initialization failed',
     '语音识别失败: ': 'Speech recognition failed: ',
     '生成失败：': 'Generation failed: ',
+    '无法获取当前位置，请检查定位权限':
+        'Unable to get current location, please check location permissions',
+    '获取附近地点失败，请稍后重试': 'Failed to get nearby places, please try again later',
     '导出功能开发中...': 'Export feature in development...',
     '清空历史记录': 'Clear History',
     '确定要清空所有历史记录吗？此操作不可撤销。':

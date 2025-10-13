@@ -2,12 +2,17 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:ai_poetry_card/models/poetry_card.dart';
+import 'package:ai_poetry_card/models/nearby_place.dart';
 import 'package:ai_poetry_card/services/ai_poetry_service.dart';
 import 'package:ai_poetry_card/services/default_image_service.dart';
 import 'package:ai_poetry_card/services/user_profile_service.dart';
+import 'package:ai_poetry_card/services/location_service.dart';
+import 'package:ai_poetry_card/services/network_service.dart';
 
 class CardGenerator extends ChangeNotifier {
   final AIPoetryService _poetryService = AIPoetryService();
+  final LocationService _locationService = LocationService();
+  final NetworkService _networkService = NetworkService();
   UserProfileService? _userProfileService;
 
   bool _isGenerating = false;
@@ -83,24 +88,76 @@ class CardGenerator extends ChangeNotifier {
         );
       }
 
-      // 2. 生成AI文案（获取所有平台的数据）
-      final userProfile = _userProfileService?.getUserDescription();
-      final poetryData = await _poetryService.generatePoetryData(
-        safeImage,
-        style,
-        userDescription: userDescription,
-        userProfile: userProfile,
-      );
+      // 2. 先获取位置
+      final location = await _locationService.getCurrentLocation();
 
-      // 优先使用朋友圈文案作为默认显示
+      if (location == null) {
+        print('⚠️ 位置获取失败，继续生成卡片（不包含地点信息）');
+      } else {
+        print('✅ 位置获取成功: (${location.longitude}, ${location.latitude})');
+      }
+
+      // 3. 并行请求：同时生成AI文案和获取附近地点
+      print('🚀 开始并行请求：AI文案 + 附近地点...');
+      final userProfile = _userProfileService?.getUserDescription();
+
+      // 构建请求列表
+      final futures = <Future>[
+        // 请求1：生成AI文案（必须成功）
+        _poetryService.generatePoetryData(
+          safeImage,
+          style,
+          userDescription: userDescription,
+          userProfile: userProfile,
+        ),
+      ];
+
+      // 请求2：获取附近地点（可选，仅在有位置时）
+      if (location != null) {
+        futures.add(
+          _networkService.getNearbyPlaces(
+            longitude: location.longitude,
+            latitude: location.latitude,
+            radius: 1000,
+          ),
+        );
+      }
+
+      // 等待所有请求完成
+      final results = await Future.wait(futures);
+
+      // 处理AI文案结果
+      final poetryData = results[0] as Map<String, dynamic>;
       final poetry = poetryData['pengyouquan'] ??
           poetryData['xiaohongshu'] ??
           poetryData['weibo'] ??
           poetryData['douyin'] ??
           '生成失败';
       _currentPoetry = poetry;
+      print('✅ AI文案生成完成');
 
-      // 3. 将本地图片保存到持久化目录
+      // 处理附近地点结果（可选）
+      List<NearbyPlace>? nearbyPlaces;
+      if (location != null && results.length > 1) {
+        try {
+          final nearbyData = results[1] as Map<String, dynamic>?;
+          if (nearbyData != null) {
+            final nearbyResponse = NearbyPlacesResponse.fromJson(nearbyData);
+            if (nearbyResponse.places.isNotEmpty) {
+              nearbyPlaces = nearbyResponse.places.take(10).toList();
+              print('✅ 获取到${nearbyPlaces.length}个附近地点');
+            }
+          } else {
+            print('⚠️ 获取附近地点失败，继续生成卡片（不包含地点信息）');
+          }
+        } catch (e) {
+          print('⚠️ 解析附近地点数据失败: $e，继续生成卡片（不包含地点信息）');
+        }
+      }
+
+      print('✅ 并行请求完成！');
+
+      // 4. 将本地图片保存到持久化目录
       List<String> persistentImagePaths = [];
       if (localImagePaths != null && localImagePaths.isNotEmpty) {
         for (var tempPath in localImagePaths) {
@@ -109,7 +166,7 @@ class CardGenerator extends ChangeNotifier {
         }
       }
 
-      // 4. 创建卡片对象（包含所有平台文案）
+      // 5. 创建卡片对象（包含所有平台文案和附近地点）
       final card = PoetryCard(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         image: safeImage,
@@ -134,6 +191,8 @@ class CardGenerator extends ChangeNotifier {
         xiaohongshu: poetryData['xiaohongshu'],
         pengyouquan: poetryData['pengyouquan'],
         douyin: poetryData['douyin'],
+        // 添加附近地点信息
+        nearbyPlaces: nearbyPlaces,
       );
 
       print('✅ 卡片生成成功: ${card.id}');

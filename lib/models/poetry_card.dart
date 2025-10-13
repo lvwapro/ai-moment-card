@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'nearby_place.dart';
 
 enum PoetryStyle {
   modernPoetic, // 现代诗意（默认首选）
@@ -30,6 +31,9 @@ class PoetryCard {
   final String? pengyouquan; // 朋友圈文案
   final String? douyin; // 抖音文案
 
+  // 附近地点信息
+  final List<NearbyPlace>? nearbyPlaces;
+
   PoetryCard({
     required this.id,
     required this.image,
@@ -46,6 +50,7 @@ class PoetryCard {
     this.xiaohongshu,
     this.pengyouquan,
     this.douyin,
+    this.nearbyPlaces,
   });
 
   Map<String, dynamic> toJson() {
@@ -65,10 +70,13 @@ class PoetryCard {
       'xiaohongshu': xiaohongshu,
       'pengyouquan': pengyouquan,
       'douyin': douyin,
+      'nearbyPlaces': nearbyPlaces?.map((p) => p.toJson()).toList(),
     };
   }
 
   factory PoetryCard.fromJson(Map<String, dynamic> json) {
+    final nearbyPlacesList = json['nearbyPlaces'] as List?;
+
     return PoetryCard(
       id: json['id'],
       image: File(json['imagePath']),
@@ -88,6 +96,9 @@ class PoetryCard {
       xiaohongshu: json['xiaohongshu'],
       pengyouquan: json['pengyouquan'],
       douyin: json['douyin'],
+      nearbyPlaces: nearbyPlacesList
+          ?.map((p) => NearbyPlace.fromJson(p as Map<String, dynamic>))
+          .toList(),
     );
   }
 
@@ -107,6 +118,7 @@ class PoetryCard {
     String? xiaohongshu,
     String? pengyouquan,
     String? douyin,
+    List<NearbyPlace>? nearbyPlaces,
   }) {
     return PoetryCard(
       id: id ?? this.id,
@@ -124,6 +136,7 @@ class PoetryCard {
       xiaohongshu: xiaohongshu ?? this.xiaohongshu,
       pengyouquan: pengyouquan ?? this.pengyouquan,
       douyin: douyin ?? this.douyin,
+      nearbyPlaces: nearbyPlaces ?? this.nearbyPlaces,
     );
   }
 }

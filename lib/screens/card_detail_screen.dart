@@ -3,6 +3,7 @@ import 'package:ai_poetry_card/providers/history_manager.dart';
 import 'package:ai_poetry_card/providers/card_generator.dart';
 import '../services/image_save_service.dart';
 import 'package:ai_poetry_card/widgets/card_info_widget.dart';
+import 'package:ai_poetry_card/widgets/nearby_places_widget.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
@@ -58,28 +59,29 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
           actions: widget.isResultMode
               ? [
                   // 重新生成图标按钮
-                  _isRegenerating
-                      ? Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                Theme.of(context).primaryColor,
-                              ),
-                            ),
+                  if (_isRegenerating)
+                    Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            Theme.of(context).primaryColor,
                           ),
-                        )
-                      : IconButton(
-                          icon: Icon(
-                            Icons.refresh,
-                            color: Theme.of(context).primaryColor,
-                          ),
-                          onPressed: _regenerateCard,
-                          tooltip: context.l10n('重新生成文案'),
                         ),
+                      ),
+                    )
+                  else
+                    IconButton(
+                      icon: Icon(
+                        Icons.refresh,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                      onPressed: _regenerateCard,
+                      tooltip: context.l10n('重新生成文案'),
+                    ),
                 ]
               : null,
         ),
@@ -113,6 +115,16 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
                             });
                           },
                         ),
+
+                        // 附近地点信息
+                        if (_currentCard.nearbyPlaces != null &&
+                            _currentCard.nearbyPlaces!.isNotEmpty)
+                          Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            child: NearbyPlacesWidget(
+                              places: _currentCard.nearbyPlaces!,
+                            ),
+                          ),
 
                         const SizedBox(height: 20),
                       ],

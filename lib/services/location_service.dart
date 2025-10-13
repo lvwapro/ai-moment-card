@@ -37,18 +37,27 @@ class LocationService {
   LocationService._internal();
 
   LocationInfo? _lastLocation;
-  bool _isGettingLocation = false;
+  Future<LocationInfo?>? _currentRequest;
 
   /// 获取当前位置
   Future<LocationInfo?> getCurrentLocation() async {
-    if (_isGettingLocation) {
-      print('位置获取正在进行中...');
-      return _lastLocation;
+    // 如果有正在进行的请求，复用它
+    if (_currentRequest != null) {
+      print('📍 复用正在进行的位置获取请求...');
+      return _currentRequest!;
     }
 
+    // 创建新的请求
+    _currentRequest = _getLocationInternal();
+    final result = await _currentRequest!;
+    _currentRequest = null;
+    return result;
+  }
+
+  /// 内部位置获取方法
+  Future<LocationInfo?> _getLocationInternal() async {
     try {
-      _isGettingLocation = true;
-      print('开始获取位置信息...');
+      print('📍 开始获取位置信息...');
 
       // 检查位置权限
       final hasPermission = await _checkLocationPermission();
@@ -70,7 +79,7 @@ class LocationService {
         timeLimit: const Duration(seconds: 10),
       );
 
-      print('获取到位置: ${position.latitude}, ${position.longitude}');
+      print('📍 获取到位置: ${position.latitude}, ${position.longitude}');
 
       // 获取地址信息（可选）
       String? address;
@@ -85,7 +94,7 @@ class LocationService {
               '${placemark.country} ${placemark.administrativeArea} ${placemark.locality}';
         }
       } catch (e) {
-        print('获取地址信息失败: $e');
+        print('⚠️ 获取地址信息失败: $e');
       }
 
       _lastLocation = LocationInfo(
@@ -96,13 +105,11 @@ class LocationService {
         timestamp: DateTime.now(),
       );
 
-      print('位置信息获取成功: $_lastLocation');
+      print('✅ 位置信息获取成功: $_lastLocation');
       return _lastLocation;
     } catch (e) {
-      print('获取位置信息失败: $e');
+      print('❌ 获取位置信息失败: $e');
       return null;
-    } finally {
-      _isGettingLocation = false;
     }
   }
 
