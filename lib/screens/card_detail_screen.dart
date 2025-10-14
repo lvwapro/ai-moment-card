@@ -1,7 +1,6 @@
 import 'package:ai_poetry_card/models/poetry_card.dart';
 import 'package:ai_poetry_card/providers/history_manager.dart';
 import 'package:ai_poetry_card/providers/card_generator.dart';
-import '../services/image_save_service.dart';
 import 'package:ai_poetry_card/widgets/card_info_widget.dart';
 import 'package:ai_poetry_card/widgets/nearby_places_widget.dart';
 import 'package:flutter/material.dart';
@@ -11,6 +10,12 @@ import 'package:share_plus/share_plus.dart';
 import 'package:ai_poetry_card/services/language_service.dart';
 import '../widgets/poetry_card_widget.dart';
 import '../widgets/loading_overlay.dart';
+import '../theme/app_theme.dart';
+import 'dart:io';
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+import 'package:flutter/rendering.dart';
+import 'package:path_provider/path_provider.dart';
 
 /// 卡片详情/结果展示屏幕
 /// 支持两种模式：详情查看模式和结果展示模式
@@ -51,6 +56,11 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
   Widget build(BuildContext context) => Scaffold(
         backgroundColor: Colors.grey.shade50,
         appBar: AppBar(
+          leading: IconButton(
+            icon:
+                const Icon(Icons.arrow_back_ios, color: AppTheme.primaryColor),
+            onPressed: () => Navigator.pop(context),
+          ),
           title: Text(
               widget.isResultMode ? context.l10n('生成完成') : context.l10n('卡片详情'),
               style: TextStyle(color: Theme.of(context).primaryColor)),
@@ -193,12 +203,50 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
         ),
       );
 
+  /// 分享卡片（存储到文件/分享）
   void _shareCard(BuildContext context) async {
     try {
-      await Share.share(
-        context
-            .l10n('我刚刚用AI诗意瞬间卡片生成器创作了一张卡片：\n\n"{0}"\n\n快来试试吧！')
-            .replaceAll('{0}', _currentCard.poetry),
+      // 显示准备中提示
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Text(context.l10n('正在准备文件...')),
+            ],
+          ),
+          duration: const Duration(seconds: 2),
+        ),
+      );
+
+      // 渲染卡片为图片
+      RenderRepaintBoundary boundary =
+          _cardKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+      ByteData? byteData =
+          await image.toByteData(format: ui.ImageByteFormat.png);
+
+      if (byteData == null) {
+        throw Exception('图片转换失败');
+      }
+
+      // 保存到临时文件
+      final tempDir = await getTemporaryDirectory();
+      final fileName = 'AI诗意卡片_${DateTime.now().millisecondsSinceEpoch}.png';
+      final file = File('${tempDir.path}/$fileName');
+      await file.writeAsBytes(byteData.buffer.asUint8List());
+
+      // 使用系统分享功能（iOS会显示"存储到文件"选项）
+      await Share.shareXFiles(
+        [XFile(file.path)],
         subject: context.l10n('我的诗意瞬间'),
       );
     } catch (e) {
@@ -208,6 +256,7 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
     }
   }
 
+  /// 保存到相册（点击保存按钮）
   void _saveCard(BuildContext context) async {
     try {
       // 显示保存中提示
@@ -224,35 +273,42 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
                 ),
               ),
               const SizedBox(width: 16),
-              Text(context.l10n('正在保存到相册...')),
+              Text(context.l10n('正在保存...')),
             ],
           ),
           duration: const Duration(seconds: 2),
         ),
       );
 
-      // 保存卡片到相册
-      final imageSaveService = ImageSaveService();
-      final success = await imageSaveService.saveCardToGallery(_cardKey);
+      // 渲染卡片为图片
+      RenderRepaintBoundary boundary =
+          _cardKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
+      ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+      ByteData? byteData =
+          await image.toByteData(format: ui.ImageByteFormat.png);
 
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n('卡片已保存到相册')),
-            backgroundColor: Colors.green,
-          ),
-        );
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n('保存失败，请检查相册权限')),
-            backgroundColor: Colors.red,
-          ),
-        );
+      if (byteData == null) {
+        throw Exception('图片转换失败');
       }
+
+      // 保存到临时文件
+      final tempDir = await getTemporaryDirectory();
+      final fileName = 'AI诗意卡片_${DateTime.now().millisecondsSinceEpoch}.png';
+      final file = File('${tempDir.path}/$fileName');
+      await file.writeAsBytes(byteData.buffer.asUint8List());
+
+      // 使用系统分享，iOS会显示"存储图像"选项保存到相册
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        subject: context.l10n('我的诗意瞬间'),
+        text: context.l10n('点击「存储图像」保存到相册'),
+      );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n('保存失败：$e'))),
+        SnackBar(
+          content: Text(context.l10n('保存失败：$e')),
+          backgroundColor: Colors.red,
+        ),
       );
     }
   }

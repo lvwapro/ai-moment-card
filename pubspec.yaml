@@ -67,8 +67,7 @@ dependencies:
   # 文件操作
   path_provider: ^2.1.1
   
-  # 保存到相册
-  gal: ^2.3.0
+  # 注释：保存功能现在只使用 share_plus 的文件分享，不需要相册权限
   
   # Lottie动画
   lottie: ^3.1.2

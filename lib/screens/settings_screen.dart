@@ -4,13 +4,21 @@ import '../widgets/user_info_card_widget.dart';
 import '../widgets/settings/preferences_section.dart';
 import '../widgets/settings/data_section.dart';
 import '../widgets/settings/about_section.dart';
+import '../theme/app_theme.dart';
 
 class SettingsScreen extends StatelessWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(title: Text(context.l10n('设置'))),
+        appBar: AppBar(
+          leading: IconButton(
+            icon:
+                const Icon(Icons.arrow_back_ios, color: AppTheme.primaryColor),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: Text(context.l10n('设置')),
+        ),
         body: ListView(
           children: [
             const UserInfoCardWidget(),
