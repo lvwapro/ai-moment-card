@@ -37,6 +37,8 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
   final GlobalKey _cardKey = GlobalKey();
   late PoetryCard _currentCard;
   bool _isRegenerating = false;
+  bool _isSaving = false;
+  bool _isSharing = false;
 
   @override
   void initState() {
@@ -162,24 +164,47 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: () => _shareCard(context),
-                    icon: const Icon(Icons.share),
+                    onPressed: _isSharing ? () {} : () => _shareCard(context),
+                    icon: _isSharing
+                        ? SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor: AlwaysStoppedAnimation<Color>(
+                                  Theme.of(context).primaryColor),
+                            ),
+                          )
+                        : const Icon(Icons.share),
                     label: Text(context.l10n('分享')),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Theme.of(context).primaryColor,
                       side: BorderSide(color: Theme.of(context).primaryColor),
+                      disabledForegroundColor: Theme.of(context).primaryColor,
                     ),
                   ),
                 ),
                 const SizedBox(width: 12),
                 Expanded(
                   child: ElevatedButton.icon(
-                    onPressed: () => _saveCard(context),
-                    icon: const Icon(Icons.download),
+                    onPressed: _isSaving ? () {} : () => _saveCard(context),
+                    icon: _isSaving
+                        ? const SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : const Icon(Icons.download),
                     label: Text(context.l10n('保存')),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Theme.of(context).primaryColor,
                       foregroundColor: Colors.white,
+                      disabledBackgroundColor: Theme.of(context).primaryColor,
+                      disabledForegroundColor: Colors.white,
                     ),
                   ),
                 ),
@@ -205,28 +230,11 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
 
   /// 分享卡片（存储到文件/分享）
   void _shareCard(BuildContext context) async {
-    try {
-      // 显示准备中提示
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Text(context.l10n('正在准备文件...')),
-            ],
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+    setState(() {
+      _isSharing = true;
+    });
 
+    try {
       // 渲染卡片为图片
       RenderRepaintBoundary boundary =
           _cardKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
@@ -250,36 +258,27 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
         subject: context.l10n('我的诗意瞬间'),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(context.l10n('分享失败：$e'))),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(context.l10n('分享失败：$e'))),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSharing = false;
+        });
+      }
     }
   }
 
   /// 保存到相册（点击保存按钮）
   void _saveCard(BuildContext context) async {
-    try {
-      // 显示保存中提示
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Row(
-            children: [
-              const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Text(context.l10n('正在保存...')),
-            ],
-          ),
-          duration: const Duration(seconds: 2),
-        ),
-      );
+    setState(() {
+      _isSaving = true;
+    });
 
+    try {
       // 渲染卡片为图片
       RenderRepaintBoundary boundary =
           _cardKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
@@ -304,12 +303,20 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
         text: context.l10n('点击「存储图像」保存到相册'),
       );
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(context.l10n('保存失败：$e')),
-          backgroundColor: Colors.red,
-        ),
-      );
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n('保存失败：$e')),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+      }
     }
   }
 
