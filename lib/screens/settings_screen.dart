@@ -12,12 +12,14 @@ class SettingsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Scaffold(
         appBar: AppBar(
-          leading: IconButton(
-            icon:
-                const Icon(Icons.arrow_back_ios, color: AppTheme.primaryColor),
-            onPressed: () => Navigator.pop(context),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          surfaceTintColor: Colors.transparent,
+          automaticallyImplyLeading: false,
+          title: Text(
+            context.l10n('设置'),
+            style: const TextStyle(color: AppTheme.primaryColor),
           ),
-          title: Text(context.l10n('设置')),
         ),
         body: ListView(
           children: [

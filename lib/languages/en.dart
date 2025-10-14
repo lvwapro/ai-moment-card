@@ -55,6 +55,9 @@ class EnglishTranslations {
     '筛选': 'Filter',
     '搜索历史记录...': 'Search history...',
     '风格': 'Style',
+    '位置': 'Location',
+    '选择位置': 'Select Location',
+    '暂无位置信息': 'No location information',
     '时间': 'Time',
     '清除筛选': 'Clear Filter',
 
@@ -63,6 +66,8 @@ class EnglishTranslations {
     '今天': 'Today',
     '昨天': 'Yesterday',
     '本周': 'This Week',
+    '更早': 'Earlier',
+    '项': 'items',
     '上周': 'Last Week',
     '本月': 'This Month',
     '上月': 'Last Month',
@@ -73,6 +78,15 @@ class EnglishTranslations {
     '今年': 'This Year',
     '去年': 'Last Year',
     '自定义': 'Custom',
+
+    // 足迹页面
+    '我的足迹': 'My Footprints',
+    '暂无足迹记录': 'No footprints yet',
+    '生成卡片时会自动记录位置':
+        'Location will be automatically recorded when generating cards',
+    '个足迹': 'Footprints',
+    '篇创作': 'Creations',
+    '点击查看详情': 'Tap to view details',
 
     // 设置
     '语言': 'Language',

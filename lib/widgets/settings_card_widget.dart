@@ -34,6 +34,7 @@ class SettingsCardWidget extends StatelessWidget {
               title,
               style: Theme.of(context).textTheme.titleMedium?.copyWith(
                     fontWeight: FontWeight.w600,
+                    color: Colors.grey[600],
                   ),
             ),
           ),
@@ -68,18 +69,10 @@ class SettingItemWidget extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         child: Row(
           children: [
-            Container(
-              width: 40,
-              height: 40,
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Icon(
-                icon,
-                color: Theme.of(context).primaryColor,
-                size: 20,
-              ),
+            Icon(
+              icon,
+              color: Theme.of(context).primaryColor,
+              size: 24,
             ),
             const SizedBox(width: 16),
             Expanded(

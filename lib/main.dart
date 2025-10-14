@@ -1,6 +1,5 @@
 import 'package:ai_poetry_card/providers/app_state.dart';
-import 'package:ai_poetry_card/screens/history_screen.dart';
-import 'package:ai_poetry_card/screens/home_screen.dart';
+import 'package:ai_poetry_card/screens/main_screen.dart';
 import 'package:ai_poetry_card/screens/onboarding_screen.dart';
 import 'package:ai_poetry_card/services/user_profile_service.dart';
 import 'package:ai_poetry_card/services/cos_upload_service.dart';
@@ -69,9 +68,6 @@ class PoetryCardApp extends StatelessWidget {
             themeMode: ThemeMode.system,
             home: const AppInitializer(),
             debugShowCheckedModeBanner: false,
-            routes: {
-              '/history': (context) => const HistoryScreen(),
-            },
             localizationsDelegates: const [
               GlobalMaterialLocalizations.delegate,
               GlobalWidgetsLocalizations.delegate,
@@ -143,7 +139,7 @@ class _AppInitializerState extends State<AppInitializer> {
             Provider.of<CardGenerator>(context, listen: false);
         cardGenerator.setUserProfileService(userProfileService);
 
-        return const HomeScreen();
+        return const MainScreen();
       },
     );
   }

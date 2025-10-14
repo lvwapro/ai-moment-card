@@ -179,6 +179,7 @@ class _HomeScreenState extends State<HomeScreen> {
   AppBar _buildAppBar(BuildContext context) => AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
+        surfaceTintColor: Colors.transparent,
         title: Text(
           context.l10n('瞬间文案'),
           style: TextStyle(

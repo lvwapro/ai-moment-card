@@ -3,9 +3,6 @@ import 'package:flutter/material.dart';
 import '../models/poetry_card.dart';
 import 'common/fallback_background.dart';
 import '../screens/card_detail_screen.dart';
-import 'package:ai_poetry_card/services/language_service.dart';
-import '../utils/style_utils.dart';
-import '../theme/app_theme.dart';
 
 class HistoryCardWidget extends StatelessWidget {
   final PoetryCard card;
@@ -55,49 +52,17 @@ class HistoryCardWidget extends StatelessWidget {
             ],
             border: null,
           ),
-          child: Stack(
-            children: [
-              isCompact
-                  ? _CompactView(
-                      card: card,
-                      showSelection: showSelection,
-                      isSelected: isSelected,
-                    )
-                  : _CardListView(
-                      card: card,
-                      showSelection: showSelection,
-                      isSelected: isSelected,
-                    ),
-              // 右下角选择标记
-              if (showSelection && isSelected)
-                Positioned(
-                  bottom: 8,
-                  right: 8,
-                  child: Container(
-                    width: 24,
-                    height: 16,
-                    decoration: BoxDecoration(
-                      color: Colors.grey, // 背景改为灰色
-                      borderRadius: BorderRadius.circular(8), // 减少圆角
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 4,
-                          offset: const Offset(0, 2),
-                        ),
-                      ],
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.check,
-                        color: Colors.white, // 勾选图标改为白色
-                        size: 12, // 减小图标尺寸以适应容器
-                      ),
-                    ),
-                  ),
+          child: isCompact
+              ? _CompactView(
+                  card: card,
+                  showSelection: showSelection,
+                  isSelected: isSelected,
+                )
+              : _CardListView(
+                  card: card,
+                  showSelection: showSelection,
+                  isSelected: isSelected,
                 ),
-            ],
-          ),
         ),
       );
 }
@@ -114,80 +79,108 @@ class _CompactView extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget build(BuildContext context) => Stack(
         children: [
-          // 图片
-          Expanded(
-            flex: 3,
-            child: Container(
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                borderRadius: BorderRadius.vertical(
-                  top: Radius.circular(16),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 图片
+              Expanded(
+                flex: 3,
+                child: Container(
+                  width: double.infinity,
+                  decoration: const BoxDecoration(
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.vertical(
+                      top: Radius.circular(16),
+                    ),
+                    child: _buildHistoryCardImage(card, context),
+                  ),
                 ),
               ),
-              child: ClipRRect(
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(16),
-                ),
-                child: _buildHistoryCardImage(card, context),
-              ),
-            ),
-          ),
 
-          // 信息
-          Expanded(
-            flex: 2,
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // 文字内容
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          card.poetry,
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                          style:
-                              Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    color: Theme.of(context).primaryColor,
-                                  ),
-                        ),
-                        const Spacer(),
-                        Row(
+              // 信息
+              Expanded(
+                flex: 2,
+                child: Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 文字内容
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              StyleUtils.getStyleDisplayName(card.style),
-                              style: const TextStyle(
-                                color: AppTheme.chipText,
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            const Spacer(),
-                            Text(
-                              _formatDate(context, card.createdAt),
+                              card.poetry,
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
                               style: Theme.of(context)
                                   .textTheme
-                                  .bodySmall
+                                  .bodyMedium
                                   ?.copyWith(
                                     color: Theme.of(context).primaryColor,
                                   ),
                             ),
+                            const Spacer(),
+                            Row(
+                              children: [
+                                if (card.nearbyPlaces != null &&
+                                    card.nearbyPlaces!.isNotEmpty) ...[
+                                  Icon(
+                                    Icons.location_on,
+                                    size: 14,
+                                    color: Colors.grey[600],
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Flexible(
+                                    child: Text(
+                                      card.nearbyPlaces!.first.name,
+                                      style: TextStyle(
+                                        color: Colors.grey[600],
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w500,
+                                      ),
+                                      overflow: TextOverflow.ellipsis,
+                                      maxLines: 1,
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
                           ],
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
-                ],
+                ),
+              ),
+            ],
+          ),
+
+          // 右上角勾勾
+          if (showSelection && isSelected)
+            Positioned(
+              top: 8,
+              right: 8,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                decoration: BoxDecoration(
+                  color: Colors.grey[600],
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: const Icon(
+                  Icons.check,
+                  size: 14,
+                  color: Colors.white,
+                ),
               ),
             ),
-          ),
         ],
       );
 }
@@ -204,80 +197,80 @@ class _CardListView extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.all(16),
-        child: Row(
-          children: [
-            // 缩略图
-            Container(
-              width: 80,
-              height: 80,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(12),
-                child: _buildHistoryCardImage(card, context),
-              ),
-            ),
-
-            const SizedBox(width: 16),
-
-            // 内容
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    card.poetry,
-                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                          color: Theme.of(context).primaryColor,
-                        ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+  Widget build(BuildContext context) => Stack(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 图片区域 - 大图展示
+              AspectRatio(
+                aspectRatio: 16 / 9,
+                child: ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(16),
                   ),
-                  const SizedBox(height: 12), // 标签上方较大间距
-                  Row(
-                    children: [
-                      Text(
-                        StyleUtils.getStyleDisplayName(card.style),
-                        style: const TextStyle(
-                          color: AppTheme.chipText,
-                          fontSize: 12,
-                          fontWeight: FontWeight.bold,
-                        ),
+                  child: _buildHistoryCardImage(card, context),
+                ),
+              ),
+
+              // 文字信息区域
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.vertical(
+                    bottom: Radius.circular(16),
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 诗词内容
+                    Text(
+                      card.poetry,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            color: Theme.of(context).primaryColor,
+                          ),
+                    ),
+
+                    // 位置信息
+                    if (card.nearbyPlaces != null &&
+                        card.nearbyPlaces!.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on,
+                            size: 14,
+                            color: Colors.grey[600],
+                          ),
+                          const SizedBox(width: 4),
+                          Flexible(
+                            child: Text(
+                              card.nearbyPlaces!.first.name,
+                              style: TextStyle(
+                                color: Colors.grey[600],
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 1,
+                            ),
+                          ),
+                        ],
                       ),
-                      const SizedBox(width: 8),
                     ],
-                  ),
-                  const SizedBox(height: 4), // 标签下方较小间距
-                  Text(
-                    _formatDate(context, card.createdAt),
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).primaryColor,
-                        ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
-        ),
+            ],
+          ),
+        ],
       );
-}
-
-String _formatDate(BuildContext context, DateTime date) {
-  final now = DateTime.now();
-  final difference = now.difference(date);
-
-  if (difference.inDays > 0) {
-    return '${difference.inDays} ${context.l10n('天前')}';
-  } else if (difference.inHours > 0) {
-    return '${difference.inHours} ${context.l10n('小时前')}';
-  } else if (difference.inMinutes > 0) {
-    return '${difference.inMinutes} ${context.l10n('分钟前')}';
-  } else {
-    return context.l10n('刚刚');
-  }
 }
 
 /// 构建历史卡片图片，支持本地文件和网络URL，优先使用本地图片

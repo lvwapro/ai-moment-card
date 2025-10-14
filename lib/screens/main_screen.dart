@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'dart:ui';
 import 'history_screen.dart';
 import 'home_screen.dart';
+import 'footprint_screen.dart';
 import 'settings_screen.dart';
 
 class MainScreen extends StatefulWidget {
@@ -11,92 +13,77 @@ class MainScreen extends StatefulWidget {
 }
 
 class _MainScreenState extends State<MainScreen> {
-  int _currentIndex = 1; // 默认选中中间的生成页面
+  int _currentIndex = 0; // 默认选中首页
 
   final List<Widget> _screens = [
-    const HistoryScreen(),
     const HomeScreen(),
+    const HistoryScreen(),
+    const FootprintScreen(),
     const SettingsScreen(),
   ];
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: IndexedStack(
-          index: _currentIndex,
-          children: _screens,
-        ),
-        // 悬浮按钮的位置 - 自定义位置往左偏移
-        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-        // 悬浮按钮 - 圆形粉色，无点击效果
-        floatingActionButton: GestureDetector(
-          onTap: () => setState(() => _currentIndex = 1),
-          child: Container(
-            width: 48,
-            height: 48,
-            decoration: const BoxDecoration(
-              color: Colors.pink,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: Color(0x40000000),
-                  blurRadius: 8,
-                  offset: Offset(0, 4),
-                ),
-              ],
-            ),
-            child: const Icon(Icons.add, color: Colors.white, size: 20),
+        body: SafeArea(
+          bottom: false,
+          child: IndexedStack(
+            index: _currentIndex,
+            children: _screens,
           ),
         ),
-        // 底部导航栏 - 悬浮效果
+        // 底部导航栏 - 磨砂透明效果
         bottomNavigationBar: Container(
-          margin: const EdgeInsets.fromLTRB(20, 0, 20, 30), // 悬浮边距
+          margin: const EdgeInsets.fromLTRB(16, 0, 16, 20), // 悬浮边距
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(30),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.3),
-                blurRadius: 15,
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 20,
                 offset: const Offset(0, 5),
               ),
             ],
           ),
           child: ClipRRect(
             borderRadius: BorderRadius.circular(30),
-            child: BottomAppBar(
-              color: Colors.black,
-              height: 40, // 进一步降低高度
-              shape: const CircularNotchedRectangle(),
-              notchMargin: 4.0, // 调整凹槽边距
-              child: Row(
-                mainAxisSize: MainAxisSize.max,
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.only(left: 20),
-                    child: _buildBottomItem(Icons.history, "历史", 0),
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+              child: Container(
+                height: 60,
+                decoration: BoxDecoration(
+                  color: Colors.black.withOpacity(0.3), // 半透明黑色
+                  borderRadius: BorderRadius.circular(30),
+                  border: Border.all(
+                    color: Colors.white.withOpacity(0.2),
+                    width: 1,
                   ),
-                  const SizedBox(width: 100), // 为中间按钮留出更多空间，凹槽往左
-                  Padding(
-                    padding: const EdgeInsets.only(right: 60),
-                    child: _buildBottomItem(Icons.person, "我的", 2),
-                  ),
-                ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: <Widget>[
+                    _buildBottomItem(Icons.home, "首页", 0),
+                    _buildBottomItem(Icons.history, "历史", 1),
+                    _buildBottomItem(Icons.location_on, "足迹", 2),
+                    _buildBottomItem(Icons.settings, "设置", 3),
+                  ],
+                ),
               ),
             ),
           ),
         ),
       );
 
-  // 底部导航按钮组件 - 只显示图标，无点击效果
+  // 底部导航按钮组件 - 只显示图标
   Widget _buildBottomItem(IconData icon, String label, int index) {
+    final isSelected = _currentIndex == index;
     return GestureDetector(
       onTap: () => setState(() => _currentIndex = index),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 6),
+        padding: const EdgeInsets.all(12),
         child: Icon(
           icon,
-          color: _currentIndex == index ? Colors.pink : Colors.white,
-          size: 22,
+          color: isSelected ? Colors.pink : Colors.white,
+          size: 26,
         ),
       ),
     );

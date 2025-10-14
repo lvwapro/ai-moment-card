@@ -214,14 +214,6 @@ class DataSection extends StatelessWidget {
               .l10n('共导出 {0} 张卡片')
               .replaceAll('{0}', cards.length.toString()),
         );
-
-        // 显示成功提示
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n('数据导出成功')),
-            backgroundColor: Colors.green,
-          ),
-        );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
