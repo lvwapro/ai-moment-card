@@ -9,7 +9,7 @@ class LoadingOverlay extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        color: Colors.black.withOpacity(0.3), // 半透明黑色背景
+        color: Colors.black.withOpacity(0.6), // 半透明黑色背景
         child: Center(
           child: Column(
             mainAxisSize: MainAxisSize.min,

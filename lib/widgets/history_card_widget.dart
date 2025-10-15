@@ -1,7 +1,6 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import '../models/poetry_card.dart';
-import 'common/fallback_background.dart';
+import 'common/cached_card_image.dart';
 import '../screens/card_detail_screen.dart';
 
 class HistoryCardWidget extends StatelessWidget {
@@ -10,6 +9,7 @@ class HistoryCardWidget extends StatelessWidget {
   final bool isSelected;
   final bool showSelection;
   final VoidCallback? onSelectionChanged;
+  final VoidCallback? onLongPressDelete;
 
   const HistoryCardWidget({
     super.key,
@@ -18,6 +18,7 @@ class HistoryCardWidget extends StatelessWidget {
     this.isSelected = false,
     this.showSelection = false,
     this.onSelectionChanged,
+    this.onLongPressDelete,
   });
 
   @override
@@ -37,7 +38,12 @@ class HistoryCardWidget extends StatelessWidget {
         onLongPress: showSelection
             ? null
             : () {
-                onSelectionChanged?.call();
+                // 如果有删除回调，则触发删除；否则触发多选
+                if (onLongPressDelete != null) {
+                  onLongPressDelete!();
+                } else {
+                  onSelectionChanged?.call();
+                }
               },
         child: DecoratedBox(
           decoration: BoxDecoration(
@@ -98,7 +104,7 @@ class _CompactView extends StatelessWidget {
                     borderRadius: const BorderRadius.vertical(
                       top: Radius.circular(16),
                     ),
-                    child: _buildHistoryCardImage(card, context),
+                    child: CachedCardImage(card: card),
                   ),
                 ),
               ),
@@ -209,7 +215,7 @@ class _CardListView extends StatelessWidget {
                   borderRadius: const BorderRadius.vertical(
                     top: Radius.circular(16),
                   ),
-                  child: _buildHistoryCardImage(card, context),
+                  child: CachedCardImage(card: card),
                 ),
               ),
 
@@ -271,120 +277,4 @@ class _CardListView extends StatelessWidget {
           ),
         ],
       );
-}
-
-/// 构建历史卡片图片，支持本地文件和网络URL，优先使用本地图片
-Widget _buildHistoryCardImage(PoetryCard card, BuildContext context) {
-  // 首先尝试同步获取本地图片
-  final localPaths = card.metadata['localImagePaths'] as List<dynamic>?;
-
-  if (localPaths != null && localPaths.isNotEmpty) {
-    for (var path in localPaths) {
-      try {
-        final localFile = File(path.toString());
-        if (localFile.existsSync()) {
-          return RepaintBoundary(
-            child: Image(
-              image: FileImage(localFile),
-              fit: BoxFit.cover,
-              gaplessPlayback: true,
-              errorBuilder: (context, error, stackTrace) {
-                return _buildFallbackImage(context);
-              },
-            ),
-          );
-        }
-      } catch (e) {
-        // 继续尝试下一个
-      }
-    }
-  }
-
-  // 如果没有本地图片，使用FutureBuilder异步加载
-  return FutureBuilder<ImageProvider?>(
-    key: ValueKey('${card.id}_async'), // 使用不同的key
-    future: _getHistoryCardImageProvider(card),
-    builder: (context, snapshot) {
-      if (snapshot.connectionState == ConnectionState.waiting) {
-        return _buildFallbackImage(context);
-      }
-
-      if (snapshot.hasData && snapshot.data != null) {
-        return RepaintBoundary(
-          child: Image(
-            image: snapshot.data!,
-            fit: BoxFit.cover,
-            gaplessPlayback: true,
-            errorBuilder: (context, error, stackTrace) {
-              return _buildFallbackImage(context);
-            },
-          ),
-        );
-      } else {
-        return _buildFallbackImage(context);
-      }
-    },
-  );
-}
-
-Widget _buildFallbackImage(BuildContext context) {
-  return Container(
-    color: Theme.of(context).primaryColor.withOpacity(0.1),
-    child: FallbackBackgrounds.historyCard(),
-  );
-}
-
-/// 智能获取图片Provider：优先本地图片，其次云端图片
-Future<ImageProvider?> _getHistoryCardImageProvider(PoetryCard card) async {
-  // 1. 优先尝试本地图片路径
-  final localPaths = card.metadata['localImagePaths'] as List<dynamic>?;
-  if (localPaths != null && localPaths.isNotEmpty) {
-    for (var path in localPaths) {
-      try {
-        final localFile = File(path.toString());
-        if (await localFile.exists()) {
-          return FileImage(localFile);
-        }
-      } catch (e) {
-        // 继续尝试下一个
-      }
-    }
-  }
-
-  // 2. 尝试云端图片URL
-  final cloudUrls = card.metadata['cloudImageUrls'] as List<dynamic>?;
-  if (cloudUrls != null && cloudUrls.isNotEmpty) {
-    for (var url in cloudUrls) {
-      if (url.toString().startsWith('http')) {
-        return NetworkImage(
-          url.toString(),
-          headers: {
-            'Cache-Control': 'max-age=86400', // 缓存1天
-          },
-        );
-      }
-    }
-  }
-
-  // 3. 使用卡片当前的图片路径
-  if (card.image.path.startsWith('http')) {
-    return NetworkImage(
-      card.image.path,
-      headers: {
-        'Cache-Control': 'max-age=86400', // 缓存1天
-      },
-    );
-  } else {
-    // 检查本地文件是否存在
-    try {
-      if (await card.image.exists()) {
-        return FileImage(card.image);
-      }
-    } catch (e) {
-      // 忽略错误
-    }
-  }
-
-  // 4. 都不可用，返回null使用备用背景
-  return null;
 }

@@ -17,13 +17,15 @@ class AppState extends ChangeNotifier {
   static const String _selectedStyleKey = 'selected_style';
   static const String _showQrCodeKey = 'show_qr_code';
   static const String _defaultPlatformKey = 'default_platform';
+  static const String _showStyleOnCardKey = 'show_style_on_card';
 
   // 用户状态
   bool _isPremium = false;
   int _usedCount = 0;
-  PoetryStyle _selectedStyle = PoetryStyle.blindBox;
+  PoetryStyle? _selectedStyle; // 改为nullable，允许未选中状态
   bool _showQrCode = true;
   PlatformType _defaultPlatform = PlatformType.pengyouquan; // 默认朋友圈
+  bool _showStyleOnCard = true; // 默认显示风格
 
   // 限制设置
   static const int freeTrialLimit = 100;
@@ -35,9 +37,10 @@ class AppState extends ChangeNotifier {
   int get totalLimit => _isPremium ? premiumLimit : freeTrialLimit;
   int get remainingUsage => totalLimit - _usedCount;
   bool get canGenerate => _isPremium || _usedCount < freeTrialLimit;
-  PoetryStyle get selectedStyle => _selectedStyle;
+  PoetryStyle? get selectedStyle => _selectedStyle; // nullable getter
   bool get showQrCode => _showQrCode;
   PlatformType get defaultPlatform => _defaultPlatform;
+  bool get showStyleOnCard => _showStyleOnCard;
 
   AppState() {
     _loadSettings();
@@ -50,13 +53,19 @@ class AppState extends ChangeNotifier {
     _isPremium = prefs.getBool(_isPremiumKey) ?? false;
     _usedCount = prefs.getInt(_usedCountKey) ?? 0;
     _showQrCode = prefs.getBool(_showQrCodeKey) ?? true;
+    _showStyleOnCard = prefs.getBool(_showStyleOnCardKey) ?? true;
 
     final styleStr = prefs.getString(_selectedStyleKey);
-    if (styleStr != null) {
-      _selectedStyle = PoetryStyle.values.firstWhere(
-        (e) => e.name == styleStr,
-        orElse: () => PoetryStyle.blindBox,
-      );
+    if (styleStr != null && styleStr.isNotEmpty) {
+      try {
+        _selectedStyle = PoetryStyle.values.firstWhere(
+          (e) => e.name == styleStr,
+        );
+      } catch (e) {
+        _selectedStyle = null; // 如果找不到，设为null
+      }
+    } else {
+      _selectedStyle = null; // 默认未选中
     }
 
     final platformStr = prefs.getString(_defaultPlatformKey);
@@ -74,9 +83,11 @@ class AppState extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_isPremiumKey, _isPremium);
     await prefs.setInt(_usedCountKey, _usedCount);
-    await prefs.setString(_selectedStyleKey, _selectedStyle.name);
+    // 保存风格，如果是null则保存空字符串
+    await prefs.setString(_selectedStyleKey, _selectedStyle?.name ?? '');
     await prefs.setBool(_showQrCodeKey, _showQrCode);
     await prefs.setString(_defaultPlatformKey, _defaultPlatform.name);
+    await prefs.setBool(_showStyleOnCardKey, _showStyleOnCard);
   }
 
   Future<void> incrementUsage() async {
@@ -93,7 +104,7 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setSelectedStyle(PoetryStyle style) async {
+  Future<void> setSelectedStyle(PoetryStyle? style) async {
     _selectedStyle = style;
     await _saveSettings();
     notifyListeners();
@@ -107,6 +118,12 @@ class AppState extends ChangeNotifier {
 
   Future<void> setDefaultPlatform(PlatformType platform) async {
     _defaultPlatform = platform;
+    await _saveSettings();
+    notifyListeners();
+  }
+
+  Future<void> setShowStyleOnCard(bool show) async {
+    _showStyleOnCard = show;
     await _saveSettings();
     notifyListeners();
   }

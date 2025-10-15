@@ -173,6 +173,9 @@ class EnglishTranslations {
     '隐私政策页面开发中...': 'Privacy policy page in development...',
     '导出历史': 'Export History',
     '删除选中的卡片': 'Delete Selected Cards',
+    '删除卡片': 'Delete Card',
+    '确定要删除这张卡片吗？此操作不可撤销。':
+        'Are you sure you want to delete this card? This action cannot be undone.',
     '确定要删除选中的 ': 'Are you sure you want to delete the selected ',
     ' 张卡片吗？此操作不可撤销。': ' cards? This action cannot be undone.',
 
@@ -306,6 +309,8 @@ class EnglishTranslations {
 
     // 新增的翻译
     '显示二维码': 'Show QR Code',
+    '显示风格标签': 'Show Style Label',
+    '在卡片上显示风格标签': 'Show style label on card',
     '文案风格': 'Text Style',
     '开始创作': 'Start Creating',
     '生成完成': 'Generation Complete',
@@ -367,6 +372,16 @@ class EnglishTranslations {
     '科幻想象': 'Sci-Fi Imagination',
     '深沉哲思': 'Deep Philosophical',
     '盲盒': 'Blind Box',
+    '浪漫梦幻': 'Romantic Dream',
+    '清新自然': 'Fresh & Natural',
+    '都市时尚': 'Urban Fashion',
+    '怀旧复古': 'Nostalgic Retro',
+    '励志正能量': 'Motivational',
+    '神秘暗黑': 'Mysterious Dark',
+    '可爱甜美': 'Cute & Sweet',
+    '酷炫个性': 'Cool & Edgy',
+    '换一批': 'Refresh',
+    '未选择': 'Not Selected',
     '已选择 ': 'Selected ',
     ' 项': ' items',
 

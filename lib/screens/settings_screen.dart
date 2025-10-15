@@ -22,6 +22,7 @@ class SettingsScreen extends StatelessWidget {
           ),
         ),
         body: ListView(
+          padding: const EdgeInsets.only(bottom: 100), // 底部留100空间给导航栏
           children: [
             const UserInfoCardWidget(),
             const SizedBox(height: 16),

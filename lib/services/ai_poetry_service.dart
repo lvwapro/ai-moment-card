@@ -150,6 +150,22 @@ class AIPoetryService {
         return 'philosophical';
       case PoetryStyle.blindBox:
         return 'random';
+      case PoetryStyle.romanticDream:
+        return 'romantic';
+      case PoetryStyle.freshNatural:
+        return 'fresh';
+      case PoetryStyle.urbanFashion:
+        return 'urban';
+      case PoetryStyle.nostalgicRetro:
+        return 'nostalgic';
+      case PoetryStyle.motivationalPositive:
+        return 'motivational';
+      case PoetryStyle.mysteriousDark:
+        return 'mysterious';
+      case PoetryStyle.cuteSweet:
+        return 'cute';
+      case PoetryStyle.coolEdgy:
+        return 'cool';
     }
   }
 
@@ -226,6 +242,54 @@ class AIPoetryService {
           '碧海衔落日，余晖镀金波。孤云随雁远，心共晚风和',
           '太阳下班了，我也挺饿的，海鲜面能不能多加个蛋？',
           '把一天的烦恼，都丢进海里喂鱼',
+        ];
+      case PoetryStyle.romanticDream:
+        return [
+          '星河入梦，月光如诗',
+          '遇见你，是最美的意外',
+          '爱是永恒的浪漫',
+        ];
+      case PoetryStyle.freshNatural:
+        return [
+          '微风拂面，绿意盎然',
+          '自然的美好，治愈心灵',
+          '呼吸清新，感受自然',
+        ];
+      case PoetryStyle.urbanFashion:
+        return [
+          '都市霓虹，时尚节奏',
+          '街头风景，现代生活',
+          '潮流前线，个性表达',
+        ];
+      case PoetryStyle.nostalgicRetro:
+        return [
+          '旧时光，老相片',
+          '回忆是最美的珍藏',
+          '岁月如歌，温暖依旧',
+        ];
+      case PoetryStyle.motivationalPositive:
+        return [
+          '每一天都是新的开始',
+          '相信自己，勇敢前行',
+          '阳光总在风雨后',
+        ];
+      case PoetryStyle.mysteriousDark:
+        return [
+          '暗夜星辰，神秘未知',
+          '黑暗中的光',
+          '探索未知的勇气',
+        ];
+      case PoetryStyle.cuteSweet:
+        return [
+          '甜甜的笑容，暖暖的心',
+          '可爱是一种态度',
+          '软萌时光，治愈系',
+        ];
+      case PoetryStyle.coolEdgy:
+        return [
+          '酷炫姿态，个性表达',
+          '做自己，不随波逐流',
+          '独特是最好的标签',
         ];
     }
   }

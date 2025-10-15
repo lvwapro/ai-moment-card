@@ -22,44 +22,57 @@ class StyleUtils {
         return LanguageService.to.getText('深沉哲思');
       case PoetryStyle.blindBox:
         return LanguageService.to.getText('盲盒');
+      case PoetryStyle.romanticDream:
+        return LanguageService.to.getText('浪漫梦幻');
+      case PoetryStyle.freshNatural:
+        return LanguageService.to.getText('清新自然');
+      case PoetryStyle.urbanFashion:
+        return LanguageService.to.getText('都市时尚');
+      case PoetryStyle.nostalgicRetro:
+        return LanguageService.to.getText('怀旧复古');
+      case PoetryStyle.motivationalPositive:
+        return LanguageService.to.getText('励志正能量');
+      case PoetryStyle.mysteriousDark:
+        return LanguageService.to.getText('神秘暗黑');
+      case PoetryStyle.cuteSweet:
+        return LanguageService.to.getText('可爱甜美');
+      case PoetryStyle.coolEdgy:
+        return LanguageService.to.getText('酷炫个性');
     }
   }
 
+  /// 获取所有风格（完整列表）
+  static List<PoetryStyle> getAllStyles() => PoetryStyle.values;
+
   /// 获取所有风格选项的配置数据
-  static List<Map<String, dynamic>> getStyleOptions() => [
-        {
-          'style': PoetryStyle.blindBox,
-          'title': getStyleDisplayName(PoetryStyle.blindBox),
-        },
-        {
-          'style': PoetryStyle.modernPoetic,
-          'title': getStyleDisplayName(PoetryStyle.modernPoetic),
-        },
-        {
-          'style': PoetryStyle.classicalElegant,
-          'title': getStyleDisplayName(PoetryStyle.classicalElegant),
-        },
-        {
-          'style': PoetryStyle.humorousPlayful,
-          'title': getStyleDisplayName(PoetryStyle.humorousPlayful),
-        },
-        {
-          'style': PoetryStyle.warmLiterary,
-          'title': getStyleDisplayName(PoetryStyle.warmLiterary),
-        },
-        {
-          'style': PoetryStyle.minimalTags,
-          'title': getStyleDisplayName(PoetryStyle.minimalTags),
-        },
-        {
-          'style': PoetryStyle.sciFiImagination,
-          'title': getStyleDisplayName(PoetryStyle.sciFiImagination),
-        },
-        {
-          'style': PoetryStyle.deepPhilosophical,
-          'title': getStyleDisplayName(PoetryStyle.deepPhilosophical),
-        },
-      ];
+  static List<Map<String, dynamic>> getStyleOptions() {
+    return getAllStyles()
+        .map((style) => {
+              'style': style,
+              'title': getStyleDisplayName(style),
+            })
+        .toList();
+  }
+
+  /// 随机获取指定数量的风格（用于首页换一批）
+  /// 第一个始终是默认风格（现代诗意），其余随机
+  static List<Map<String, dynamic>> getRandomStyles(int count) {
+    final allStyles = getAllStyles();
+    // 移除默认风格
+    final otherStyles =
+        allStyles.where((style) => style != PoetryStyle.modernPoetic).toList();
+    // 打乱其他风格
+    otherStyles.shuffle();
+    // 第一个是默认风格，其余是随机风格
+    final selected = [PoetryStyle.modernPoetic, ...otherStyles.take(count - 1)];
+
+    return selected
+        .map((style) => {
+              'style': style,
+              'title': getStyleDisplayName(style),
+            })
+        .toList();
+  }
 
   /// 将风格选项按行分组（每行3个）
   static List<List<Map<String, dynamic>>> groupStylesIntoRows(

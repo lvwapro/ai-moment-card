@@ -32,9 +32,10 @@ class SettingsCardWidget extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Text(
               title,
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.w600,
                     color: Colors.grey[600],
+                    fontSize: 14, // 增大标题字体
                   ),
             ),
           ),
@@ -72,7 +73,7 @@ class SettingItemWidget extends StatelessWidget {
             Icon(
               icon,
               color: Theme.of(context).primaryColor,
-              size: 24,
+              size: 24, // 图标大小
             ),
             const SizedBox(width: 16),
             Expanded(
@@ -83,13 +84,15 @@ class SettingItemWidget extends StatelessWidget {
                     title,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w500,
+                          fontSize: 16, // 标题字体
                         ),
                   ),
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 4),
                   Text(
                     subtitle,
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
                           color: Colors.grey.shade600,
+                          fontSize: 14, // 副标题字体
                         ),
                   ),
                 ],

@@ -18,7 +18,8 @@ class FootprintScreen extends StatefulWidget {
 
 class _FootprintScreenState extends State<FootprintScreen> {
   final MapController _mapController = MapController();
-  PoetryCard? _selectedCard;
+  List<PoetryCard>? _selectedCards; // 改为列表，支持显示同一地点的多个卡片
+  String? _selectedLocationKey; // 记录选中的地点
 
   @override
   Widget build(BuildContext context) {
@@ -44,8 +45,11 @@ class _FootprintScreenState extends State<FootprintScreen> {
             return _buildEmptyState();
           }
 
+          // 按地点分组卡片
+          final groupedCards = _groupCardsByLocation(cardsWithLocation);
+
           // 提取所有位置点
-          final markers = _buildMarkers(cardsWithLocation);
+          final markers = _buildMarkers(groupedCards);
 
           // 计算地图中心点和缩放级别
           final center = _calculateCenter(cardsWithLocation);
@@ -62,7 +66,8 @@ class _FootprintScreenState extends State<FootprintScreen> {
                   maxZoom: 18.0,
                   onTap: (_, __) {
                     setState(() {
-                      _selectedCard = null;
+                      _selectedCards = null;
+                      _selectedLocationKey = null;
                     });
                   },
                 ),
@@ -87,12 +92,12 @@ class _FootprintScreenState extends State<FootprintScreen> {
               ),
 
               // 选中的卡片详情
-              if (_selectedCard != null)
+              if (_selectedCards != null && _selectedCards!.isNotEmpty)
                 Positioned(
-                  bottom: 16,
+                  bottom: 100, // 调整位置，避免被导航栏遮挡
                   left: 16,
                   right: 16,
-                  child: _buildSelectedCardInfo(_selectedCard!),
+                  child: _buildSelectedCardsInfo(_selectedCards!),
                 ),
             ],
           );
@@ -210,46 +215,93 @@ class _FootprintScreenState extends State<FootprintScreen> {
     );
   }
 
-  /// 构建地图标记
-  List<Marker> _buildMarkers(List<PoetryCard> cards) {
-    final markers = <Marker>[];
+  /// 按地点分组卡片
+  Map<String, List<PoetryCard>> _groupCardsByLocation(List<PoetryCard> cards) {
+    final grouped = <String, List<PoetryCard>>{};
 
     for (var card in cards) {
       if (card.nearbyPlaces == null || card.nearbyPlaces!.isEmpty) continue;
 
       final location = card.nearbyPlaces!.first;
+      final locationKey = location.location; // 使用经纬度作为唯一标识
+
+      if (!grouped.containsKey(locationKey)) {
+        grouped[locationKey] = [];
+      }
+      grouped[locationKey]!.add(card);
+    }
+
+    return grouped;
+  }
+
+  /// 构建地图标记
+  List<Marker> _buildMarkers(Map<String, List<PoetryCard>> groupedCards) {
+    final markers = <Marker>[];
+
+    groupedCards.forEach((locationKey, cards) {
+      if (cards.isEmpty) return;
+
+      final location = cards.first.nearbyPlaces!.first;
       final coords = location.location.split(',');
-      if (coords.length != 2) continue;
+      if (coords.length != 2) return;
 
       try {
         final lng = double.parse(coords[0]);
         final lat = double.parse(coords[1]);
 
+        // 检查该地点是否被选中
+        final isSelected = _selectedLocationKey == locationKey;
+
         markers.add(
           Marker(
             point: LatLng(lat, lng),
-            width: 40,
-            height: 40,
+            width: 50,
+            height: 50,
             child: GestureDetector(
               onTap: () {
                 setState(() {
-                  _selectedCard = card;
+                  _selectedCards = cards; // 设置该地点的所有卡片
+                  _selectedLocationKey = locationKey;
                 });
                 // 将地图中心移动到选中的标记
                 _mapController.move(LatLng(lat, lng), 14.0);
               },
-              child: Icon(
-                Icons.location_on,
-                color: _selectedCard?.id == card.id
-                    ? AppTheme.primaryColor
-                    : Colors.red,
-                size: 40,
-                shadows: [
-                  Shadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  Icon(
+                    Icons.location_on,
+                    color: isSelected ? Colors.red : AppTheme.primaryColor,
+                    size: 40,
+                    shadows: [
+                      Shadow(
+                        color: Colors.black.withOpacity(0.3),
+                        blurRadius: 4,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
                   ),
+                  // 如果有多个卡片，显示数量
+                  if (cards.length > 1)
+                    Positioned(
+                      top: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color:
+                              isSelected ? Colors.red : AppTheme.primaryColor,
+                          shape: BoxShape.circle,
+                        ),
+                        child: Text(
+                          cards.length.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
                 ],
               ),
             ),
@@ -258,7 +310,7 @@ class _FootprintScreenState extends State<FootprintScreen> {
       } catch (e) {
         print('解析位置坐标失败: $e');
       }
-    }
+    });
 
     return markers;
   }
@@ -298,105 +350,137 @@ class _FootprintScreenState extends State<FootprintScreen> {
     return LatLng(totalLat / count, totalLng / count);
   }
 
-  /// 构建选中卡片的信息卡片
-  Widget _buildSelectedCardInfo(PoetryCard card) {
-    return GestureDetector(
-      onTap: () {
-        // 跳转到卡片详情页
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => CardDetailScreen(
-              card: card,
-              isResultMode: false,
-            ),
+  /// 构建选中卡片的信息卡片（支持多个卡片）
+  Widget _buildSelectedCardsInfo(List<PoetryCard> cards) {
+    if (cards.isEmpty) return const SizedBox.shrink();
+
+    final locationName = cards.first.nearbyPlaces!.first.name;
+
+    return Container(
+      constraints: const BoxConstraints(maxHeight: 300),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-        );
-      },
-      child: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Row(
-              children: [
-                const Icon(
-                  Icons.location_on,
-                  color: AppTheme.primaryColor,
-                  size: 20,
-                ),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(
-                    card.nearbyPlaces!.first.name,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: AppTheme.primaryColor,
-                    ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close, size: 20),
-                  onPressed: () {
-                    setState(() {
-                      _selectedCard = null;
-                    });
-                  },
-                ),
-              ],
-            ),
-            const SizedBox(height: 8),
-            Text(
-              card.poetry,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.black87,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 位置信息和关闭按钮
+          Row(
+            children: [
+              const Icon(
+                Icons.location_on,
+                color: AppTheme.primaryColor,
+                size: 20,
               ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Text(
-                  _formatDate(card.createdAt),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
-                ),
-                const Spacer(),
-                Text(
-                  context.l10n('点击查看详情'),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  cards.length > 1
+                      ? '$locationName (${cards.length}篇)'
+                      : locationName,
                   style: const TextStyle(
-                    fontSize: 12,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
                     color: AppTheme.primaryColor,
                   ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const Icon(
-                  Icons.arrow_forward_ios,
-                  size: 12,
-                  color: AppTheme.primaryColor,
-                ),
-              ],
+              ),
+              IconButton(
+                icon: const Icon(Icons.close, size: 20),
+                onPressed: () {
+                  setState(() {
+                    _selectedCards = null;
+                    _selectedLocationKey = null;
+                  });
+                },
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+
+          // 卡片列表
+          Flexible(
+            child: ListView.separated(
+              shrinkWrap: true,
+              itemCount: cards.length,
+              separatorBuilder: (context, index) => const Divider(height: 16),
+              itemBuilder: (context, index) {
+                final card = cards[index];
+                return GestureDetector(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CardDetailScreen(
+                          card: card,
+                          isResultMode: false,
+                        ),
+                      ),
+                    );
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[50],
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          card.poetry,
+                          style: const TextStyle(
+                            fontSize: 14,
+                            color: Colors.black87,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        const SizedBox(height: 8),
+                        Row(
+                          children: [
+                            Text(
+                              _formatDate(card.createdAt),
+                              style: TextStyle(
+                                fontSize: 12,
+                                color: Colors.grey[600],
+                              ),
+                            ),
+                            const Spacer(),
+                            Text(
+                              context.l10n('点击查看详情'),
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: AppTheme.primaryColor,
+                              ),
+                            ),
+                            const Icon(
+                              Icons.arrow_forward_ios,
+                              size: 12,
+                              color: AppTheme.primaryColor,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }

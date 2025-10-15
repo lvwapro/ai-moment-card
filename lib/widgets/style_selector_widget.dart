@@ -6,8 +6,28 @@ import 'package:ai_poetry_card/services/language_service.dart';
 import '../utils/style_utils.dart';
 import '../theme/app_theme.dart';
 
-class StyleSelectorWidget extends StatelessWidget {
+class StyleSelectorWidget extends StatefulWidget {
   const StyleSelectorWidget({super.key});
+
+  @override
+  State<StyleSelectorWidget> createState() => _StyleSelectorWidgetState();
+}
+
+class _StyleSelectorWidgetState extends State<StyleSelectorWidget> {
+  List<Map<String, dynamic>> _displayedStyles = [];
+
+  @override
+  void initState() {
+    super.initState();
+    // 初始显示6个随机风格
+    _refreshStyles();
+  }
+
+  void _refreshStyles() {
+    setState(() {
+      _displayedStyles = StyleUtils.getRandomStyles(6);
+    });
+  }
 
   @override
   Widget build(BuildContext context) => Container(
@@ -20,18 +40,41 @@ class StyleSelectorWidget extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              context.l10n('选择风格'),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    color: Theme.of(context).primaryColor,
-                    fontWeight: FontWeight.bold,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  context.l10n('选择风格'),
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: Theme.of(context).primaryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+                InkWell(
+                  onTap: () {
+                    // 清空选中状态（设置为null，什么都不选）
+                    Provider.of<AppState>(context, listen: false)
+                        .setSelectedStyle(null);
+                    // 刷新风格列表
+                    _refreshStyles();
+                  },
+                  borderRadius: BorderRadius.circular(20),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    child: Icon(
+                      Icons.refresh,
+                      size: 20,
+                      color: Theme.of(context).primaryColor,
+                    ),
                   ),
+                ),
+              ],
             ),
             const SizedBox(height: 12),
             Consumer<AppState>(
               builder: (context, appState, child) {
-                final styleOptions = StyleUtils.getStyleOptions();
-                final styleRows = StyleUtils.groupStylesIntoRows(styleOptions);
+                final styleRows =
+                    StyleUtils.groupStylesIntoRows(_displayedStyles);
 
                 return Column(
                   children: styleRows.asMap().entries.map((entry) {

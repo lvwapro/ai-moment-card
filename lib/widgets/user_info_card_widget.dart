@@ -56,7 +56,7 @@ class UserInfoCardWidget extends StatelessWidget {
                           : context.l10n('免费版用户'),
                       style: const TextStyle(
                         color: Colors.white,
-                        fontSize: 18,
+                        fontSize: 18, // 字体大小
                         fontWeight: FontWeight.bold,
                       ),
                     ),
@@ -67,7 +67,7 @@ class UserInfoCardWidget extends StatelessWidget {
                           : context.l10n('试用版用户'),
                       style: TextStyle(
                         color: Colors.white.withOpacity(0.9),
-                        fontSize: 14,
+                        fontSize: 14, // 字体大小
                       ),
                     ),
                     if (!appState.isPremium) ...[
@@ -89,7 +89,7 @@ class UserInfoCardWidget extends StatelessWidget {
                             '${appState.usedCount}/${appState.totalLimit}',
                             style: TextStyle(
                               color: Colors.white.withOpacity(0.9),
-                              fontSize: 12,
+                              fontSize: 12, // 字体大小
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -106,7 +106,10 @@ class UserInfoCardWidget extends StatelessWidget {
                     foregroundColor: Colors.white,
                     backgroundColor: Colors.white.withOpacity(0.2),
                   ),
-                  child: Text(context.l10n('升级')),
+                  child: Text(
+                    context.l10n('升级'),
+                    style: const TextStyle(fontSize: 14), // 按钮字体
+                  ),
                 ),
             ],
           ),

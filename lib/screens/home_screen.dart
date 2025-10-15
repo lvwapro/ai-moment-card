@@ -14,8 +14,6 @@ import '../widgets/style_selector_widget.dart';
 import '../widgets/generate_button_widget.dart';
 import '../widgets/loading_overlay.dart';
 import 'card_detail_screen.dart';
-import 'history_screen.dart';
-import 'settings_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -86,7 +84,7 @@ class _HomeScreenState extends State<HomeScreen> {
         // 目前暂时使用默认图片，后续需要修改AI服务支持URL
         card = await cardGenerator.generateCard(
           File(''), // 临时使用空文件，后续需要修改
-          appState.selectedStyle,
+          appState.selectedStyle ?? PoetryStyle.blindBox, // 如果未选中，默认使用盲盒
           userDescription: _description.isNotEmpty ? _description : null,
           localImagePaths: _localImagePaths,
           cloudImageUrls: _uploadedUrls,
@@ -144,7 +142,8 @@ class _HomeScreenState extends State<HomeScreen> {
         body: Stack(
           children: [
             SingleChildScrollView(
-              padding: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.fromLTRB(
+                  16.0, 16.0, 16.0, 100.0), // 底部留100空间给导航栏
               child: Column(
                 children: [
                   EnhancedImageSelectionWidget(
@@ -187,26 +186,6 @@ class _HomeScreenState extends State<HomeScreen> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        actions: [
-          IconButton(
-            icon: Icon(Icons.history, color: Theme.of(context).primaryColor),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const HistoryScreen()),
-              );
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.settings, color: Theme.of(context).primaryColor),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SettingsScreen()),
-              );
-            },
-          ),
-        ],
       );
 
   Widget _buildHintText(BuildContext context) => Text(

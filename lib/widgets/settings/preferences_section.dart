@@ -36,7 +36,9 @@ class _PreferencesSectionState extends State<PreferencesSection> {
             SettingItemWidget(
               icon: Icons.style,
               title: context.l10n('默认文案风格'),
-              subtitle: StyleUtils.getStyleDisplayName(appState.selectedStyle),
+              subtitle: appState.selectedStyle != null
+                  ? StyleUtils.getStyleDisplayName(appState.selectedStyle!)
+                  : context.l10n('未选择'),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _showStyleSelector(context, appState),
             ),
@@ -58,6 +60,22 @@ class _PreferencesSectionState extends State<PreferencesSection> {
                   value: appState.showQrCode,
                   onChanged: (value) {
                     appState.setShowQrCode(value);
+                  },
+                  materialTapTargetSize:
+                      MaterialTapTargetSize.shrinkWrap, // 缩小点击区域
+                ),
+              ),
+            ),
+            SettingItemWidget(
+              icon: Icons.label,
+              title: context.l10n('显示风格标签'),
+              subtitle: context.l10n('在卡片上显示风格标签'),
+              trailing: Transform.scale(
+                scale: 0.8, // 缩小开关尺寸
+                child: Switch(
+                  value: appState.showStyleOnCard,
+                  onChanged: (value) {
+                    appState.setShowStyleOnCard(value);
                   },
                   materialTapTargetSize:
                       MaterialTapTargetSize.shrinkWrap, // 缩小点击区域

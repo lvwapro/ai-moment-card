@@ -14,6 +14,7 @@ dependencies:
   
   # UI & 动画
   cupertino_icons: ^1.0.2
+  flutter_slidable: ^3.1.0
   
   # 图片处理
   image_picker: ^1.0.4

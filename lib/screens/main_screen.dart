@@ -24,52 +24,61 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: SafeArea(
-          bottom: false,
-          child: IndexedStack(
-            index: _currentIndex,
-            children: _screens,
-          ),
-        ),
-        // 底部导航栏 - 磨砂透明效果
-        bottomNavigationBar: Container(
-          margin: const EdgeInsets.fromLTRB(16, 0, 16, 20), // 悬浮边距
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(30),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.1),
-                blurRadius: 20,
-                offset: const Offset(0, 5),
+        body: Stack(
+          children: [
+            // 主内容区域
+            SafeArea(
+              bottom: false, // 底部不需要SafeArea，因为导航栏是悬浮的
+              child: IndexedStack(
+                index: _currentIndex,
+                children: _screens,
               ),
-            ],
-          ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(30),
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+            ),
+            // 悬浮的底部导航栏
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 20,
               child: Container(
-                height: 60,
                 decoration: BoxDecoration(
-                  color: Colors.black.withOpacity(0.3), // 半透明黑色
                   borderRadius: BorderRadius.circular(30),
-                  border: Border.all(
-                    color: Colors.white.withOpacity(0.2),
-                    width: 1,
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: <Widget>[
-                    _buildBottomItem(Icons.home, "首页", 0),
-                    _buildBottomItem(Icons.history, "历史", 1),
-                    _buildBottomItem(Icons.location_on, "足迹", 2),
-                    _buildBottomItem(Icons.settings, "设置", 3),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.1),
+                      blurRadius: 20,
+                      offset: const Offset(0, 5),
+                    ),
                   ],
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(30),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                    child: Container(
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: Colors.black.withOpacity(0.3), // 半透明黑色
+                        borderRadius: BorderRadius.circular(30),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: <Widget>[
+                          _buildBottomItem(Icons.home, "首页", 0),
+                          _buildBottomItem(Icons.history, "历史", 1),
+                          _buildBottomItem(Icons.location_on, "足迹", 2),
+                          _buildBottomItem(Icons.settings, "设置", 3),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
       );
 

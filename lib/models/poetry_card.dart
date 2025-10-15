@@ -10,6 +10,14 @@ enum PoetryStyle {
   sciFiImagination, // 科幻想象
   deepPhilosophical, // 深沉哲思
   blindBox, // 盲盒模式
+  romanticDream, // 浪漫梦幻
+  freshNatural, // 清新自然
+  urbanFashion, // 都市时尚
+  nostalgicRetro, // 怀旧复古
+  motivationalPositive, // 励志正能量
+  mysteriousDark, // 神秘暗黑
+  cuteSweet, // 可爱甜美
+  coolEdgy, // 酷炫个性
 }
 
 class PoetryCard {
