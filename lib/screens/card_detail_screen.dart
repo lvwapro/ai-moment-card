@@ -302,20 +302,36 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
         subject: context.l10n('我的诗意瞬间'),
         text: context.l10n('点击「存储图像」保存到相册'),
       );
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n('保存失败：$e')),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
+
+      // 保存操作完成后立即重置状态
       if (mounted) {
         setState(() {
           _isSaving = false;
         });
+        print('保存完成，状态已重置');
+
+        // 显示成功提示
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n('保存成功')),
+            backgroundColor: Colors.green,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      print('保存失败: $e');
+      if (mounted) {
+        setState(() {
+          _isSaving = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n('保存失败：$e')),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
       }
     }
   }

@@ -4,7 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ai_poetry_card/models/user_profile.dart';
 
 class UserProfileService extends ChangeNotifier {
-  static const String _profileKey = 'user_profile';
+  static const String _profileKey = 'user_profile_v2';
   UserProfile? _currentProfile;
 
   UserProfile? get currentProfile => _currentProfile;
@@ -13,6 +13,8 @@ class UserProfileService extends ChangeNotifier {
 
   UserProfileService() {
     _loadProfile();
+    // 如果没有配置文件，创建一个临时的默认配置
+    _createDefaultProfileIfNeeded();
   }
 
   /// 加载用户信息
@@ -74,5 +76,28 @@ class UserProfileService extends ChangeNotifier {
   /// 获取建议的文案风格
   List<String> getSuggestedStyles() {
     return _currentProfile?.suggestedStyles ?? ['现代诗意', '盲盒'];
+  }
+
+  /// 创建默认用户配置（临时解决方案）
+  void _createDefaultProfileIfNeeded() {
+    if (_currentProfile == null) {
+      // 创建一个临时的默认用户配置
+      _currentProfile = UserProfile(
+        id: 'default_user_${DateTime.now().millisecondsSinceEpoch}',
+        age: 25,
+        gender: Gender.other,
+        personalityTypes: [
+          PersonalityType.artistic,
+          PersonalityType.extroverted
+        ],
+        interests: ['摄影', '旅行'],
+        occupation: '自由职业',
+        location: '北京',
+        createdAt: DateTime.now(),
+        updatedAt: DateTime.now(),
+      );
+      // 异步保存默认配置
+      saveProfile(_currentProfile!);
+    }
   }
 }

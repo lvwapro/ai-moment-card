@@ -41,14 +41,6 @@ class EmptyStateWidget extends StatelessWidget {
                   ),
               textAlign: TextAlign.center,
             ),
-            if (!hasCards) ...[
-              const SizedBox(height: 24),
-              ElevatedButton.icon(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.add),
-                label: Text(context.l10n('开始创作')),
-              ),
-            ],
           ],
         ),
       ),

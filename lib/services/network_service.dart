@@ -124,7 +124,7 @@ class NetworkService {
       return packageInfo.packageName;
     } catch (e) {
       print('获取Bundle ID失败: $e');
-      return 'com.qualrb.texaswinrate';
+      return 'com.qualrb.ai_poetry_card';
     }
   }
 

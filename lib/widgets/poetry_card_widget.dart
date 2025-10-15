@@ -66,20 +66,35 @@ class PoetryCardWidget extends StatelessWidget {
                   right: 20,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
                     children: [
                       // 主要文案（根据默认平台显示）
                       Consumer<AppState>(
-                        builder: (context, appState, child) => Text(
-                          _getDisplayContent(appState.defaultPlatform),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 18,
-                            fontWeight: FontWeight.w500,
-                            height: 1.4,
-                          ),
-                          maxLines: 4,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                        builder: (context, appState, child) {
+                          final content =
+                              _getDisplayContent(appState.defaultPlatform);
+                          // 根据文字长度动态调整字体大小
+                          double fontSize = 18;
+                          double lineHeight = 1.4;
+
+                          if (content.length > 200) {
+                            fontSize = 14;
+                            lineHeight = 1.2;
+                          } else if (content.length > 100) {
+                            fontSize = 16;
+                            lineHeight = 1.3;
+                          }
+
+                          return Text(
+                            content,
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: fontSize,
+                              fontWeight: FontWeight.w500,
+                              height: lineHeight,
+                            ),
+                          );
+                        },
                       ),
 
                       const SizedBox(height: 16),

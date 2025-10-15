@@ -76,7 +76,7 @@ class _FootprintScreenState extends State<FootprintScreen> {
                   TileLayer(
                     urlTemplate:
                         'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.example.ai_poetry_card',
+                    userAgentPackageName: 'com.qualrb.ai_poetry_card',
                   ),
                   // 标记层
                   MarkerLayer(markers: markers),
