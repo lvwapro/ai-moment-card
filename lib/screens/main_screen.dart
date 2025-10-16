@@ -24,6 +24,7 @@ class _MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) => Scaffold(
+        resizeToAvoidBottomInset: false, // 防止键盘弹出时底部导航栏上移
         body: Stack(
           children: [
             // 主内容区域
