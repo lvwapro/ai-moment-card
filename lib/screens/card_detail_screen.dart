@@ -4,12 +4,13 @@ import 'package:ai_poetry_card/providers/card_generator.dart';
 import 'package:ai_poetry_card/widgets/card_info_widget.dart';
 import 'package:ai_poetry_card/widgets/nearby_places_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
+import '../services/native_share_service.dart';
 
 import 'package:ai_poetry_card/services/language_service.dart';
 import '../widgets/poetry_card_widget.dart';
-import '../widgets/loading_overlay.dart';
 import '../theme/app_theme.dart';
 import 'dart:io';
 import 'dart:typed_data';
@@ -33,17 +34,20 @@ class CardDetailScreen extends StatefulWidget {
   State<CardDetailScreen> createState() => _CardDetailScreenState();
 }
 
-class _CardDetailScreenState extends State<CardDetailScreen> {
+class _CardDetailScreenState extends State<CardDetailScreen>
+    with WidgetsBindingObserver {
   final GlobalKey _cardKey = GlobalKey();
   late PoetryCard _currentCard;
   bool _isRegenerating = false;
   bool _isSaving = false;
-  bool _isSharing = false;
 
   @override
   void initState() {
     super.initState();
     _currentCard = widget.card;
+
+    // 添加生命周期监听器
+    WidgetsBinding.instance.addObserver(this);
 
     // 如果是结果模式，保存到历史记录
     if (widget.isResultMode) {
@@ -52,6 +56,19 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
             .addCard(widget.card);
       });
     }
+  }
+
+  @override
+  void dispose() {
+    // 移除生命周期监听器
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // 原生分享方案不需要复杂的生命周期处理
   }
 
   @override
@@ -97,60 +114,53 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
                 ]
               : null,
         ),
-        body: Stack(
+        body: Column(
           children: [
-            Column(
-              children: [
-                // 卡片展示
-                Expanded(
-                  child: SingleChildScrollView(
-                    child: Column(
-                      children: [
-                        // 卡片展示
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          child: RepaintBoundary(
-                            key: _cardKey,
-                            child: PoetryCardWidget(
-                              card: _currentCard,
-                              showControls: false,
-                            ),
-                          ),
-                        ),
-
-                        // 卡片信息（包含各平台文案）
-                        CardInfoWidget(
+            // 卡片展示
+            Expanded(
+              child: SingleChildScrollView(
+                child: Column(
+                  children: [
+                    // 卡片展示
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      child: RepaintBoundary(
+                        key: _cardKey,
+                        child: PoetryCardWidget(
                           card: _currentCard,
-                          onPoetryUpdated: (updatedCard) {
-                            setState(() {
-                              _currentCard = updatedCard;
-                            });
-                          },
+                          showControls: false,
                         ),
-
-                        // 附近地点信息
-                        if (_currentCard.nearbyPlaces != null &&
-                            _currentCard.nearbyPlaces!.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 16),
-                            child: NearbyPlacesWidget(
-                              places: _currentCard.nearbyPlaces!,
-                            ),
-                          ),
-
-                        const SizedBox(height: 20),
-                      ],
+                      ),
                     ),
-                  ),
-                ),
 
-                // 结果模式：底部操作按钮
-                _buildResultActions(context),
-              ],
+                    // 卡片信息（包含各平台文案）
+                    CardInfoWidget(
+                      card: _currentCard,
+                      onPoetryUpdated: (updatedCard) {
+                        setState(() {
+                          _currentCard = updatedCard;
+                        });
+                      },
+                    ),
+
+                    // 附近地点信息
+                    if (_currentCard.nearbyPlaces != null &&
+                        _currentCard.nearbyPlaces!.isNotEmpty)
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        child: NearbyPlacesWidget(
+                          places: _currentCard.nearbyPlaces!,
+                        ),
+                      ),
+
+                    const SizedBox(height: 20),
+                  ],
+                ),
+              ),
             ),
 
-            // 重新生成时的全屏loading遮罩
-            if (_isRegenerating) const LoadingOverlay(),
+            // 结果模式：底部操作按钮
+            _buildResultActions(context),
           ],
         ),
       );
@@ -164,23 +174,12 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
-                    onPressed: _isSharing ? () {} : () => _shareCard(context),
-                    icon: _isSharing
-                        ? SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor: AlwaysStoppedAnimation<Color>(
-                                  Theme.of(context).primaryColor),
-                            ),
-                          )
-                        : const Icon(Icons.share),
+                    onPressed: () => _shareCard(context),
+                    icon: const Icon(Icons.share),
                     label: Text(context.l10n('分享')),
                     style: OutlinedButton.styleFrom(
                       foregroundColor: Theme.of(context).primaryColor,
                       side: BorderSide(color: Theme.of(context).primaryColor),
-                      disabledForegroundColor: Theme.of(context).primaryColor,
                     ),
                   ),
                 ),
@@ -230,15 +229,12 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
 
   /// 分享卡片（存储到文件/分享）
   void _shareCard(BuildContext context) async {
-    setState(() {
-      _isSharing = true;
-    });
-
     try {
       // 渲染卡片为图片
       RenderRepaintBoundary boundary =
           _cardKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
       ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+
       ByteData? byteData =
           await image.toByteData(format: ui.ImageByteFormat.png);
 
@@ -252,22 +248,32 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
       final file = File('${tempDir.path}/$fileName');
       await file.writeAsBytes(byteData.buffer.asUint8List());
 
-      // 使用系统分享功能（iOS会显示"存储到文件"选项）
-      await Share.shareXFiles(
-        [XFile(file.path)],
-        subject: context.l10n('我的诗意瞬间'),
-      );
+      // 使用原生分享方案（已验证无蒙层）
+      try {
+        final success = await NativeShareService.shareImage(file.path);
+        if (!success) {
+          // 回退到插件方案
+          Share.shareXFiles(
+            [XFile(file.path)],
+            subject: context.l10n('我的诗意瞬间'),
+          );
+        }
+      } catch (e) {
+        // 回退到插件方案
+        Share.shareXFiles(
+          [XFile(file.path)],
+          subject: context.l10n('我的诗意瞬间'),
+        );
+      }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(context.l10n('分享失败：$e'))),
+          SnackBar(
+            content: Text(context.l10n('分享失败：$e')),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSharing = false;
-        });
       }
     }
   }
@@ -283,6 +289,7 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
       RenderRepaintBoundary boundary =
           _cardKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
       ui.Image image = await boundary.toImage(pixelRatio: 3.0);
+
       ByteData? byteData =
           await image.toByteData(format: ui.ImageByteFormat.png);
 
@@ -290,27 +297,19 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
         throw Exception('图片转换失败');
       }
 
-      // 保存到临时文件
-      final tempDir = await getTemporaryDirectory();
-      final fileName = 'AI诗意卡片_${DateTime.now().millisecondsSinceEpoch}.png';
-      final file = File('${tempDir.path}/$fileName');
-      await file.writeAsBytes(byteData.buffer.asUint8List());
-
-      // 使用系统分享，iOS会显示"存储图像"选项保存到相册
+      // 保存到相册
       await Share.shareXFiles(
-        [XFile(file.path)],
+        [
+          XFile.fromData(byteData.buffer.asUint8List(),
+              name: 'AI诗意卡片_${DateTime.now().millisecondsSinceEpoch}.png')
+        ],
         subject: context.l10n('我的诗意瞬间'),
-        text: context.l10n('点击「存储图像」保存到相册'),
       );
 
-      // 保存操作完成后立即重置状态
       if (mounted) {
         setState(() {
           _isSaving = false;
         });
-        print('保存完成，状态已重置');
-
-        // 显示成功提示
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(context.l10n('保存成功')),
@@ -320,7 +319,6 @@ class _CardDetailScreenState extends State<CardDetailScreen> {
         );
       }
     } catch (e) {
-      print('保存失败: $e');
       if (mounted) {
         setState(() {
           _isSaving = false;
