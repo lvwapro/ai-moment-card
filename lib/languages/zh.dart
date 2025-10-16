@@ -332,6 +332,11 @@ class ChineseTranslations {
     '次': '次',
     '次数已用完': '次数已用完',
     '无限生成\n高级模板\n独家字体\n优先支持': '无限生成\n高级模板\n独家字体\n优先支持',
+
+    // 欢迎页面
+    '记录生活的美好瞬间': '记录生活的美好瞬间',
+    '每一刻都值得被温柔对待': '每一刻都值得被温柔对待',
+    '开始使用': '开始使用',
   };
 
   static String getText(String key) => translations[key] ?? key;

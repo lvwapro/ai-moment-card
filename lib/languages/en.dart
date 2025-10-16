@@ -453,6 +453,11 @@ class EnglishTranslations {
     '次数已用完': 'Usage limit reached',
     '无限生成\n高级模板\n独家字体\n优先支持':
         'Unlimited generation\nPremium templates\nExclusive fonts\nPriority support',
+
+    // Welcome page
+    '记录生活的美好瞬间': 'Capture Beautiful Moments',
+    '每一刻都值得被温柔对待': 'Every moment deserves to be cherished',
+    '开始使用': 'Get Started',
   };
 
   static String getText(String key) => translations[key] ?? key;

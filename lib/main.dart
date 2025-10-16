@@ -1,6 +1,6 @@
 import 'package:ai_poetry_card/providers/app_state.dart';
 import 'package:ai_poetry_card/screens/main_screen.dart';
-import 'package:ai_poetry_card/screens/onboarding_screen.dart';
+import 'package:ai_poetry_card/screens/welcome_screen.dart';
 import 'package:ai_poetry_card/services/user_profile_service.dart';
 import 'package:ai_poetry_card/services/cos_upload_service.dart';
 import 'package:ai_poetry_card/services/init_service.dart';
@@ -129,9 +129,9 @@ class _AppInitializerState extends State<AppInitializer> {
 
     return Consumer<UserProfileService>(
       builder: (context, userProfileService, child) {
-        // 检查用户是否已完成信息收集
-        if (!userProfileService.isProfileComplete) {
-          return const OnboardingScreen();
+        // 检查用户是否已完成欢迎页面（是否有用户配置）
+        if (!userProfileService.hasProfile) {
+          return const WelcomeScreen();
         }
 
         // 设置CardGenerator的用户信息服务
