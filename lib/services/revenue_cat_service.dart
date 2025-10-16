@@ -3,8 +3,10 @@ import 'package:flutter/material.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 import 'vip_service.dart';
+import 'stripe_payment_service.dart';
+import 'init_service.dart';
 
-/// RevenueCat 购买系统服务
+/// RevenueCat 购买系统服务（整合 Stripe 支付）
 class RevenueCatService {
   static final RevenueCatService _instance = RevenueCatService._internal();
   factory RevenueCatService() => _instance;
@@ -12,6 +14,9 @@ class RevenueCatService {
 
   // VIP服务实例
   final VipService _vipService = VipService();
+
+  // Stripe支付服务实例
+  final StripePaymentService _stripeService = StripePaymentService();
 
   // 初始化状态
   bool _isInitialized = false;
@@ -63,10 +68,61 @@ class RevenueCatService {
     }
   }
 
-  /// 显示应用内购买付费墙
-  Future<bool> showIAPPaywall() async {
+  /// 显示应用内购买付费墙（根据平台自动选择支付方式）
+  /// [context] 必需参数，用于显示对话框和跳转
+  Future<bool> showIAPPaywall({required BuildContext context}) async {
+    // ==================== TODO: 临时修改 - 让iOS也使用Stripe测试 ====================
+    // 正式版应该是: if (Platform.isAndroid)
+    // ==================== Android 和 iOS 都使用 Stripe 支付 ====================
+    if (Platform.isAndroid || Platform.isIOS) {
+      // 临时修改
+      print('💳 使用 Stripe 支付 (Platform: ${Platform.operatingSystem})');
+
+      try {
+        // 获取用户信息
+        final userInfo = await InitService.getUserInfo();
+        final data = userInfo?['data'] as Map<String, dynamic>?;
+
+        // 尝试获取 uid 或 deviceId
+        String? uid = data?['uid'] as String?;
+        if (uid == null || uid.isEmpty) {
+          uid = data?['deviceId'] as String?;
+        }
+        if (uid == null || uid.isEmpty) {
+          uid = data?['_id'] as String?;
+        }
+
+        if (uid == null || uid.isEmpty) {
+          print('❌ 无法获取用户ID');
+          if (context.mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('用户信息获取失败，请重试'),
+                backgroundColor: Colors.red,
+              ),
+            );
+          }
+          return false;
+        }
+
+        print('✅ 使用UID进行Stripe支付: $uid');
+
+        // 调用 Stripe 支付
+        await _stripeService.openStripePayment(uid, context);
+
+        // Stripe 支付是异步的，返回 false（实际结果通过对话框处理）
+        return false;
+      } catch (e) {
+        print('❌ Stripe 支付启动失败: $e');
+        return false;
+      }
+    }
+
+    // ==================== iOS 使用 RevenueCat 内购 ====================
+    print('🍎 iOS平台 - 使用 RevenueCat 内购');
+
     if (!_isInitialized) {
-      print('RevenueCat 未初始化');
+      print('❌ RevenueCat 未初始化');
       return false;
     }
 
@@ -74,38 +130,40 @@ class RevenueCatService {
     try {
       final offerings = await Purchases.getOfferings();
       if (offerings.all.isEmpty) {
-        print('RevenueCat 错误: 没有配置任何产品，请在 RevenueCat Dashboard 中配置产品');
+        print('❌ RevenueCat 错误: 没有配置任何产品，请在 RevenueCat Dashboard 中配置产品');
         return false;
       }
     } catch (e) {
-      print('RevenueCat 产品检查失败: $e');
+      print('❌ RevenueCat 产品检查失败: $e');
       return false;
     }
 
+    // 显示 RevenueCat 付费墙
     PaywallResult? paywallResult;
     try {
       paywallResult = await RevenueCatUI.presentPaywall();
     } catch (e) {
-      print('Paywall error: $e');
+      print('❌ Paywall 显示失败: $e');
       return false;
     }
 
+    // 处理购买结果
     if (paywallResult == PaywallResult.purchased) {
       try {
         CustomerInfo customerInfo = await Purchases.getCustomerInfo();
         if (customerInfo.entitlements.all["Pro"]?.isActive ?? false) {
-          print('VIP购买成功');
+          print('✅ VIP购买成功');
           // 购买成功后刷新服务器端会员状态
           await _vipService.refreshVipStatus();
           return true;
         }
       } catch (e) {
-        print('获取用户信息失败: $e');
+        print('❌ 获取用户信息失败: $e');
       }
     } else if (paywallResult == PaywallResult.cancelled) {
-      print('用户取消购买');
+      print('⚠️ 用户取消购买');
     } else if (paywallResult == PaywallResult.error) {
-      print('购买失败');
+      print('❌ 购买失败');
     }
 
     return false;

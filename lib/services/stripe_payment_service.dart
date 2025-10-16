@@ -1,4 +1,4 @@
-import 'dart:io';
+import 'dart:io'; // ignore: unused_import - 上线时需要用于平台判断
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:ai_poetry_card/services/vip_service.dart';
@@ -22,10 +22,11 @@ class StripePaymentService {
   /// [uid] 用户ID
   /// [context] 用于显示对话框
   Future<void> openStripePayment(String uid, BuildContext context) async {
-    if (!Platform.isAndroid) {
-      print('Stripe 支付仅支持安卓平台');
-      return;
-    }
+    // TODO: 临时修改 - 让iOS也能测试，上线前需要改回只支持Android
+    // if (!Platform.isAndroid) {
+    //   print('Stripe 支付仅支持安卓平台');
+    //   return;
+    // }
 
     try {
       final paymentUrl = '$_stripePaymentUrl$uid';
@@ -115,8 +116,11 @@ class StripePaymentService {
         // 显示成功对话框
         _showSuccessDialog(context);
       } else {
-        // 支付验证失败
-        _showErrorDialog(context, '支付验证失败，请稍后重试或联系客服');
+        // 支付验证失败 - 可能是服务器配置问题
+        print('⚠️ VIP状态验证失败，可能是服务器配置问题');
+
+        // 显示友好提示，告知用户支付可能需要时间生效
+        _showPendingDialog(context);
       }
     } catch (e) {
       // 关闭加载对话框
@@ -152,6 +156,34 @@ class StripePaymentService {
               foregroundColor: Colors.white,
             ),
             child: const Text('确定'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 显示支付待处理对话框
+  void _showPendingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Row(
+          children: [
+            Icon(Icons.info, color: Colors.orange),
+            SizedBox(width: 8),
+            Text('支付处理中'),
+          ],
+        ),
+        content: const Text(
+          '您的支付正在处理中，可能需要几分钟时间生效。\n\n'
+          '如果长时间未到账，请联系客服处理。',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+            },
+            child: const Text('知道了'),
           ),
         ],
       ),

@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state.dart';
@@ -117,46 +118,28 @@ class UserInfoCardWidget extends StatelessWidget {
       );
 
   Future<void> _showUpgradeDialog(BuildContext context) async {
-    final appState = Provider.of<AppState>(context, listen: false);
     final revenueCatService = RevenueCatService();
 
-    // 显示loading
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => const Center(
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-        ),
-      ),
-    );
+    print('💳 开始升级流程...');
 
-    // 打开付费墙
-    final success = await revenueCatService.showIAPPaywall();
+    // TODO: 临时修改 - iOS也使用Stripe，所以不显示loading
+    // Android 和 iOS 都会跳转浏览器，通过对话框异步处理结果
 
-    // 关闭loading
-    if (context.mounted) {
-      Navigator.pop(context);
-    }
+    try {
+      // 调用统一的付费墙（自动根据平台选择支付方式）
+      print('🔄 调用 showIAPPaywall...');
+      await revenueCatService.showIAPPaywall(context: context);
+      print('✅ showIAPPaywall 调用完成');
 
-    if (success) {
-      // 刷新VIP状态
-      await appState.refreshVipStatus();
+      // Stripe 支付通过对话框异步处理，这里不需要额外操作
+    } catch (e) {
+      print('❌ 升级流程异常: $e');
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(context.l10n('升级成功！')),
-            backgroundColor: Colors.green,
-          ),
-        );
-      }
-    } else {
-      // 如果RevenueCat未启用，显示提示
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n('支付功能开发中...')),
+            content: Text('升级失败: $e'),
+            backgroundColor: Colors.red,
           ),
         );
       }

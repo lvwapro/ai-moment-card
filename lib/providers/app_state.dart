@@ -28,7 +28,7 @@ class AppState extends ChangeNotifier {
   bool _showStyleOnCard = true; // 默认显示风格
 
   // 限制设置
-  static const int freeTrialLimit = 100;
+  static const int freeTrialLimit = 30; // 免费用户限制改为30次
   static const int premiumLimit = 999;
 
   // Getters
