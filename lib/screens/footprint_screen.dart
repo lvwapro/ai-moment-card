@@ -1,7 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:provider/provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:ui' as ui;
+import 'dart:io';
 import '../models/poetry_card.dart';
 import '../providers/history_manager.dart';
 import '../screens/card_detail_screen.dart';
@@ -20,6 +25,8 @@ class _FootprintScreenState extends State<FootprintScreen> {
   final MapController _mapController = MapController();
   List<PoetryCard>? _selectedCards; // 改为列表，支持显示同一地点的多个卡片
   String? _selectedLocationKey; // 记录选中的地点
+  final GlobalKey _mapKey = GlobalKey(); // 用于截图
+  bool _isSharing = false; // 分享状态
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +39,32 @@ class _FootprintScreenState extends State<FootprintScreen> {
           context.l10n('我的足迹'),
           style: TextStyle(color: Theme.of(context).primaryColor),
         ),
+        actions: [
+          // 分享按钮
+          Consumer<HistoryManager>(
+            builder: (context, historyManager, child) {
+              final cardsWithLocation = historyManager.cards
+                  .where((card) => card.selectedPlace != null)
+                  .toList();
+
+              // 只有有足迹时才显示分享按钮
+              if (cardsWithLocation.isEmpty) {
+                return const SizedBox.shrink();
+              }
+
+              return IconButton(
+                icon: _isSharing
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      )
+                    : const Icon(Icons.ios_share),
+                onPressed: _isSharing ? null : _shareFootprint,
+              );
+            },
+          ),
+        ],
       ),
       body: Consumer<HistoryManager>(
         builder: (context, historyManager, child) {
@@ -53,56 +86,124 @@ class _FootprintScreenState extends State<FootprintScreen> {
           // 计算地图中心点和缩放级别
           final center = _calculateCenter(cardsWithLocation);
 
-          return Stack(
-            children: [
-              // 地图
-              FlutterMap(
-                mapController: _mapController,
-                options: MapOptions(
-                  initialCenter: center,
-                  initialZoom: 12.0,
-                  minZoom: 3.0,
-                  maxZoom: 18.0,
-                  onTap: (_, __) {
-                    setState(() {
-                      _selectedCards = null;
-                      _selectedLocationKey = null;
-                    });
-                  },
-                ),
-                children: [
-                  // 地图瓦片层（使用OpenStreetMap）
-                  TileLayer(
-                    urlTemplate:
-                        'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                    userAgentPackageName: 'com.qualrb.ai_poetry_card',
+          return RepaintBoundary(
+            key: _mapKey,
+            child: Stack(
+              children: [
+                // 地图
+                FlutterMap(
+                  mapController: _mapController,
+                  options: MapOptions(
+                    initialCenter: center,
+                    initialZoom: 12.0,
+                    minZoom: 3.0,
+                    maxZoom: 18.0,
+                    onTap: (_, __) {
+                      setState(() {
+                        _selectedCards = null;
+                        _selectedLocationKey = null;
+                      });
+                    },
                   ),
-                  // 标记层
-                  MarkerLayer(markers: markers),
-                ],
-              ),
+                  children: [
+                    // 地图瓦片层（根据语言动态切换）
+                    TileLayer(
+                      urlTemplate: _getMapUrl(),
+                      subdomains: _getMapSubdomains(),
+                      userAgentPackageName: 'com.qualrb.ai_poetry_card',
+                      tileSize: 256,
+                      retinaMode: _getRetinaMode(),
+                    ),
+                    // 标记层
+                    MarkerLayer(markers: markers),
+                  ],
+                ),
 
-              // 统计信息卡片
-              Positioned(
-                top: 16,
-                left: 16,
-                right: 16,
-                child: _buildStatsCard(cardsWithLocation),
-              ),
-
-              // 选中的卡片详情
-              if (_selectedCards != null && _selectedCards!.isNotEmpty)
+                // 统计信息卡片
                 Positioned(
-                  bottom: 100, // 调整位置，避免被导航栏遮挡
+                  top: 16,
                   left: 16,
                   right: 16,
-                  child: _buildSelectedCardsInfo(_selectedCards!),
+                  child: _buildStatsCard(cardsWithLocation),
                 ),
-            ],
+
+                // 选中的卡片详情
+                if (_selectedCards != null && _selectedCards!.isNotEmpty)
+                  Positioned(
+                    bottom: 100, // 调整位置，避免被导航栏遮挡
+                    left: 16,
+                    right: 16,
+                    child: _buildSelectedCardsInfo(_selectedCards!),
+                  ),
+              ],
+            ),
           );
         },
       ),
     );
+  }
+
+  /// 分享足迹地图
+  Future<void> _shareFootprint() async {
+    setState(() {
+      _isSharing = true;
+    });
+
+    try {
+      // 等待一帧以确保UI更新完成
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      // 获取RepaintBoundary
+      final boundary =
+          _mapKey.currentContext?.findRenderObject() as RenderRepaintBoundary?;
+      if (boundary == null) {
+        throw Exception('无法获取地图渲染对象');
+      }
+
+      // 截图（提高像素比例以获得更清晰的图片）
+      final image = await boundary.toImage(pixelRatio: 4.0);
+      final byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      if (byteData == null) {
+        throw Exception('无法生成图片');
+      }
+
+      // 保存到临时文件
+      final tempDir = await getTemporaryDirectory();
+      final file = File(
+          '${tempDir.path}/footprint_${DateTime.now().millisecondsSinceEpoch}.png');
+      await file.writeAsBytes(byteData.buffer.asUint8List());
+
+      // 分享
+      final result = await Share.shareXFiles(
+        [XFile(file.path)],
+        text: context.l10n('我的足迹地图 - 迹见文案'),
+      );
+
+      // 分享完成后删除临时文件
+      if (result.status == ShareResultStatus.success) {
+        try {
+          await file.delete();
+        } catch (e) {
+          print('删除临时文件失败: $e');
+        }
+      }
+    } catch (e) {
+      print('分享失败: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(context.l10n('分享失败，请重试')),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSharing = false;
+        });
+      }
+    }
   }
 
   /// 构建空状态
@@ -482,6 +583,38 @@ class _FootprintScreenState extends State<FootprintScreen> {
         ],
       ),
     );
+  }
+
+  /// 获取地图URL（根据语言切换）
+  String _getMapUrl() {
+    final currentLang = LanguageService.to.getCurrentLanguage();
+
+    if (currentLang == 'zh') {
+      // 中文使用高德地图
+      return 'https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}';
+    } else {
+      // 英文使用 CartoDB Voyager（清晰的英文地图）
+      return 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+    }
+  }
+
+  /// 获取地图子域名
+  List<String> _getMapSubdomains() {
+    final currentLang = LanguageService.to.getCurrentLanguage();
+
+    if (currentLang == 'zh') {
+      return ['1', '2', '3', '4']; // 高德地图子域名
+    } else {
+      return ['a', 'b', 'c', 'd']; // CartoDB 子域名
+    }
+  }
+
+  /// 获取 Retina 模式设置
+  bool _getRetinaMode() {
+    final currentLang = LanguageService.to.getCurrentLanguage();
+
+    // 只有英文地图（CartoDB）需要 retina 模式
+    return currentLang != 'zh';
   }
 
   /// 格式化日期

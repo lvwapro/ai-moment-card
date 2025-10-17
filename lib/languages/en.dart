@@ -467,6 +467,10 @@ class EnglishTranslations {
     '字体设置': 'Font Settings',
     '选择字体': 'Select Font',
     '系统默认': 'System Default',
+
+    // Footprint sharing
+    '我的足迹地图 - 迹见文案': 'My Footprint Map - TraceCopy',
+    '分享失败，请重试': 'Share failed, please try again',
   };
 
   static String getText(String key) => translations[key] ?? key;

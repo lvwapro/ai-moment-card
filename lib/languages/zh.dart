@@ -346,6 +346,10 @@ class ChineseTranslations {
     '字体设置': '字体设置',
     '选择字体': '选择字体',
     '系统默认': '系统默认',
+
+    // 足迹分享
+    '我的足迹地图 - 迹见文案': '我的足迹地图 - 迹见文案',
+    '分享失败，请重试': '分享失败，请重试',
   };
 
   static String getText(String key) => translations[key] ?? key;
