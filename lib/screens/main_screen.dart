@@ -86,14 +86,26 @@ class _MainScreenState extends State<MainScreen> {
   // 底部导航按钮组件 - 只显示图标
   Widget _buildBottomItem(IconData icon, String label, int index) {
     final isSelected = _currentIndex == index;
-    return GestureDetector(
-      onTap: () => setState(() => _currentIndex = index),
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        child: Icon(
-          icon,
-          color: isSelected ? Colors.pink : Colors.white,
-          size: 26,
+    return Expanded(
+      child: Center(
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => setState(() => _currentIndex = index),
+            customBorder: const CircleBorder(), // 圆形涟漪
+            splashColor: Colors.white.withOpacity(0.2),
+            highlightColor: Colors.white.withOpacity(0.1),
+            child: Container(
+              width: 56,
+              height: 56,
+              alignment: Alignment.center,
+              child: Icon(
+                icon,
+                color: isSelected ? Colors.pink : Colors.white,
+                size: 26,
+              ),
+            ),
+          ),
         ),
       ),
     );
