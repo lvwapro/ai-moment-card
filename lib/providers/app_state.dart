@@ -23,7 +23,7 @@ class AppState extends ChangeNotifier {
   bool _isPremium = false;
   int _usedCount = 0;
   PoetryStyle? _selectedStyle; // 改为nullable，允许未选中状态
-  bool _showQrCode = true;
+  bool _showQrCode = false; // 默认不显示二维码
   PlatformType _defaultPlatform = PlatformType.pengyouquan; // 默认朋友圈
   bool _showStyleOnCard = false; // 默认不显示风格
 
@@ -52,7 +52,7 @@ class AppState extends ChangeNotifier {
 
     _isPremium = prefs.getBool(_isPremiumKey) ?? false;
     _usedCount = prefs.getInt(_usedCountKey) ?? 0;
-    _showQrCode = prefs.getBool(_showQrCodeKey) ?? true;
+    _showQrCode = prefs.getBool(_showQrCodeKey) ?? false;
     _showStyleOnCard = prefs.getBool(_showStyleOnCardKey) ?? false;
 
     final styleStr = prefs.getString(_selectedStyleKey);
