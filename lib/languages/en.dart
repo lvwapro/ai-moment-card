@@ -3,11 +3,11 @@
 class EnglishTranslations {
   static const Map<String, String> translations = {
     // 应用基础
-    'AI诗意瞬间卡片': 'AI Poetry Moment Card',
+    'AI诗意瞬间卡片': 'TraceCopy',
     '为你的瞬间配上有灵魂的文字': 'Add soulful words to your moments',
     'AI将根据你的图片和选择的风格，生成独特的文案':
         'AI will generate unique copy based on your image and selected style',
-    '瞬间文案': 'Moment Copy',
+    '瞬间文案': 'TraceCopy',
     'AI创作中...': 'AI creating...',
     'AI小助手努力创作中...': 'AI assistant is creating...',
     '稍等一下，马上就好~': 'Just a moment, almost done~',
@@ -92,7 +92,7 @@ class EnglishTranslations {
     '语言': 'Language',
     '选择应用语言': 'Choose app language',
     '关于': 'About',
-    '关于AI诗意瞬间卡片': 'About AI Poetry Moment Card',
+    '关于AI诗意瞬间卡片': 'About TraceCopy',
     '版本': 'Version',
     '清除数据': 'Clear Data',
     '清除所有本地数据': 'Clear all local data',
@@ -100,7 +100,7 @@ class EnglishTranslations {
         'Are you sure to clear all data? This action cannot be undone.',
 
     // 用户信息收集
-    '欢迎使用AI诗意瞬间卡片': 'Welcome to AI Poetry Moment Card',
+    '欢迎使用迹见文案': 'Welcome to TraceCopy',
     '让我们先了解一下您，这样AI就能为您生成更个性化的诗意文案':
         'Let us know you better so AI can generate more personalized poetry for you',
     '您的年龄': 'Your Age',
@@ -250,11 +250,11 @@ class EnglishTranslations {
     '共 {0} 张卡片': '{0} cards in total',
     '版本信息': 'Version Info',
     '用户协议': 'User Agreement',
-    'AI诗意瞬间卡片用户协议': 'AI Poetry Moment Card User Agreement',
+    '迹见文案用户协议': 'TraceCopy User Agreement',
     '查看服务条款': 'View terms of service',
     '服务条款': 'Terms of Service',
-    '欢迎使用AI诗意瞬间卡片。使用本应用前，请您仔细阅读并理解本协议。一旦您开始使用本应用，即表示您已同意本协议的所有条款。':
-        'Welcome to AI Poetry Moment Card. Before using this application, please read and understand this agreement carefully. Once you start using this application, it means that you have agreed to all the terms of this agreement.',
+    '欢迎使用迹见文案。使用本应用前，请您仔细阅读并理解本协议。一旦您开始使用本应用，即表示您已同意本协议的所有条款。':
+        'Welcome to TraceCopy. Before using this application, please read and understand this agreement carefully. Once you start using this application, it means that you have agreed to all the terms of this agreement.',
     '服务内容': 'Service Content',
     '本应用提供基于AI技术的文案生成服务，包括但不限于：诗意文案生成、多平台文案创作、图片识别与描述等功能。':
         'This application provides AI-based copywriting services, including but not limited to: poetic copywriting generation, multi-platform copywriting creation, image recognition and description.',
@@ -298,11 +298,11 @@ class EnglishTranslations {
     // Export Data
     '没有可导出的数据': 'No data to export',
     '正在准备导出数据...': 'Preparing to export data...',
-    'AI诗意卡片数据导出': 'AI Poetry Card Data Export',
+    'AI诗意卡片数据导出': 'TraceCopy Data Export',
     '数据导出成功': 'Data exported successfully',
     '导出失败：{0}': 'Export failed: {0}',
     // Feedback
-    'AI诗意卡片 - 用户反馈': 'AI Poetry Card - User Feedback',
+    'AI诗意卡片 - 用户反馈': 'TraceCopy - User Feedback',
     '感谢您的反馈！': 'Thank you for your feedback!',
     '请通过以下方式联系我们：': 'Please contact us via:',
     '关闭': 'Close',
@@ -348,7 +348,7 @@ class EnglishTranslations {
     'AI为你的瞬间配上了文案': 'AI has added text to your moment',
     '搜索文案内容...': 'Search text content...',
     '我刚刚用AI诗意瞬间卡片生成器创作了一张卡片：\n\n"{0}"\n\n快来试试吧！':
-        'I just created a card with AI Poetry Moment Card Generator:\n\n"{0}"\n\nCome try it!',
+        'I just created a card with TraceCopy:\n\n"{0}"\n\nCome try it!',
     '我的诗意瞬间': 'My Poetic Moment',
     '完善个人信息': 'Complete Personal Information',
     '卡片信息': 'Card Information',

@@ -16,7 +16,7 @@ class UserAgreementScreen extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              context.l10n('AI诗意瞬间卡片用户协议'),
+              context.l10n('迹见文案用户协议'),
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
@@ -26,7 +26,7 @@ class UserAgreementScreen extends StatelessWidget {
               context,
               title: context.l10n('服务条款'),
               content: context.l10n(
-                  '欢迎使用AI诗意瞬间卡片。使用本应用前，请您仔细阅读并理解本协议。一旦您开始使用本应用，即表示您已同意本协议的所有条款。'),
+                  '欢迎使用迹见文案。使用本应用前，请您仔细阅读并理解本协议。一旦您开始使用本应用，即表示您已同意本协议的所有条款。'),
             ),
             _buildSection(
               context,
