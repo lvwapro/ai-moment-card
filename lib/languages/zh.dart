@@ -341,6 +341,11 @@ class ChineseTranslations {
     // 地址选择
     '换一个': '换一个',
     '查看更多': '查看更多',
+
+    // 字体设置
+    '字体设置': '字体设置',
+    '选择字体': '选择字体',
+    '系统默认': '系统默认',
   };
 
   static String getText(String key) => translations[key] ?? key;

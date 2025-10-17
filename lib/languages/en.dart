@@ -462,6 +462,11 @@ class EnglishTranslations {
     // Place selection
     '换一个': 'Change',
     '查看更多': 'See More',
+
+    // Font settings
+    '字体设置': 'Font Settings',
+    '选择字体': 'Select Font',
+    '系统默认': 'System Default',
   };
 
   static String getText(String key) => translations[key] ?? key;

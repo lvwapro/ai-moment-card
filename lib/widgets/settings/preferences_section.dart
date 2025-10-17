@@ -34,6 +34,13 @@ class _PreferencesSectionState extends State<PreferencesSection> {
               onTap: () => _showLanguageSelector(context),
             ),
             SettingItemWidget(
+              icon: Icons.font_download,
+              title: context.l10n('字体设置'),
+              subtitle: AppState.getFontDisplayName(appState.selectedFont),
+              trailing: const Icon(Icons.chevron_right),
+              onTap: () => _showFontSelector(context, appState),
+            ),
+            SettingItemWidget(
               icon: Icons.style,
               title: context.l10n('默认文案风格'),
               subtitle: appState.selectedStyle != null
@@ -182,6 +189,86 @@ class _PreferencesSectionState extends State<PreferencesSection> {
                 },
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showFontSelector(BuildContext context, AppState appState) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Text(
+                context.l10n('选择字体'),
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+            ),
+            const SizedBox(height: 16),
+            ...FontFamily.values.map((font) {
+              final isSelected = appState.selectedFont == font;
+              final fontName = AppState.getFontDisplayName(font);
+
+              // 获取字体family，系统字体为null
+              String? fontFamily;
+              switch (font) {
+                case FontFamily.system:
+                  fontFamily = null; // 系统默认字体
+                  break;
+                case FontFamily.jiangxiZhuokai:
+                  fontFamily = 'JiangxiZhuokai';
+                  break;
+                case FontFamily.jiangchengLvdongsong:
+                  fontFamily = 'JiangchengLvdongsong';
+                  break;
+              }
+
+              return Container(
+                margin: const EdgeInsets.only(bottom: 4),
+                decoration: BoxDecoration(
+                  color: isSelected
+                      ? Colors.white // 选中背景为白色
+                      : Colors.transparent, // 未选中透明
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ]
+                      : null, // 选中时有阴影
+                ),
+                child: ListTile(
+                  title: Center(
+                    child: Text(
+                      fontName,
+                      style: TextStyle(
+                        fontFamily: fontFamily, // null表示使用系统默认字体
+                        color: isSelected
+                            ? AppTheme.primaryColor
+                            : const Color(0xFF666666),
+                        fontWeight:
+                            isSelected ? FontWeight.w600 : FontWeight.normal,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ),
+                  onTap: () {
+                    appState.setSelectedFont(font);
+                    Navigator.pop(context);
+                  },
+                ),
+              );
+            }),
+            const SizedBox(height: 16),
           ],
         ),
       ),

@@ -32,19 +32,25 @@ class AppTheme {
   static const Color dividerColor = Color(0xFFD2B48C); // 浅棕色 - 分割线
   static const Color selectionColor = Color(0xFFDAA520); // 金棒色 - 选中状态
 
-  static ThemeData get lightTheme {
+  // 兼容旧代码的静态 getter
+  static ThemeData get lightTheme => getLightTheme('JiangxiZhuokai');
+
+  // 新的带字体参数的方法（fontFamily为null时使用系统默认字体）
+  static ThemeData getLightTheme(String? fontFamily) {
     return ThemeData(
       useMaterial3: true,
+      fontFamily: fontFamily, // 使用传入的字体，null表示系统默认
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryColor,
         brightness: Brightness.light,
       ),
       scaffoldBackgroundColor: backgroundColor,
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         titleTextStyle: TextStyle(
+          fontFamily: fontFamily,
           color: textPrimary,
           fontSize: 20,
           fontWeight: FontWeight.w600,
@@ -69,7 +75,8 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
-          textStyle: const TextStyle(
+          textStyle: TextStyle(
+            fontFamily: fontFamily,
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -78,7 +85,8 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: primaryColor,
-          textStyle: const TextStyle(
+          textStyle: TextStyle(
+            fontFamily: fontFamily,
             fontSize: 16,
             fontWeight: FontWeight.w500,
           ),
@@ -87,6 +95,7 @@ class AppTheme {
       chipTheme: ChipThemeData(
         backgroundColor: const Color(0xFFF0F0F0), // 浅灰色背景
         labelStyle: TextStyle(
+          fontFamily: fontFamily,
           color: primaryColor, // 主题色文字
           fontSize: 12,
           fontWeight: FontWeight.w500,
@@ -151,67 +160,80 @@ class AppTheme {
         ),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        hintStyle: const TextStyle(
-          color: Color(0xFF999999), // 中性灰色提示文字
+        hintStyle: TextStyle(
+          fontFamily: fontFamily,
+          color: const Color(0xFF999999), // 中性灰色提示文字
         ),
       ),
-      textTheme: const TextTheme(
+      textTheme: TextTheme(
         displayLarge: TextStyle(
+          fontFamily: fontFamily,
           fontSize: 32,
           fontWeight: FontWeight.bold,
           color: textPrimary,
         ),
         displayMedium: TextStyle(
+          fontFamily: fontFamily,
           fontSize: 28,
           fontWeight: FontWeight.bold,
           color: textPrimary,
         ),
         displaySmall: TextStyle(
+          fontFamily: fontFamily,
           fontSize: 24,
           fontWeight: FontWeight.w600,
           color: textPrimary,
         ),
         headlineLarge: TextStyle(
+          fontFamily: fontFamily,
           fontSize: 22,
           fontWeight: FontWeight.w600,
           color: textPrimary,
         ),
         headlineMedium: TextStyle(
+          fontFamily: fontFamily,
           fontSize: 20,
           fontWeight: FontWeight.w600,
           color: textPrimary,
         ),
         headlineSmall: TextStyle(
+          fontFamily: fontFamily,
           fontSize: 18,
           fontWeight: FontWeight.w600,
           color: textPrimary,
         ),
         titleLarge: TextStyle(
+          fontFamily: fontFamily,
           fontSize: 16,
           fontWeight: FontWeight.w600,
           color: textPrimary,
         ),
         titleMedium: TextStyle(
+          fontFamily: fontFamily,
           fontSize: 14,
           fontWeight: FontWeight.w500,
           color: textPrimary,
         ),
         titleSmall: TextStyle(
+          fontFamily: fontFamily,
           fontSize: 12,
           fontWeight: FontWeight.w500,
           color: textPrimary,
         ),
         bodyLarge: TextStyle(
+          fontFamily: fontFamily,
           fontSize: 16,
           fontWeight: FontWeight.normal,
           color: textPrimary,
         ),
         bodyMedium: TextStyle(
+          fontFamily: fontFamily,
           fontSize: 14,
           fontWeight: FontWeight.normal,
           color: textSecondary,
         ),
         bodySmall: TextStyle(
+          fontFamily: fontFamily,
           fontSize: 12,
           fontWeight: FontWeight.normal,
           color: textTertiary,
@@ -220,20 +242,26 @@ class AppTheme {
     );
   }
 
-  static ThemeData get darkTheme {
+  // 兼容旧代码的静态 getter
+  static ThemeData get darkTheme => getDarkTheme('JiangxiZhuokai');
+
+  // 新的带字体参数的方法（fontFamily为null时使用系统默认字体）
+  static ThemeData getDarkTheme(String? fontFamily) {
     return ThemeData(
       useMaterial3: true,
+      fontFamily: fontFamily, // 使用传入的字体，null表示系统默认
       colorScheme: ColorScheme.fromSeed(
         seedColor: primaryColor,
         brightness: Brightness.dark,
       ),
       scaffoldBackgroundColor: const Color(0xFF2F1B14), // 深棕色背景
-      appBarTheme: const AppBarTheme(
+      appBarTheme: AppBarTheme(
         backgroundColor: Colors.transparent,
         elevation: 0,
         centerTitle: true,
         titleTextStyle: TextStyle(
-          color: Color(0xFFFFD700), // 金色标题
+          fontFamily: fontFamily,
+          color: const Color(0xFFFFD700), // 金色标题
           fontSize: 20,
           fontWeight: FontWeight.w600,
         ),
@@ -257,7 +285,8 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(8),
           ),
-          textStyle: const TextStyle(
+          textStyle: TextStyle(
+            fontFamily: fontFamily,
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
@@ -266,7 +295,8 @@ class AppTheme {
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
           foregroundColor: const Color(0xFFFFD700), // 金色
-          textStyle: const TextStyle(
+          textStyle: TextStyle(
+            fontFamily: fontFamily,
             fontSize: 16,
             fontWeight: FontWeight.w500,
           ),
@@ -274,8 +304,9 @@ class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: const Color(0xFF404040), // 深灰色背景
-        labelStyle: const TextStyle(
-          color: Color(0xFFE0E0E0), // 浅灰色文字
+        labelStyle: TextStyle(
+          fontFamily: fontFamily,
+          color: const Color(0xFFE0E0E0), // 浅灰色文字
           fontSize: 12,
           fontWeight: FontWeight.w500,
         ),
@@ -322,55 +353,67 @@ class AppTheme {
           return const Color(0xFF404040); // 深灰色轨道
         }),
       ),
-      textTheme: const TextTheme(
+      textTheme: TextTheme(
         displayLarge: TextStyle(
+            fontFamily: fontFamily,
             fontSize: 32,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF8B6914)), // 深金棕色
+            color: const Color(0xFF8B6914)), // 深金棕色
         displayMedium: TextStyle(
+            fontFamily: fontFamily,
             fontSize: 28,
             fontWeight: FontWeight.bold,
-            color: Color(0xFF8B6914)),
+            color: const Color(0xFF8B6914)),
         displaySmall: TextStyle(
+            fontFamily: fontFamily,
             fontSize: 24,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF8B6914)),
+            color: const Color(0xFF8B6914)),
         headlineLarge: TextStyle(
+            fontFamily: fontFamily,
             fontSize: 22,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF8B6914)),
+            color: const Color(0xFF8B6914)),
         headlineMedium: TextStyle(
+            fontFamily: fontFamily,
             fontSize: 20,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF8B6914)),
+            color: const Color(0xFF8B6914)),
         headlineSmall: TextStyle(
+            fontFamily: fontFamily,
             fontSize: 18,
             fontWeight: FontWeight.w600,
-            color: Color(0xFF8B6914)),
+            color: const Color(0xFF8B6914)),
         titleLarge: TextStyle(
+            fontFamily: fontFamily,
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: Color(0xFFCD853F)), // 秘鲁色
+            color: const Color(0xFFCD853F)), // 秘鲁色
         titleMedium: TextStyle(
+            fontFamily: fontFamily,
             fontSize: 14,
             fontWeight: FontWeight.w500,
-            color: Color(0xFFCD853F)),
+            color: const Color(0xFFCD853F)),
         titleSmall: TextStyle(
+            fontFamily: fontFamily,
             fontSize: 12,
             fontWeight: FontWeight.w500,
-            color: Color(0xFFCD853F)),
+            color: const Color(0xFFCD853F)),
         bodyLarge: TextStyle(
+            fontFamily: fontFamily,
             fontSize: 16,
             fontWeight: FontWeight.normal,
-            color: Color(0xFFE6D3B7)), // 深奶油色
+            color: const Color(0xFFE6D3B7)), // 深奶油色
         bodyMedium: TextStyle(
+            fontFamily: fontFamily,
             fontSize: 14,
             fontWeight: FontWeight.normal,
-            color: Color(0xFF8B4513)), // 马鞍棕
+            color: const Color(0xFF8B4513)), // 马鞍棕
         bodySmall: TextStyle(
+            fontFamily: fontFamily,
             fontSize: 12,
             fontWeight: FontWeight.normal,
-            color: Color(0xFF8B4513)),
+            color: const Color(0xFF8B4513)),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
@@ -389,8 +432,9 @@ class AppTheme {
         ),
         contentPadding:
             const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-        hintStyle: const TextStyle(
-          color: Color(0xFF999999), // 中性灰色提示文字
+        hintStyle: TextStyle(
+          fontFamily: fontFamily,
+          color: const Color(0xFF999999), // 中性灰色提示文字
         ),
       ),
     );

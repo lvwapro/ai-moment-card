@@ -60,11 +60,11 @@ class PoetryCardApp extends StatelessWidget {
           ChangeNotifierProvider(create: (_) => HistoryManager()),
           ChangeNotifierProvider(create: (_) => UserProfileService()),
         ],
-        child: Consumer<LanguageService>(
-          builder: (context, languageService, _) => MaterialApp(
+        child: Consumer2<LanguageService, AppState>(
+          builder: (context, languageService, appState, _) => MaterialApp(
             title: 'AI诗意瞬间卡片',
-            theme: AppTheme.lightTheme,
-            darkTheme: AppTheme.darkTheme,
+            theme: AppTheme.getLightTheme(appState.fontFamilyName),
+            darkTheme: AppTheme.getDarkTheme(appState.fontFamilyName),
             themeMode: ThemeMode.system,
             home: const AppInitializer(),
             debugShowCheckedModeBanner: false,

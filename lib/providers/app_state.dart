@@ -11,6 +11,13 @@ enum PlatformType {
   shiju, // 诗句
 }
 
+// 字体类型枚举
+enum FontFamily {
+  system, // 系统默认字体
+  jiangxiZhuokai, // 江西拙楷
+  jiangchengLvdongsong, // 江城律动宋
+}
+
 class AppState extends ChangeNotifier {
   static const String _usedCountKey = 'used_count';
   static const String _isPremiumKey = 'is_premium';
@@ -18,6 +25,7 @@ class AppState extends ChangeNotifier {
   static const String _showQrCodeKey = 'show_qr_code';
   static const String _defaultPlatformKey = 'default_platform';
   static const String _showStyleOnCardKey = 'show_style_on_card';
+  static const String _selectedFontKey = 'selected_font';
 
   // 用户状态
   bool _isPremium = false;
@@ -26,6 +34,7 @@ class AppState extends ChangeNotifier {
   bool _showQrCode = false; // 默认不显示二维码
   PlatformType _defaultPlatform = PlatformType.pengyouquan; // 默认朋友圈
   bool _showStyleOnCard = false; // 默认不显示风格
+  FontFamily _selectedFont = FontFamily.jiangxiZhuokai; // 默认江西拙楷
 
   // 限制设置
   static const int freeTrialLimit = 30; // 免费用户限制改为30次
@@ -41,6 +50,19 @@ class AppState extends ChangeNotifier {
   bool get showQrCode => _showQrCode;
   PlatformType get defaultPlatform => _defaultPlatform;
   bool get showStyleOnCard => _showStyleOnCard;
+  FontFamily get selectedFont => _selectedFont;
+
+  // 获取字体名称（null表示使用系统默认字体）
+  String? get fontFamilyName {
+    switch (_selectedFont) {
+      case FontFamily.system:
+        return null; // 系统默认字体
+      case FontFamily.jiangxiZhuokai:
+        return 'JiangxiZhuokai';
+      case FontFamily.jiangchengLvdongsong:
+        return 'JiangchengLvdongsong';
+    }
+  }
 
   AppState() {
     _loadSettings();
@@ -76,6 +98,14 @@ class AppState extends ChangeNotifier {
       );
     }
 
+    final fontStr = prefs.getString(_selectedFontKey);
+    if (fontStr != null) {
+      _selectedFont = FontFamily.values.firstWhere(
+        (e) => e.name == fontStr,
+        orElse: () => FontFamily.jiangxiZhuokai,
+      );
+    }
+
     notifyListeners();
   }
 
@@ -88,6 +118,7 @@ class AppState extends ChangeNotifier {
     await prefs.setBool(_showQrCodeKey, _showQrCode);
     await prefs.setString(_defaultPlatformKey, _defaultPlatform.name);
     await prefs.setBool(_showStyleOnCardKey, _showStyleOnCard);
+    await prefs.setString(_selectedFontKey, _selectedFont.name);
   }
 
   Future<void> incrementUsage() async {
@@ -128,6 +159,12 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setSelectedFont(FontFamily font) async {
+    _selectedFont = font;
+    await _saveSettings();
+    notifyListeners();
+  }
+
   /// 获取平台的显示名称
   static String getPlatformDisplayName(PlatformType platform) {
     switch (platform) {
@@ -141,6 +178,18 @@ class AppState extends ChangeNotifier {
         return '朋友圈';
       case PlatformType.shiju:
         return '诗句';
+    }
+  }
+
+  /// 获取字体的显示名称
+  static String getFontDisplayName(FontFamily font) {
+    switch (font) {
+      case FontFamily.system:
+        return '系统默认';
+      case FontFamily.jiangxiZhuokai:
+        return '江西拙楷';
+      case FontFamily.jiangchengLvdongsong:
+        return '江城律动宋';
     }
   }
 

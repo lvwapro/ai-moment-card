@@ -100,12 +100,17 @@ flutter:
     - assets/animation/
     - .env
   
-  # fonts:
-  #   - family: PoetryFont
-  #     fonts:
-  #       - asset: assets/fonts/PoetryFont-Regular.ttf
-  #       - asset: assets/fonts/PoetryFont-Bold.ttf
-  #         weight: 700
+  fonts:
+    - family: JiangxiZhuokai
+      fonts:
+        - asset: assets/fonts/JiangxiZhuokai-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/JiangxiZhuokai-Bold.ttf
+          weight: 700
+    - family: JiangchengLvdongsong
+      fonts:
+        - asset: assets/fonts/jiangchenglvdongsong.ttf
+          weight: 400
 
 flutter_launcher_icons:
   android: true
