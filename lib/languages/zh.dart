@@ -337,6 +337,10 @@ class ChineseTranslations {
     '记录生活的美好瞬间': '记录生活的美好瞬间',
     '每一刻都值得被温柔对待': '每一刻都值得被温柔对待',
     '开始使用': '开始使用',
+
+    // 地址选择
+    '换一个': '换一个',
+    '查看更多': '查看更多',
   };
 
   static String getText(String key) => translations[key] ?? key;

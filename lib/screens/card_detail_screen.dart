@@ -144,12 +144,11 @@ class _CardDetailScreenState extends State<CardDetailScreen>
                     ),
 
                     // 附近地点信息
-                    if (_currentCard.nearbyPlaces != null &&
-                        _currentCard.nearbyPlaces!.isNotEmpty)
+                    if (_currentCard.selectedPlace != null)
                       Padding(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         child: NearbyPlacesWidget(
-                          places: _currentCard.nearbyPlaces!,
+                          places: [_currentCard.selectedPlace!],
                         ),
                       ),
 

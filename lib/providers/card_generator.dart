@@ -25,6 +25,39 @@ class CardGenerator extends ChangeNotifier {
     _userProfileService = userProfileService;
   }
 
+  /// 获取附近地点列表（供用户选择）
+  Future<List<NearbyPlace>?> fetchNearbyPlaces() async {
+    try {
+      final location = await _locationService.getCurrentLocation();
+      if (location == null) {
+        print('⚠️ 位置获取失败');
+        return null;
+      }
+
+      print('✅ 位置获取成功: (${location.longitude}, ${location.latitude})');
+
+      final nearbyData = await _networkService.getNearbyPlaces(
+        longitude: location.longitude,
+        latitude: location.latitude,
+        radius: 1000,
+      );
+
+      if (nearbyData != null) {
+        final nearbyResponse = NearbyPlacesResponse.fromJson(nearbyData);
+        if (nearbyResponse.places.isNotEmpty) {
+          final places = nearbyResponse.places.take(20).toList();
+          print('✅ 获取到${places.length}个附近地点');
+          return places;
+        }
+      }
+
+      return null;
+    } catch (e) {
+      print('❌ 获取附近地点失败: $e');
+      return null;
+    }
+  }
+
   /// 将临时图片复制到应用的持久化目录
   Future<String> _savePersistentImage(String tempPath) async {
     try {
@@ -61,7 +94,8 @@ class CardGenerator extends ChangeNotifier {
   Future<PoetryCard> generateCard(File image, PoetryStyle style,
       {String? userDescription,
       List<String>? localImagePaths,
-      List<String>? cloudImageUrls}) async {
+      List<String>? cloudImageUrls,
+      NearbyPlace? selectedPlace}) async {
     _isGenerating = true;
     notifyListeners();
 
@@ -88,46 +122,17 @@ class CardGenerator extends ChangeNotifier {
         );
       }
 
-      // 2. 先获取位置
-      final location = await _locationService.getCurrentLocation();
-
-      if (location == null) {
-        print('⚠️ 位置获取失败，继续生成卡片（不包含地点信息）');
-      } else {
-        print('✅ 位置获取成功: (${location.longitude}, ${location.latitude})');
-      }
-
-      // 3. 并行请求：同时生成AI文案和获取附近地点
-      print('🚀 开始并行请求：AI文案 + 附近地点...');
+      // 2. 生成AI文案
+      print('🚀 开始生成AI文案...');
       final userProfile = _userProfileService?.getUserDescription();
 
-      // 构建请求列表
-      final futures = <Future>[
-        // 请求1：生成AI文案（必须成功）
-        _poetryService.generatePoetryData(
-          safeImage,
-          style,
-          userDescription: userDescription,
-          userProfile: userProfile,
-        ),
-      ];
+      final poetryData = await _poetryService.generatePoetryData(
+        safeImage,
+        style,
+        userDescription: userDescription,
+        userProfile: userProfile,
+      );
 
-      // 请求2：获取附近地点（可选，仅在有位置时）
-      if (location != null) {
-        futures.add(
-          _networkService.getNearbyPlaces(
-            longitude: location.longitude,
-            latitude: location.latitude,
-            radius: 1000,
-          ),
-        );
-      }
-
-      // 等待所有请求完成
-      final results = await Future.wait(futures);
-
-      // 处理AI文案结果
-      final poetryData = results[0] as Map<String, dynamic>;
       final poetry = poetryData['pengyouquan'] ??
           poetryData['xiaohongshu'] ??
           poetryData['weibo'] ??
@@ -136,28 +141,7 @@ class CardGenerator extends ChangeNotifier {
       _currentPoetry = poetry;
       print('✅ AI文案生成完成');
 
-      // 处理附近地点结果（可选）
-      List<NearbyPlace>? nearbyPlaces;
-      if (location != null && results.length > 1) {
-        try {
-          final nearbyData = results[1] as Map<String, dynamic>?;
-          if (nearbyData != null) {
-            final nearbyResponse = NearbyPlacesResponse.fromJson(nearbyData);
-            if (nearbyResponse.places.isNotEmpty) {
-              nearbyPlaces = nearbyResponse.places.take(10).toList();
-              print('✅ 获取到${nearbyPlaces.length}个附近地点');
-            }
-          } else {
-            print('⚠️ 获取附近地点失败，继续生成卡片（不包含地点信息）');
-          }
-        } catch (e) {
-          print('⚠️ 解析附近地点数据失败: $e，继续生成卡片（不包含地点信息）');
-        }
-      }
-
-      print('✅ 并行请求完成！');
-
-      // 4. 将本地图片保存到持久化目录
+      // 3. 将本地图片保存到持久化目录
       List<String> persistentImagePaths = [];
       if (localImagePaths != null && localImagePaths.isNotEmpty) {
         for (var tempPath in localImagePaths) {
@@ -166,7 +150,7 @@ class CardGenerator extends ChangeNotifier {
         }
       }
 
-      // 5. 创建卡片对象（包含所有平台文案和附近地点）
+      // 4. 创建卡片对象（包含所有平台文案和选中的地点）
       final card = PoetryCard(
         id: DateTime.now().millisecondsSinceEpoch.toString(),
         image: safeImage,
@@ -191,8 +175,8 @@ class CardGenerator extends ChangeNotifier {
         xiaohongshu: poetryData['xiaohongshu'],
         pengyouquan: poetryData['pengyouquan'],
         douyin: poetryData['douyin'],
-        // 添加附近地点信息
-        nearbyPlaces: nearbyPlaces,
+        // 添加用户选中的地点
+        selectedPlace: selectedPlace,
       );
 
       print('✅ 卡片生成成功: ${card.id}');

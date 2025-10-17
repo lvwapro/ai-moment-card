@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../models/poetry_card.dart';
+import '../models/nearby_place.dart';
 import '../providers/app_state.dart';
 import '../providers/card_generator.dart';
 import '../providers/history_manager.dart';
@@ -13,6 +14,7 @@ import '../widgets/description_input_widget.dart';
 import '../widgets/style_selector_widget.dart';
 import '../widgets/generate_button_widget.dart';
 import '../widgets/loading_overlay.dart';
+import '../widgets/place_selector_widget.dart';
 import 'card_detail_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -29,6 +31,11 @@ class _HomeScreenState extends State<HomeScreen> {
   final TextEditingController _descriptionController = TextEditingController();
   String _description = '';
 
+  // 地址相关状态
+  List<NearbyPlace> _nearbyPlaces = []; // 附近地点列表
+  NearbyPlace? _selectedPlace; // 选中的地点
+  bool _isLoadingPlaces = false; // 是否正在加载地点
+
   @override
   void initState() {
     super.initState();
@@ -37,6 +44,34 @@ class _HomeScreenState extends State<HomeScreen> {
         _description = _descriptionController.text;
       });
     });
+    // 加载附近地点
+    _loadNearbyPlaces();
+  }
+
+  /// 加载附近地点
+  Future<void> _loadNearbyPlaces() async {
+    setState(() {
+      _isLoadingPlaces = true;
+    });
+
+    try {
+      final cardGenerator = Provider.of<CardGenerator>(context, listen: false);
+      final places = await cardGenerator.fetchNearbyPlaces();
+
+      if (mounted) {
+        setState(() {
+          _nearbyPlaces = places ?? [];
+          _isLoadingPlaces = false;
+        });
+      }
+    } catch (e) {
+      print('❌ 加载附近地点失败: $e');
+      if (mounted) {
+        setState(() {
+          _isLoadingPlaces = false;
+        });
+      }
+    }
   }
 
   @override
@@ -88,6 +123,7 @@ class _HomeScreenState extends State<HomeScreen> {
           userDescription: _description.isNotEmpty ? _description : null,
           localImagePaths: _localImagePaths,
           cloudImageUrls: _uploadedUrls,
+          selectedPlace: _selectedPlace, // 传递选中的地点
         );
         print('localImagePaths: $_localImagePaths');
         print('cloudImageUrls: $_uploadedUrls');
@@ -153,6 +189,18 @@ class _HomeScreenState extends State<HomeScreen> {
                   const SizedBox(height: 24),
                   const StyleSelectorWidget(),
                   const SizedBox(height: 24),
+                  // 地址选择组件
+                  PlaceSelectorWidget(
+                    places: _nearbyPlaces,
+                    selectedPlace: _selectedPlace,
+                    onPlaceSelected: (place) {
+                      setState(() {
+                        _selectedPlace = place;
+                      });
+                    },
+                    isLoading: _isLoadingPlaces,
+                  ),
+                  const SizedBox(height: 16),
                   DescriptionInputWidget(
                     controller: _descriptionController,
                     description: _description,

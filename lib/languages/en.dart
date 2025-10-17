@@ -458,6 +458,10 @@ class EnglishTranslations {
     '记录生活的美好瞬间': 'Capture Beautiful Moments',
     '每一刻都值得被温柔对待': 'Every moment deserves to be cherished',
     '开始使用': 'Get Started',
+
+    // Place selection
+    '换一个': 'Change',
+    '查看更多': 'See More',
   };
 
   static String getText(String key) => translations[key] ?? key;

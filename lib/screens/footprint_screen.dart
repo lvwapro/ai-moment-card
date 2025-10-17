@@ -37,8 +37,7 @@ class _FootprintScreenState extends State<FootprintScreen> {
         builder: (context, historyManager, child) {
           // 获取所有有位置信息的卡片
           final cardsWithLocation = historyManager.cards
-              .where((card) =>
-                  card.nearbyPlaces != null && card.nearbyPlaces!.isNotEmpty)
+              .where((card) => card.selectedPlace != null)
               .toList();
 
           if (cardsWithLocation.isEmpty) {
@@ -143,8 +142,8 @@ class _FootprintScreenState extends State<FootprintScreen> {
     // 统计唯一位置数量
     final uniqueLocations = <String>{};
     for (var card in cards) {
-      if (card.nearbyPlaces != null && card.nearbyPlaces!.isNotEmpty) {
-        final location = card.nearbyPlaces!.first;
+      if (card.selectedPlace != null) {
+        final location = card.selectedPlace!;
         uniqueLocations.add('${location.location}');
       }
     }
@@ -220,9 +219,9 @@ class _FootprintScreenState extends State<FootprintScreen> {
     final grouped = <String, List<PoetryCard>>{};
 
     for (var card in cards) {
-      if (card.nearbyPlaces == null || card.nearbyPlaces!.isEmpty) continue;
+      if (card.selectedPlace == null) continue;
 
-      final location = card.nearbyPlaces!.first;
+      final location = card.selectedPlace!;
       final locationKey = location.location; // 使用经纬度作为唯一标识
 
       if (!grouped.containsKey(locationKey)) {
@@ -241,7 +240,7 @@ class _FootprintScreenState extends State<FootprintScreen> {
     groupedCards.forEach((locationKey, cards) {
       if (cards.isEmpty) return;
 
-      final location = cards.first.nearbyPlaces!.first;
+      final location = cards.first.selectedPlace!;
       final coords = location.location.split(',');
       if (coords.length != 2) return;
 
@@ -326,9 +325,9 @@ class _FootprintScreenState extends State<FootprintScreen> {
     int count = 0;
 
     for (var card in cards) {
-      if (card.nearbyPlaces == null || card.nearbyPlaces!.isEmpty) continue;
+      if (card.selectedPlace == null) continue;
 
-      final location = card.nearbyPlaces!.first;
+      final location = card.selectedPlace!;
       final coords = location.location.split(',');
       if (coords.length != 2) continue;
 
@@ -354,7 +353,7 @@ class _FootprintScreenState extends State<FootprintScreen> {
   Widget _buildSelectedCardsInfo(List<PoetryCard> cards) {
     if (cards.isEmpty) return const SizedBox.shrink();
 
-    final locationName = cards.first.nearbyPlaces!.first.name;
+    final locationName = cards.first.selectedPlace!.name;
 
     return Container(
       constraints: const BoxConstraints(maxHeight: 300),

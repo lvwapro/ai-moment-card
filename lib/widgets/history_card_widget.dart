@@ -136,8 +136,7 @@ class _CompactView extends StatelessWidget {
                             const Spacer(),
                             Row(
                               children: [
-                                if (card.nearbyPlaces != null &&
-                                    card.nearbyPlaces!.isNotEmpty) ...[
+                                if (card.selectedPlace != null) ...[
                                   Icon(
                                     Icons.location_on,
                                     size: 14,
@@ -146,7 +145,7 @@ class _CompactView extends StatelessWidget {
                                   const SizedBox(width: 4),
                                   Flexible(
                                     child: Text(
-                                      card.nearbyPlaces!.first.name,
+                                      card.selectedPlace!.name,
                                       style: TextStyle(
                                         color: Colors.grey[600],
                                         fontSize: 12,
@@ -244,8 +243,7 @@ class _CardListView extends StatelessWidget {
                     ),
 
                     // 位置信息
-                    if (card.nearbyPlaces != null &&
-                        card.nearbyPlaces!.isNotEmpty) ...[
+                    if (card.selectedPlace != null) ...[
                       const SizedBox(height: 12),
                       Row(
                         children: [
@@ -257,7 +255,7 @@ class _CardListView extends StatelessWidget {
                           const SizedBox(width: 4),
                           Flexible(
                             child: Text(
-                              card.nearbyPlaces!.first.name,
+                              card.selectedPlace!.name,
                               style: TextStyle(
                                 color: Colors.grey[600],
                                 fontSize: 12,
