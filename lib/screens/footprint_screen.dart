@@ -22,126 +22,215 @@ class FootprintScreen extends StatefulWidget {
 }
 
 class _FootprintScreenState extends State<FootprintScreen> {
-  final MapController _mapController = MapController();
+  late final MapController _mapController;
   List<PoetryCard>? _selectedCards; // 改为列表，支持显示同一地点的多个卡片
   String? _selectedLocationKey; // 记录选中的地点
   final GlobalKey _mapKey = GlobalKey(); // 用于截图
   bool _isSharing = false; // 分享状态
+  bool _isAdjusting = false; // 防止递归调整
+
+  // 自定义地图边界
+  // 使用更保守的边界值，避免地图在极地附近严重变形
+  final double minLatitude = -80.0;
+  final double maxLatitude = 80.0;
+  // 左右边界，覆盖全球主要区域
+  final double minLongitude = -170.0;
+  final double maxLongitude = 170.0;
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        surfaceTintColor: Colors.transparent,
-        title: Text(
-          context.l10n('我的足迹'),
-          style: TextStyle(color: Theme.of(context).primaryColor),
-        ),
-        actions: [
-          // 分享按钮
-          Consumer<HistoryManager>(
-            builder: (context, historyManager, child) {
-              final cardsWithLocation = historyManager.cards
-                  .where((card) => card.selectedPlace != null)
-                  .toList();
+  void initState() {
+    super.initState();
+    _mapController = MapController();
+  }
 
-              // 只有有足迹时才显示分享按钮
-              if (cardsWithLocation.isEmpty) {
-                return const SizedBox.shrink();
-              }
+  // 修正地图边界（上下限制 + 左右循环）
+  void _adjustMapBounds() {
+    // 如果正在调整，先重置标志，允许新的调整
+    if (_isAdjusting) {
+      _isAdjusting = false;
+    }
 
-              return IconButton(
-                icon: _isSharing
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      )
-                    : const Icon(Icons.ios_share),
-                onPressed: _isSharing ? null : _shareFootprint,
-              );
-            },
+    try {
+      final camera = _mapController.camera;
+      final LatLng currentCenter = camera.center;
+
+      // 获取地图的可视边界
+      final bounds = camera.visibleBounds;
+
+      // 1. 修正纬度（上下边界限制）
+      double adjustedLat = currentCenter.latitude;
+      bool needAdjust = false;
+
+      // 检查可视区域的南边界
+      if (bounds.south < minLatitude) {
+        // 计算需要向上移动多少
+        final double offset = minLatitude - bounds.south;
+        adjustedLat = currentCenter.latitude + offset;
+        needAdjust = true;
+      }
+      // 检查可视区域的北边界
+      else if (bounds.north > maxLatitude) {
+        // 计算需要向下移动多少
+        final double offset = bounds.north - maxLatitude;
+        adjustedLat = currentCenter.latitude - offset;
+        needAdjust = true;
+      }
+
+      // 2. 修正经度（左右边界限制）
+      double adjustedLng = currentCenter.longitude;
+
+      // 检查可视区域的西边界
+      if (bounds.west < minLongitude) {
+        // 计算需要向右移动多少
+        final double offset = minLongitude - bounds.west;
+        adjustedLng = currentCenter.longitude + offset;
+        needAdjust = true;
+      }
+      // 检查可视区域的东边界
+      else if (bounds.east > maxLongitude) {
+        // 计算需要向左移动多少
+        final double offset = bounds.east - maxLongitude;
+        adjustedLng = currentCenter.longitude - offset;
+        needAdjust = true;
+      }
+
+      // 如果需要调整，更新地图位置
+      if (needAdjust) {
+        _isAdjusting = true;
+        _mapController.move(LatLng(adjustedLat, adjustedLng), camera.zoom);
+        // 使用 Future.delayed 重置标志，时间缩短以支持快速拖动
+        Future.delayed(const Duration(milliseconds: 50), () {
+          _isAdjusting = false;
+        });
+      }
+    } catch (e) {
+      _isAdjusting = false;
+      print('调整地图边界失败: $e');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => Scaffold(
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          surfaceTintColor: Colors.transparent,
+          title: Text(
+            context.l10n('我的足迹'),
+            style: TextStyle(color: Theme.of(context).primaryColor),
           ),
-        ],
-      ),
-      body: Consumer<HistoryManager>(
-        builder: (context, historyManager, child) {
-          // 获取所有有位置信息的卡片
-          final cardsWithLocation = historyManager.cards
-              .where((card) => card.selectedPlace != null)
-              .toList();
+          actions: [
+            // 分享按钮
+            Consumer<HistoryManager>(
+              builder: (context, historyManager, child) {
+                final cardsWithLocation = historyManager.cards
+                    .where((card) => card.selectedPlace != null)
+                    .toList();
 
-          if (cardsWithLocation.isEmpty) {
-            return _buildEmptyState();
-          }
+                // 只有有足迹时才显示分享按钮
+                if (cardsWithLocation.isEmpty) {
+                  return const SizedBox.shrink();
+                }
 
-          // 按地点分组卡片
-          final groupedCards = _groupCardsByLocation(cardsWithLocation);
+                return IconButton(
+                  icon: _isSharing
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.ios_share),
+                  onPressed: _isSharing ? null : _shareFootprint,
+                );
+              },
+            ),
+          ],
+        ),
+        body: Consumer<HistoryManager>(
+          builder: (context, historyManager, child) {
+            // 获取所有有位置信息的卡片
+            final cardsWithLocation = historyManager.cards
+                .where((card) => card.selectedPlace != null)
+                .toList();
 
-          // 提取所有位置点
-          final markers = _buildMarkers(groupedCards);
+            if (cardsWithLocation.isEmpty) {
+              return _buildEmptyState();
+            }
 
-          // 计算地图中心点和缩放级别
-          final center = _calculateCenter(cardsWithLocation);
+            // 按地点分组卡片
+            final groupedCards = _groupCardsByLocation(cardsWithLocation);
 
-          return RepaintBoundary(
-            key: _mapKey,
-            child: Stack(
-              children: [
-                // 地图
-                FlutterMap(
-                  mapController: _mapController,
-                  options: MapOptions(
-                    initialCenter: center,
-                    initialZoom: 12.0,
-                    minZoom: 3.0,
-                    maxZoom: 18.0,
-                    onTap: (_, __) {
-                      setState(() {
-                        _selectedCards = null;
-                        _selectedLocationKey = null;
-                      });
-                    },
-                  ),
-                  children: [
-                    // 地图瓦片层（根据语言动态切换）
-                    TileLayer(
-                      urlTemplate: _getMapUrl(),
-                      subdomains: _getMapSubdomains(),
-                      userAgentPackageName: 'com.qualrb.ai_poetry_card',
-                      tileSize: 256,
-                      retinaMode: _getRetinaMode(),
+            // 提取所有位置点
+            final markers = _buildMarkers(groupedCards);
+
+            // 计算地图中心点和缩放级别
+            final center = _calculateCenter(cardsWithLocation);
+
+            return RepaintBoundary(
+              key: _mapKey,
+              child: Stack(
+                children: [
+                  // 地图 - 使用 flutter_map，不支持旋转
+                  FlutterMap(
+                    mapController: _mapController,
+                    options: MapOptions(
+                      initialCenter: center,
+                      initialZoom: 12.0,
+                      minZoom: 3.0,
+                      maxZoom: 18.0,
+                      // 禁用旋转功能，只允许缩放和拖拽
+                      interactionOptions: const InteractionOptions(
+                        flags: InteractiveFlag.pinchZoom | InteractiveFlag.drag,
+                      ),
+                      onTap: (_, __) {
+                        setState(() {
+                          _selectedCards = null;
+                          _selectedLocationKey = null;
+                        });
+                      },
+                      // 监听地图事件，在拖动结束后调整边界
+                      onMapEvent: (MapEvent event) {
+                        if (event is MapEventMoveEnd) {
+                          _adjustMapBounds();
+                        }
+                      },
                     ),
-                    // 标记层
-                    MarkerLayer(markers: markers),
-                  ],
-                ),
+                    children: [
+                      // 地图瓦片层（根据语言动态切换）
+                      TileLayer(
+                        urlTemplate: _getMapUrl(),
+                        subdomains: _getMapSubdomains(),
+                        userAgentPackageName: 'com.qualrb.ai_poetry_card',
+                        tileSize: 256,
+                        retinaMode: _getRetinaMode(),
+                      ),
+                      // 标记层
+                      MarkerLayer(markers: markers),
+                    ],
+                  ),
 
-                // 统计信息卡片
-                Positioned(
-                  top: 16,
-                  left: 16,
-                  right: 16,
-                  child: _buildStatsCard(cardsWithLocation),
-                ),
-
-                // 选中的卡片详情
-                if (_selectedCards != null && _selectedCards!.isNotEmpty)
+                  // 统计信息卡片
                   Positioned(
-                    bottom: 100, // 调整位置，避免被导航栏遮挡
+                    top: 16,
                     left: 16,
                     right: 16,
-                    child: _buildSelectedCardsInfo(_selectedCards!),
+                    child: _buildStatsCard(cardsWithLocation),
                   ),
-              ],
-            ),
-          );
-        },
-      ),
-    );
-  }
+
+                  // 选中的卡片详情
+                  if (_selectedCards != null && _selectedCards!.isNotEmpty)
+                    Positioned(
+                      bottom: 100, // 调整位置，避免被导航栏遮挡
+                      left: 16,
+                      right: 16,
+                      child: _buildSelectedCardsInfo(_selectedCards!),
+                    ),
+                ],
+              ),
+            );
+          },
+        ),
+      );
 
   /// 分享足迹地图
   Future<void> _shareFootprint() async {
@@ -207,36 +296,34 @@ class _FootprintScreenState extends State<FootprintScreen> {
   }
 
   /// 构建空状态
-  Widget _buildEmptyState() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.location_off,
-            size: 80,
-            color: Colors.grey[400],
-          ),
-          const SizedBox(height: 16),
-          Text(
-            context.l10n('暂无足迹记录'),
-            style: TextStyle(
-              fontSize: 18,
-              color: Colors.grey[600],
+  Widget _buildEmptyState() => Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.location_off,
+              size: 80,
+              color: Colors.grey[400],
             ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            context.l10n('生成卡片时会自动记录位置'),
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[500],
+            const SizedBox(height: 16),
+            Text(
+              context.l10n('暂无足迹记录'),
+              style: TextStyle(
+                fontSize: 18,
+                color: Colors.grey[600],
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
+            const SizedBox(height: 8),
+            Text(
+              context.l10n('生成卡片时会自动记录位置'),
+              style: TextStyle(
+                fontSize: 14,
+                color: Colors.grey[500],
+              ),
+            ),
+          ],
+        ),
+      );
 
   /// 构建统计信息卡片
   Widget _buildStatsCard(List<PoetryCard> cards) {
@@ -286,34 +373,32 @@ class _FootprintScreenState extends State<FootprintScreen> {
   }
 
   /// 构建统计项
-  Widget _buildStatItem(IconData icon, String value, String label) {
-    return Row(
-      children: [
-        Icon(icon, color: AppTheme.primaryColor, size: 20),
-        const SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: AppTheme.primaryColor,
+  Widget _buildStatItem(IconData icon, String value, String label) => Row(
+        children: [
+          Icon(icon, color: AppTheme.primaryColor, size: 20),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: AppTheme.primaryColor,
+                ),
               ),
-            ),
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey[600],
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
               ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
+            ],
+          ),
+        ],
+      );
 
   /// 按地点分组卡片
   Map<String, List<PoetryCard>> _groupCardsByLocation(List<PoetryCard> cards) {
@@ -631,5 +716,11 @@ class _FootprintScreenState extends State<FootprintScreen> {
     } else {
       return context.l10n('刚刚');
     }
+  }
+
+  @override
+  void dispose() {
+    _mapController.dispose();
+    super.dispose();
   }
 }
