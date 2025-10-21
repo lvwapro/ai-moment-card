@@ -225,6 +225,7 @@ class EnglishTranslations {
     '语言已切换为英文': 'Language switched to English',
     '正在重新生成...': 'Regenerating...',
     '已复制到剪贴板': 'Copied to clipboard',
+    'UID已复制到剪贴板': 'UID copied to clipboard',
     '选择语言': 'Select Language',
     '各平台文案': 'Platform Copywriting',
     '原诗': 'Original Poem',
