@@ -87,6 +87,7 @@ class EnglishTranslations {
     '个足迹': 'Footprints',
     '篇创作': 'Creations',
     '点击查看详情': 'Tap to view details',
+    '相关图片': 'Related Images',
 
     // 设置
     '语言': 'Language',

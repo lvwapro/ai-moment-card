@@ -3,6 +3,7 @@ import 'package:ai_poetry_card/providers/history_manager.dart';
 import 'package:ai_poetry_card/providers/card_generator.dart';
 import 'package:ai_poetry_card/widgets/card_info_widget.dart';
 import 'package:ai_poetry_card/widgets/nearby_places_widget.dart';
+import 'package:ai_poetry_card/widgets/card_images_viewer.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -36,7 +37,8 @@ class CardDetailScreen extends StatefulWidget {
 
 class _CardDetailScreenState extends State<CardDetailScreen>
     with WidgetsBindingObserver {
-  final GlobalKey _cardKey = GlobalKey();
+  final GlobalKey _cardKey =
+      GlobalKey(debugLabel: 'card_detail_repaint_boundary');
   late PoetryCard _currentCard;
   bool _isRegenerating = false;
   bool _isSaving = false;
@@ -143,10 +145,13 @@ class _CardDetailScreenState extends State<CardDetailScreen>
                       },
                     ),
 
+                    // 图片查看器
+                    CardImagesViewer(card: _currentCard),
+
                     // 附近地点信息
                     if (_currentCard.selectedPlace != null)
                       Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                         child: NearbyPlacesWidget(
                           places: [_currentCard.selectedPlace!],
                         ),

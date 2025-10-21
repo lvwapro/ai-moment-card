@@ -25,7 +25,7 @@ class CardInfoWidget extends StatefulWidget {
 class _CardInfoWidgetState extends State<CardInfoWidget> {
   @override
   Widget build(BuildContext context) => Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16),
+        margin: const EdgeInsets.fromLTRB(16, 0, 16, 4),
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
