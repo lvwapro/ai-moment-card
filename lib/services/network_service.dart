@@ -32,13 +32,20 @@ class NetworkService {
   void init() {
     _dio = Dio(BaseOptions(
       baseUrl: baseUrl,
-      connectTimeout: const Duration(seconds: 15), // 减少到15秒，更快失败
-      receiveTimeout: const Duration(seconds: 60), // 接收数据超时保持60秒
-      sendTimeout: const Duration(seconds: 30), // 发送超时减少到30秒
+      connectTimeout: const Duration(seconds: 10),
+      receiveTimeout: const Duration(seconds: 10),
+      sendTimeout: const Duration(seconds: 10),
       headers: {
         'Content-Type': 'application/json',
         'Accept': 'application/json',
       },
+    ));
+
+    // 添加拦截器
+    _dio.interceptors.add(LogInterceptor(
+      requestBody: kDebugMode,
+      responseBody: kDebugMode,
+      logPrint: (object) => print('$object'),
     ));
 
     // 添加拦截器
@@ -62,9 +69,23 @@ class NetworkService {
         final locale = _getCurrentLocale();
         options.headers['Accept-Language'] = locale;
 
+        // 添加平台头
+        final platform = _getCurrentPlatform();
+        options.headers['platform'] = platform;
+
         handler.next(options);
       },
     ));
+  }
+
+  // 获取当前平台
+  String _getCurrentPlatform() {
+    if (Platform.isAndroid) {
+      return 'android';
+    } else if (Platform.isIOS) {
+      return 'ios';
+    }
+    return 'unknown';
   }
 
   // 获取当前语言设置
@@ -83,6 +104,7 @@ class NetworkService {
     _token = token;
     _bundleId = bundleId;
     _deviceId = deviceId;
+    print(' 认证信息已设置: bundleId=$bundleId, deviceId=$deviceId');
   }
 
   // 获取设备ID - 真实设备ID + bundleId 进行MD5哈希
@@ -110,6 +132,11 @@ class NetworkService {
       final digest = md5.convert(bytes);
       final deviceId = digest.toString();
 
+      print('真实设备ID: $realDeviceId');
+      print('Bundle ID: $bundleId');
+      print('组合ID: $combinedId');
+      print('MD5哈希后设备ID: $deviceId');
+
       return deviceId;
     } catch (e) {
       print('获取设备ID失败: $e');
@@ -124,7 +151,7 @@ class NetworkService {
       return packageInfo.packageName;
     } catch (e) {
       print('获取Bundle ID失败: $e');
-      return 'com.qualrb.ai_poetry_card';
+      return 'com.qualrb.aiPoetryCard';
     }
   }
 
@@ -134,8 +161,13 @@ class NetworkService {
       final bundleId = await getBundleId();
       final timestamp = DateTime.now().millisecondsSinceEpoch ~/ 1000; // 秒级时间戳
 
+      print('正在生成Token...');
+      print('Bundle ID: $bundleId');
+      print('Timestamp: $timestamp');
+
       // 按照 bundle-id-timestamp-toodan 格式生成内容
       final content = '$bundleId-$timestamp-toodan';
+      print('Token内容: $content');
 
       // 使用SHA256哈希密钥，与Node.js保持一致
       final keyBytes = utf8.encode(_secretKey);
@@ -149,6 +181,7 @@ class NetworkService {
       final encrypted = encrypter.encrypt(content);
       final token = encrypted.base16; // 使用hex格式，与Node.js一致
 
+      print('Token生成成功: $token');
       return token;
     } catch (e) {
       print('Token生成异常: $e');
@@ -161,6 +194,7 @@ class NetworkService {
     try {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('device_id', deviceId);
+      print('DeviceId已保存: $deviceId');
     } catch (e) {
       print('保存DeviceId失败: $e');
     }
@@ -174,24 +208,6 @@ class NetworkService {
     } catch (e) {
       print('获取DeviceId失败: $e');
       return null;
-    }
-  }
-
-  // 测试网络连接（异步执行，不阻塞主流程）
-  Future<bool> testConnection() async {
-    try {
-      await _dio.get(
-        '',
-        options: Options(
-          sendTimeout: const Duration(seconds: 10),
-          receiveTimeout: const Duration(seconds: 10),
-          validateStatus: (status) => status! < 500, // 4xx 也算成功，说明服务器可达
-        ),
-      );
-
-      return true;
-    } catch (e) {
-      return false;
     }
   }
 
@@ -209,12 +225,9 @@ class NetworkService {
         setAuthInfo(token, bundleId, deviceId);
         // 保存deviceId到本地
         await saveDeviceId(deviceId);
-
-        // 异步测试网络连接，不等待结果（不阻塞初始化）
-        testConnection();
-
         return true;
       } else {
+        print('Token生成失败');
         return false;
       }
     } catch (e) {
@@ -305,6 +318,31 @@ class NetworkService {
     }
   }
 
+  void _handleError(DioException e) {
+    switch (e.type) {
+      case DioExceptionType.connectionTimeout:
+        print('连接超时');
+        break;
+      case DioExceptionType.sendTimeout:
+        print('发送超时');
+        break;
+      case DioExceptionType.receiveTimeout:
+        print('接收超时');
+        break;
+      case DioExceptionType.badResponse:
+        print('服务器错误: ${e.response?.statusCode}');
+        break;
+      case DioExceptionType.cancel:
+        print('请求取消');
+        break;
+      case DioExceptionType.connectionError:
+        print('连接错误');
+        break;
+      default:
+        print('未知错误: ${e.message}');
+    }
+  }
+
   // 获取附近地点（公共API，不需要认证头）
   Future<Map<String, dynamic>?> getNearbyPlaces({
     required double longitude,
@@ -346,31 +384,6 @@ class NetworkService {
     } catch (e) {
       print('⚠️ 获取附近地点异常: ${e.toString().split('\n').first}');
       return null;
-    }
-  }
-
-  void _handleError(DioException e) {
-    switch (e.type) {
-      case DioExceptionType.connectionTimeout:
-        print('连接超时');
-        break;
-      case DioExceptionType.sendTimeout:
-        print('发送超时');
-        break;
-      case DioExceptionType.receiveTimeout:
-        print('接收超时');
-        break;
-      case DioExceptionType.badResponse:
-        print('服务器错误: ${e.response?.statusCode}');
-        break;
-      case DioExceptionType.cancel:
-        print('请求取消');
-        break;
-      case DioExceptionType.connectionError:
-        print('连接错误');
-        break;
-      default:
-        print('未知错误: ${e.message}');
     }
   }
 }

@@ -1,11 +1,12 @@
-import 'dart:io'; // ignore: unused_import - 上线时需要用于平台判断
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:ai_poetry_card/services/vip_service.dart';
+import 'package:ai_poetry_card/services/language_service.dart';
 import 'package:ai_poetry_card/providers/app_state.dart';
 import 'package:provider/provider.dart';
+import 'package:ai_poetry_card/services/network_service.dart';
 
-/// Stripe 支付服务
+/// Stripe 支付服务（仅Android）
 class StripePaymentService {
   static final StripePaymentService _instance =
       StripePaymentService._internal();
@@ -13,206 +14,156 @@ class StripePaymentService {
   StripePaymentService._internal();
 
   final VipService _vipService = VipService();
-
-  // Stripe 支付链接模板
   static const String _stripePaymentUrl =
       'https://buy.stripe.com/3cIcN5aae8sUe9oeNwaAw06?client_reference_id=';
 
-  /// 打开 Stripe 支付页面（仅安卓）
-  /// [uid] 用户ID
-  /// [context] 用于显示对话框
-  Future<void> openStripePayment(String uid, BuildContext context) async {
-    // TODO: 临时修改 - 让iOS也能测试，上线前需要改回只支持Android
-    // if (!Platform.isAndroid) {
-    //   print('Stripe 支付仅支持安卓平台');
-    //   return;
-    // }
-
+  /// 打开 Stripe 支付页面
+  Future<void> openStripePayment(BuildContext context) async {
+    // 获取用户 ID
+    final uid = await NetworkService().getSavedDeviceId();
     try {
-      final paymentUrl = '$_stripePaymentUrl$uid';
-      print('🔄 打开 Stripe 支付链接: $paymentUrl');
-
-      final uri = Uri.parse(paymentUrl);
+      final uri = Uri.parse('$_stripePaymentUrl$uid');
       if (await canLaunchUrl(uri)) {
         await launchUrl(uri, mode: LaunchMode.externalApplication);
-
-        // 延迟显示支付完成确认对话框
-        Future.delayed(const Duration(seconds: 2), () {
-          _showPaymentConfirmationDialog(context, uid);
-        });
+        Future.delayed(
+          const Duration(seconds: 2),
+          () => _showPaymentConfirmationDialog(context),
+        );
       } else {
-        print('❌ 无法打开支付链接');
-        _showErrorDialog(context, '无法打开支付页面，请检查网络连接');
+        _showDialog(
+          context,
+          context.l10n('操作失败'),
+          context.l10n('无法打开支付页面，请检查网络连接'),
+          Colors.red,
+        );
       }
     } catch (e) {
-      print('❌ 打开支付链接失败: $e');
-      _showErrorDialog(context, '打开支付页面失败: $e');
+      print('打开支付链接失败: $e');
+      _showDialog(
+        context,
+        context.l10n('操作失败'),
+        '${context.l10n('打开支付页面失败')}: $e',
+        Colors.red,
+      );
     }
   }
 
-  /// 显示支付完成确认对话框
-  void _showPaymentConfirmationDialog(BuildContext context, String uid) {
+  /// 显示支付确认对话框
+  void _showPaymentConfirmationDialog(BuildContext context) {
     showDialog(
       context: context,
       barrierDismissible: false,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('支付确认'),
-        content: const Text('您是否已完成支付？'),
+      builder: (ctx) => AlertDialog(
+        title: Text(context.l10n('支付确认')),
+        content: Text(context.l10n('您是否已完成支付？')),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-            },
-            child: const Text('未完成'),
+            onPressed: () => Navigator.pop(ctx),
+            child: Text(context.l10n('未完成')),
           ),
           ElevatedButton(
-            onPressed: () async {
-              Navigator.pop(dialogContext);
-              await _verifyPaymentAndRefreshStatus(context, uid);
+            onPressed: () {
+              Navigator.pop(ctx);
+              _verifyPayment(context);
             },
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.green,
               foregroundColor: Colors.white,
             ),
-            child: const Text('已完成'),
+            child: Text(context.l10n('已完成')),
           ),
         ],
       ),
     );
   }
 
-  /// 验证支付并刷新状态
-  Future<void> _verifyPaymentAndRefreshStatus(
-      BuildContext context, String uid) async {
+  /// 验证支付状态
+  Future<void> _verifyPayment(BuildContext context) async {
+    _showLoadingDialog(context);
+
     try {
-      // 显示加载对话框
-      showDialog(
-        context: context,
-        barrierDismissible: false,
-        builder: (dialogContext) => const AlertDialog(
-          content: Row(
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(width: 16),
-              Text('正在验证支付状态...'),
-            ],
-          ),
-        ),
-      );
-
-      // 直接使用 VipService 刷新状态
       final vipStatus = await _vipService.refreshVipStatus();
+      if (context.mounted) Navigator.pop(context);
 
-      // 关闭加载对话框
-      if (context.mounted) {
-        Navigator.pop(context);
-      }
-
-      if (vipStatus != null && vipStatus.isPremium) {
-        // 支付成功，更新 AppState 状态
+      if (vipStatus?.isPremium ?? false) {
         final appState = Provider.of<AppState>(context, listen: false);
         await appState.setPremium(true);
-
-        // 显示成功对话框
-        _showSuccessDialog(context);
+        _showDialog(
+          context,
+          context.l10n('支付成功'),
+          context.l10n('恭喜您成为专业版用户！现在可以享受无限创作体验。'),
+          Colors.green,
+        );
       } else {
-        // 支付验证失败 - 可能是服务器配置问题
-        print('⚠️ VIP状态验证失败，可能是服务器配置问题');
-
-        // 显示友好提示，告知用户支付可能需要时间生效
-        _showPendingDialog(context);
+        _showDialog(
+          context,
+          context.l10n('支付处理中'),
+          context.l10n('您的支付正在处理中，可能需要几分钟时间生效。\n\n如果长时间未到账，请联系客服处理。'),
+          Colors.orange,
+        );
       }
     } catch (e) {
-      // 关闭加载对话框
-      if (context.mounted) {
-        Navigator.pop(context);
-      }
-
-      print('❌ 验证支付状态失败: $e');
-      _showErrorDialog(context, '验证支付状态失败: $e');
+      if (context.mounted) Navigator.pop(context);
+      print('❌ 验证支付失败: $e');
+      _showDialog(
+        context,
+        context.l10n('操作失败'),
+        '${context.l10n('验证支付状态失败')}: $e',
+        Colors.red,
+      );
     }
   }
 
-  /// 显示成功对话框
-  void _showSuccessDialog(BuildContext context) {
+  /// 显示加载对话框
+  void _showLoadingDialog(BuildContext context) {
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Row(
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        content: Row(
           children: [
-            Icon(Icons.check_circle, color: Colors.green),
-            SizedBox(width: 8),
-            Text('支付成功'),
+            const CircularProgressIndicator(),
+            const SizedBox(width: 16),
+            Text(context.l10n('正在验证支付状态...')),
           ],
         ),
-        content: const Text('恭喜您成为专业版用户！现在可以享受无限创作体验。'),
-        actions: [
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.green,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('确定'),
-          ),
-        ],
       ),
     );
   }
 
-  /// 显示支付待处理对话框
-  void _showPendingDialog(BuildContext context) {
+  /// 统一对话框显示
+  void _showDialog(
+    BuildContext context,
+    String title,
+    String content,
+    Color color,
+  ) {
     showDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Row(
+      builder: (ctx) => AlertDialog(
+        title: Row(
           children: [
-            Icon(Icons.info, color: Colors.orange),
-            SizedBox(width: 8),
-            Text('支付处理中'),
+            Icon(
+              color == Colors.green
+                  ? Icons.check_circle
+                  : (color == Colors.orange ? Icons.info : Icons.error),
+              color: color,
+            ),
+            const SizedBox(width: 8),
+            Text(title),
           ],
         ),
-        content: const Text(
-          '您的支付正在处理中，可能需要几分钟时间生效。\n\n'
-          '如果长时间未到账，请联系客服处理。',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-            },
-            child: const Text('知道了'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 显示错误对话框
-  void _showErrorDialog(BuildContext context, String message) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Row(
-          children: [
-            Icon(Icons.error, color: Colors.red),
-            SizedBox(width: 8),
-            Text('操作失败'),
-          ],
-        ),
-        content: Text(message),
+        content: Text(content),
         actions: [
           ElevatedButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-            },
+            onPressed: () => Navigator.pop(ctx),
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
+              backgroundColor: color,
               foregroundColor: Colors.white,
             ),
-            child: const Text('确定'),
+            child: Text(
+              color == Colors.orange ? context.l10n('知道了') : context.l10n('确定'),
+            ),
           ),
         ],
       ),

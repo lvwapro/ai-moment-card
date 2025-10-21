@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state.dart';
 import '../services/revenue_cat_service.dart';
+import '../services/stripe_payment_service.dart';
 import 'package:ai_poetry_card/services/language_service.dart';
 
 class UserInfoCardWidget extends StatelessWidget {
@@ -118,23 +119,13 @@ class UserInfoCardWidget extends StatelessWidget {
       );
 
   Future<void> _showUpgradeDialog(BuildContext context) async {
-    final revenueCatService = RevenueCatService();
-
-    print('💳 开始升级流程...');
-
-    // TODO: 临时修改 - iOS也使用Stripe，所以不显示loading
-    // Android 和 iOS 都会跳转浏览器，通过对话框异步处理结果
-
     try {
-      // 调用统一的付费墙（自动根据平台选择支付方式）
-      print('🔄 调用 showIAPPaywall...');
-      await revenueCatService.showIAPPaywall(context: context);
-      print('✅ showIAPPaywall 调用完成');
-
-      // Stripe 支付通过对话框异步处理，这里不需要额外操作
+      if (Platform.isIOS) {
+        await RevenueCatService().showIAPPaywall();
+      } else if (Platform.isAndroid) {
+        await StripePaymentService().openStripePayment(context);
+      }
     } catch (e) {
-      print('❌ 升级流程异常: $e');
-
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(

@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -34,7 +35,9 @@ class InitService {
       await _saveUserInfo(userInitResult);
 
       // 4. 异步初始化 RevenueCat，不阻塞主流程
-      _initRevenueCatAsync();
+      if (Platform.isIOS) {
+        _initRevenueCatAsync();
+      }
 
       // 5. 异步刷新会员状态
       _refreshVipStatusAsync();

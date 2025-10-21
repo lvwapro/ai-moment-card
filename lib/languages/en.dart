@@ -471,6 +471,24 @@ class EnglishTranslations {
     // Footprint sharing
     '我的足迹地图 - 迹见文案': 'My Footprint Map - TraceCopy',
     '分享失败，请重试': 'Share failed, please try again',
+
+    '无法打开支付页面，请检查网络连接':
+        'Unable to open payment page, please check network connection',
+    '打开支付页面失败': 'Failed to open payment page',
+    '支付确认': 'Payment Confirmation',
+    '您是否已完成支付？': 'Have you completed the payment?',
+    '未完成': 'Not Yet',
+    '已完成': 'Completed',
+    '正在验证支付状态...': 'Verifying payment status...',
+    '支付成功': 'Payment Successful',
+    '恭喜您成为专业版用户！现在可以享受无限创作体验。':
+        'Congratulations! You are now a premium user and can enjoy unlimited creation.',
+    '支付处理中': 'Payment Processing',
+    '您的支付正在处理中，可能需要几分钟时间生效。\n\n如果长时间未到账，请联系客服处理。':
+        'Your payment is being processed and may take a few minutes to take effect.\n\nIf it takes too long, please contact customer service.',
+    '验证支付状态失败': 'Failed to verify payment status',
+    '知道了': 'Got it',
+    '确定': 'OK',
   };
 
   static String getText(String key) => translations[key] ?? key;

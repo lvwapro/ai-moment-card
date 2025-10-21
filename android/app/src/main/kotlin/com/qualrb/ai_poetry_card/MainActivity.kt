@@ -1,4 +1,4 @@
-package com.qualrb.ai_poetry_card
+package com.qualrb.aiPoetryCard
 
 import io.flutter.embedding.android.FlutterActivity
 

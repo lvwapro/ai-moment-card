@@ -52,14 +52,10 @@ class VipService {
   /// 1. 从后端API获取VIP状态（包括白名单状态）
   Future<SubscriptionStatus?> getVipStatusFromAPI() async {
     try {
-      print('🔍 开始从服务端获取VIP状态...');
       final response = await _networkService.get('/api/vip/status');
-
-      print('📡 VIP状态响应: ${response.statusCode}');
 
       if (response.statusCode == 200) {
         final data = response.data;
-        print('✅ VIP状态数据: $data');
 
         // 检查响应格式
         final vipData = data is Map<String, dynamic> && data.containsKey('data')
@@ -124,36 +120,22 @@ class VipService {
     }
   }
 
-  /// 4. 强制刷新VIP状态（从API获取最新状态并保存到本地）
+  /// 刷新VIP状态（从API获取最新状态）
   Future<SubscriptionStatus?> refreshVipStatus() async {
     try {
-      print('🔄 强制刷新VIP状态...');
-
       // 从API获取最新状态
       final apiStatus = await getVipStatusFromAPI();
 
       if (apiStatus != null) {
-        print('✅ VIP状态刷新成功: ${apiStatus.isPremium ? "Premium" : "Free"}');
         return apiStatus;
       }
 
       // 如果API获取失败，返回本地状态
-      print('⚠️ API获取失败，使用本地状态');
+      print('API获取失败，使用本地状态');
       return await getVipStatusFromLocal();
     } catch (e) {
-      print('❌ 刷新VIP状态失败: $e');
+      print(' 刷新VIP状态失败: $e');
       return await getVipStatusFromLocal();
-    }
-  }
-
-  /// 清除本地VIP状态（可选，用于调试或登出）
-  Future<void> clearVipStatus() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.remove('vip_status');
-      print('🗑️ VIP状态已清除');
-    } catch (e) {
-      print('❌ 清除VIP状态失败: $e');
     }
   }
 }

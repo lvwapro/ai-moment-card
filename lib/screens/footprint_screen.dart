@@ -200,7 +200,7 @@ class _FootprintScreenState extends State<FootprintScreen> {
                       TileLayer(
                         urlTemplate: _getMapUrl(),
                         subdomains: _getMapSubdomains(),
-                        userAgentPackageName: 'com.qualrb.ai_poetry_card',
+                        userAgentPackageName: 'com.qualrb.aiPoetryCard',
                         tileSize: 256,
                         retinaMode: _getRetinaMode(),
                       ),
