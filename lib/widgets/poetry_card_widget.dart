@@ -136,20 +136,11 @@ class PoetryCardWidget extends StatelessWidget {
                               if (!appState.showQrCode) {
                                 return const SizedBox.shrink();
                               }
-                              return Container(
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: Padding(
-                                  padding: const EdgeInsets.all(1),
-                                  child: Image.asset(
-                                    'assets/images/qrcode.png',
-                                    width: 50,
-                                    height: 50,
-                                    fit: BoxFit.contain,
-                                  ),
-                                ),
+                              return Image.asset(
+                                'assets/images/qrcode.jpg',
+                                width: 50,
+                                height: 50,
+                                fit: BoxFit.contain,
                               );
                             },
                           ),
