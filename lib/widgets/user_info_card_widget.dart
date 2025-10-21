@@ -131,11 +131,6 @@ class _UserInfoCardWidgetState extends State<UserInfoCardWidget> {
                           const SizedBox(height: 8),
                           Row(
                             children: [
-                              Icon(
-                                Icons.fingerprint,
-                                size: 14,
-                                color: Colors.white.withOpacity(0.6),
-                              ),
                               const SizedBox(width: 6),
                               Text(
                                 'UID: ',

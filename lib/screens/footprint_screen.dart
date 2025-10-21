@@ -7,11 +7,15 @@ import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'dart:ui' as ui;
 import 'dart:io';
+import 'dart:math' as math;
 import '../models/poetry_card.dart';
 import '../providers/history_manager.dart';
-import '../screens/card_detail_screen.dart';
 import '../services/language_service.dart';
-import '../theme/app_theme.dart';
+import '../widgets/footprint/footprint_marker_builder.dart';
+import '../widgets/footprint/footprint_clusterer.dart';
+import '../widgets/footprint/footprint_stats_card.dart';
+import '../widgets/footprint/footprint_selected_cards_info.dart';
+import '../widgets/footprint/footprint_empty_state.dart';
 
 /// 足迹页面 - 在地图上展示用户生成卡片的位置
 class FootprintScreen extends StatefulWidget {
@@ -28,6 +32,7 @@ class _FootprintScreenState extends State<FootprintScreen> {
   final GlobalKey _mapKey = GlobalKey(); // 用于截图
   bool _isSharing = false; // 分享状态
   bool _isAdjusting = false; // 防止递归调整
+  double _currentZoom = 12.0; // 当前缩放级别
 
   // 自定义地图边界
   // 使用更保守的边界值，避免地图在极地附近严重变形
@@ -154,14 +159,35 @@ class _FootprintScreenState extends State<FootprintScreen> {
                 .toList();
 
             if (cardsWithLocation.isEmpty) {
-              return _buildEmptyState();
+              return const FootprintEmptyState();
             }
 
             // 按地点分组卡片
-            final groupedCards = _groupCardsByLocation(cardsWithLocation);
+            final groupedCards =
+                FootprintClusterer.groupCardsByLocation(cardsWithLocation);
 
-            // 提取所有位置点
-            final markers = _buildMarkers(groupedCards);
+            // 聚合并构建标记
+            final clusters = FootprintClusterer.clusterMarkers(
+              groupedCards: groupedCards,
+              currentZoom: _currentZoom,
+            );
+
+            final markers = FootprintMarkerBuilder.buildMarkers(
+              clusters: clusters,
+              selectedLocationKey: _selectedLocationKey,
+              onMarkerTap: (cards, id) {
+                setState(() {
+                  _selectedCards = cards;
+                  _selectedLocationKey = id;
+                });
+
+                // 找到被点击的聚合
+                final cluster = clusters.firstWhere((c) => c.id == id);
+
+                // 智能缩放和移动
+                _moveToCluster(cluster);
+              },
+            );
 
             // 计算地图中心点和缩放级别
             final center = _calculateCenter(cardsWithLocation);
@@ -192,6 +218,10 @@ class _FootprintScreenState extends State<FootprintScreen> {
                       onMapEvent: (MapEvent event) {
                         if (event is MapEventMoveEnd) {
                           _adjustMapBounds();
+                          // 更新当前缩放级别，触发重新聚合
+                          setState(() {
+                            _currentZoom = _mapController.camera.zoom;
+                          });
                         }
                       },
                     ),
@@ -214,7 +244,7 @@ class _FootprintScreenState extends State<FootprintScreen> {
                     top: 16,
                     left: 16,
                     right: 16,
-                    child: _buildStatsCard(cardsWithLocation),
+                    child: FootprintStatsCard(cards: cardsWithLocation),
                   ),
 
                   // 选中的卡片详情
@@ -223,7 +253,15 @@ class _FootprintScreenState extends State<FootprintScreen> {
                       bottom: 100, // 调整位置，避免被导航栏遮挡
                       left: 16,
                       right: 16,
-                      child: _buildSelectedCardsInfo(_selectedCards!),
+                      child: FootprintSelectedCardsInfo(
+                        cards: _selectedCards!,
+                        onClose: () {
+                          setState(() {
+                            _selectedCards = null;
+                            _selectedLocationKey = null;
+                          });
+                        },
+                      ),
                     ),
                 ],
               ),
@@ -295,209 +333,41 @@ class _FootprintScreenState extends State<FootprintScreen> {
     }
   }
 
-  /// 构建空状态
-  Widget _buildEmptyState() => Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.location_off,
-              size: 80,
-              color: Colors.grey[400],
-            ),
-            const SizedBox(height: 16),
-            Text(
-              context.l10n('暂无足迹记录'),
-              style: TextStyle(
-                fontSize: 18,
-                color: Colors.grey[600],
-              ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              context.l10n('生成卡片时会自动记录位置'),
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[500],
-              ),
-            ),
-          ],
-        ),
-      );
+  /// 智能移动到聚合点（带缩放和动画）
+  void _moveToCluster(ClusterMarker cluster) {
+    // 判断是否需要放大
+    double targetZoom = _currentZoom;
 
-  /// 构建统计信息卡片
-  Widget _buildStatsCard(List<PoetryCard> cards) {
-    // 统计唯一位置数量
-    final uniqueLocations = <String>{};
-    for (var card in cards) {
-      if (card.selectedPlace != null) {
-        final location = card.selectedPlace!;
-        uniqueLocations.add('${location.location}');
+    // 如果是聚合点（多个不同位置）
+    if (cluster.locationKeys.length > 1) {
+      // 聚合点需要放大以展开查看
+      if (_currentZoom < 15) {
+        targetZoom = 15.0; // 放大到高缩放级别
+      } else {
+        targetZoom = math.min(_currentZoom + 2, 18.0); // 在当前基础上再放大
       }
     }
-
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          _buildStatItem(
-            Icons.location_on,
-            uniqueLocations.length.toString(),
-            context.l10n('个足迹'),
-          ),
-          Container(
-            width: 1,
-            height: 30,
-            color: Colors.grey[300],
-          ),
-          _buildStatItem(
-            Icons.article,
-            cards.length.toString(),
-            context.l10n('篇创作'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 构建统计项
-  Widget _buildStatItem(IconData icon, String value, String label) => Row(
-        children: [
-          Icon(icon, color: AppTheme.primaryColor, size: 20),
-          const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                  color: AppTheme.primaryColor,
-                ),
-              ),
-              Text(
-                label,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-        ],
-      );
-
-  /// 按地点分组卡片
-  Map<String, List<PoetryCard>> _groupCardsByLocation(List<PoetryCard> cards) {
-    final grouped = <String, List<PoetryCard>>{};
-
-    for (var card in cards) {
-      if (card.selectedPlace == null) continue;
-
-      final location = card.selectedPlace!;
-      final locationKey = location.location; // 使用经纬度作为唯一标识
-
-      if (!grouped.containsKey(locationKey)) {
-        grouped[locationKey] = [];
-      }
-      grouped[locationKey]!.add(card);
+    // 如果是单个位置但缩放级别较低
+    else if (_currentZoom < 14) {
+      targetZoom = 15.0; // 放大到合适的查看级别
+    }
+    // 如果是单个位置且已经在高缩放级别
+    else {
+      // 保持当前缩放级别，只移动到中心
+      targetZoom = _currentZoom;
     }
 
-    return grouped;
-  }
+    // 使用动画移动到目标位置和缩放级别
+    _mapController.move(cluster.center, targetZoom);
 
-  /// 构建地图标记
-  List<Marker> _buildMarkers(Map<String, List<PoetryCard>> groupedCards) {
-    final markers = <Marker>[];
-
-    groupedCards.forEach((locationKey, cards) {
-      if (cards.isEmpty) return;
-
-      final location = cards.first.selectedPlace!;
-      final coords = location.location.split(',');
-      if (coords.length != 2) return;
-
-      try {
-        final lng = double.parse(coords[0]);
-        final lat = double.parse(coords[1]);
-
-        // 检查该地点是否被选中
-        final isSelected = _selectedLocationKey == locationKey;
-
-        markers.add(
-          Marker(
-            point: LatLng(lat, lng),
-            width: 50,
-            height: 50,
-            child: GestureDetector(
-              onTap: () {
-                setState(() {
-                  _selectedCards = cards; // 设置该地点的所有卡片
-                  _selectedLocationKey = locationKey;
-                });
-                // 将地图中心移动到选中的标记
-                _mapController.move(LatLng(lat, lng), 14.0);
-              },
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  Icon(
-                    Icons.location_on,
-                    color: isSelected ? Colors.red : AppTheme.primaryColor,
-                    size: 40,
-                    shadows: [
-                      Shadow(
-                        color: Colors.black.withOpacity(0.3),
-                        blurRadius: 4,
-                        offset: const Offset(0, 2),
-                      ),
-                    ],
-                  ),
-                  // 如果有多个卡片，显示数量
-                  if (cards.length > 1)
-                    Positioned(
-                      top: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(4),
-                        decoration: BoxDecoration(
-                          color:
-                              isSelected ? Colors.red : AppTheme.primaryColor,
-                          shape: BoxShape.circle,
-                        ),
-                        child: Text(
-                          cards.length.toString(),
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        );
-      } catch (e) {
-        print('解析位置坐标失败: $e');
+    // 延迟更新缩放级别状态，避免立即触发重新聚合
+    Future.delayed(const Duration(milliseconds: 300), () {
+      if (mounted) {
+        setState(() {
+          _currentZoom = targetZoom;
+        });
       }
     });
-
-    return markers;
   }
 
   /// 计算地图中心点
@@ -535,141 +405,6 @@ class _FootprintScreenState extends State<FootprintScreen> {
     return LatLng(totalLat / count, totalLng / count);
   }
 
-  /// 构建选中卡片的信息卡片（支持多个卡片）
-  Widget _buildSelectedCardsInfo(List<PoetryCard> cards) {
-    if (cards.isEmpty) return const SizedBox.shrink();
-
-    final locationName = cards.first.selectedPlace!.name;
-
-    return Container(
-      constraints: const BoxConstraints(maxHeight: 300),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // 位置信息和关闭按钮
-          Row(
-            children: [
-              const Icon(
-                Icons.location_on,
-                color: AppTheme.primaryColor,
-                size: 20,
-              ),
-              const SizedBox(width: 8),
-              Expanded(
-                child: Text(
-                  cards.length > 1
-                      ? '$locationName (${cards.length}篇)'
-                      : locationName,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: AppTheme.primaryColor,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              IconButton(
-                icon: const Icon(Icons.close, size: 20),
-                onPressed: () {
-                  setState(() {
-                    _selectedCards = null;
-                    _selectedLocationKey = null;
-                  });
-                },
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-
-          // 卡片列表
-          Flexible(
-            child: ListView.separated(
-              shrinkWrap: true,
-              itemCount: cards.length,
-              separatorBuilder: (context, index) => const Divider(height: 16),
-              itemBuilder: (context, index) {
-                final card = cards[index];
-                return GestureDetector(
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => CardDetailScreen(
-                          card: card,
-                          isResultMode: false,
-                        ),
-                      ),
-                    );
-                  },
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[50],
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          card.poetry,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.black87,
-                          ),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        const SizedBox(height: 8),
-                        Row(
-                          children: [
-                            Text(
-                              _formatDate(card.createdAt),
-                              style: TextStyle(
-                                fontSize: 12,
-                                color: Colors.grey[600],
-                              ),
-                            ),
-                            const Spacer(),
-                            Text(
-                              context.l10n('点击查看详情'),
-                              style: const TextStyle(
-                                fontSize: 12,
-                                color: AppTheme.primaryColor,
-                              ),
-                            ),
-                            const Icon(
-                              Icons.arrow_forward_ios,
-                              size: 12,
-                              color: AppTheme.primaryColor,
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   /// 获取地图URL（根据语言切换）
   String _getMapUrl() {
     final currentLang = LanguageService.to.getCurrentLanguage();
@@ -700,22 +435,6 @@ class _FootprintScreenState extends State<FootprintScreen> {
 
     // 只有英文地图（CartoDB）需要 retina 模式
     return currentLang != 'zh';
-  }
-
-  /// 格式化日期
-  String _formatDate(DateTime date) {
-    final now = DateTime.now();
-    final difference = now.difference(date);
-
-    if (difference.inDays > 0) {
-      return '${difference.inDays} ${context.l10n('天前')}';
-    } else if (difference.inHours > 0) {
-      return '${difference.inHours} ${context.l10n('小时前')}';
-    } else if (difference.inMinutes > 0) {
-      return '${difference.inMinutes} ${context.l10n('分钟前')}';
-    } else {
-      return context.l10n('刚刚');
-    }
   }
 
   @override
