@@ -8,7 +8,7 @@
 PRODUCT_NAME = 迹见文案
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.qualrb.aiPoetryCard
+PRODUCT_BUNDLE_IDENTIFIER = com.qualrb.aiPoetry
 
 // The copyright displayed in application information
 PRODUCT_COPYRIGHT = Copyright © 2025 com.qualrb. All rights reserved.

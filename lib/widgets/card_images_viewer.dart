@@ -17,7 +17,7 @@ class CardImagesViewer extends StatefulWidget {
 }
 
 class _CardImagesViewerState extends State<CardImagesViewer> {
-  bool _isExpanded = false;
+  bool _isExpanded = true; // 默认展开
   List<ImageSource> _images = [];
 
   @override
@@ -70,13 +70,17 @@ class _CardImagesViewerState extends State<CardImagesViewer> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 标题和展开按钮
-          GestureDetector(
+          // 标题栏（整个区域可点击）
+          InkWell(
             onTap: () {
               setState(() {
                 _isExpanded = !_isExpanded;
               });
             },
+            borderRadius: const BorderRadius.only(
+              topLeft: Radius.circular(12),
+              topRight: Radius.circular(12),
+            ),
             child: Padding(
               padding: const EdgeInsets.all(16),
               child: Row(
