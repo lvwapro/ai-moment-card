@@ -136,17 +136,34 @@ class PoetryCardWidget extends StatelessWidget {
                             },
                           ),
 
-                          // 二维码（根据设置显示）
+                          // 二维码和网页链接（根据设置显示）
                           Consumer<AppState>(
                             builder: (context, appState, child) {
                               if (!appState.showQrCode) {
                                 return const SizedBox.shrink();
                               }
-                              return Image.asset(
-                                'assets/images/qrcode.jpg',
-                                width: 50,
-                                height: 50,
-                                fit: BoxFit.contain,
+                              return Column(
+                                mainAxisSize: MainAxisSize.min,
+                                crossAxisAlignment: CrossAxisAlignment.end,
+                                children: [
+                                  // 二维码
+                                  Image.asset(
+                                    'assets/images/qrcode.jpg',
+                                    width: 50,
+                                    height: 50,
+                                    fit: BoxFit.contain,
+                                  ),
+                                  const SizedBox(height: 4),
+                                  // 网页链接
+                                  Text(
+                                    'softed.cn',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                ],
                               );
                             },
                           ),
