@@ -151,7 +151,7 @@ class _CardDetailScreenState extends State<CardDetailScreen>
                     // 附近地点信息
                     if (_currentCard.selectedPlace != null)
                       Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
+                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
                         child: NearbyPlacesWidget(
                           places: [_currentCard.selectedPlace!],
                         ),
