@@ -22,10 +22,11 @@ class CardInfoWidget extends StatefulWidget {
 }
 
 class _CardInfoWidgetState extends State<CardInfoWidget> {
+  bool _isExpanded = true; // 默认展开
+
   @override
   Widget build(BuildContext context) => Container(
-        margin: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-        padding: const EdgeInsets.all(20),
+        margin: const EdgeInsets.fromLTRB(16, 14, 16, 0),
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(12),
@@ -41,46 +42,89 @@ class _CardInfoWidgetState extends State<CardInfoWidget> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              context.l10n('卡片信息'),
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).primaryColor,
-                  ),
-            ),
-            const SizedBox(height: 16),
-
-            // 基本信息 - 如果有情绪标签则显示（不受设置影响）
-            if (widget.card.moodTag != null && widget.card.moodTag!.isNotEmpty)
-              Column(
-                children: [
-                  _buildInfoRow(context.l10n('氛围标签'), widget.card.moodTag!),
-                  const SizedBox(height: 8),
-                ],
+            // 标题栏（可点击折叠）
+            GestureDetector(
+              onTap: () {
+                setState(() {
+                  _isExpanded = !_isExpanded;
+                });
+              },
+              child: Container(
+                width: double.infinity,
+                padding:
+                    const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.info_outline,
+                      size: 20,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        context.l10n('卡片信息'),
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w600,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                      ),
+                    ),
+                    Icon(
+                      _isExpanded
+                          ? Icons.keyboard_arrow_up
+                          : Icons.keyboard_arrow_down,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ],
+                ),
               ),
-            _buildInfoRow(
-                context.l10n('创建时间'), _formatDateTime(widget.card.createdAt)),
-
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 16),
-
-            // 各平台文案展示
-            Text(
-              context.l10n('各平台文案'),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).primaryColor,
-                  ),
             ),
-            const SizedBox(height: 16),
+            // 内容区域（可折叠）
+            if (_isExpanded)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 基本信息 - 如果有情绪标签则显示（不受设置影响）
+                    if (widget.card.moodTag != null &&
+                        widget.card.moodTag!.isNotEmpty)
+                      Column(
+                        children: [
+                          _buildInfoRow(
+                              context.l10n('氛围标签'), widget.card.moodTag!),
+                          const SizedBox(height: 8),
+                        ],
+                      ),
+                    _buildInfoRow(context.l10n('创建时间'),
+                        _formatDateTime(widget.card.createdAt)),
 
-            // 原诗（含诗词信息）
-            if (widget.card.content != null && widget.card.content!.isNotEmpty)
-              _buildPoetrySection(context),
+                    const SizedBox(height: 16),
+                    const Divider(),
+                    const SizedBox(height: 16),
 
-            // 根据默认平台显示文案（按设置的顺序）
-            ..._buildPlatformSections(context),
+                    // 各平台文案展示
+                    Text(
+                      context.l10n('各平台文案'),
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Theme.of(context).primaryColor,
+                          ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // 原诗（含诗词信息）
+                    if (widget.card.content != null &&
+                        widget.card.content!.isNotEmpty)
+                      _buildPoetrySection(context),
+
+                    // 根据默认平台显示文案（按设置的顺序）
+                    ..._buildPlatformSections(context),
+                  ],
+                ),
+              ),
           ],
         ),
       );

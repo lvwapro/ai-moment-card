@@ -123,7 +123,7 @@ class _CardImagesViewerState extends State<CardImagesViewer> {
                     _isExpanded
                         ? Icons.keyboard_arrow_up
                         : Icons.keyboard_arrow_down,
-                    color: Colors.grey[600],
+                    color: Theme.of(context).primaryColor,
                   ),
                 ],
               ),
