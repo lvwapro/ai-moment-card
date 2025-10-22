@@ -8,6 +8,8 @@ class PlaceSelectorWidget extends StatelessWidget {
   final NearbyPlace? selectedPlace;
   final ValueChanged<NearbyPlace?> onPlaceSelected;
   final bool isLoading;
+  final bool hasError;
+  final VoidCallback? onRetry;
 
   const PlaceSelectorWidget({
     super.key,
@@ -15,6 +17,8 @@ class PlaceSelectorWidget extends StatelessWidget {
     required this.selectedPlace,
     required this.onPlaceSelected,
     this.isLoading = false,
+    this.hasError = false,
+    this.onRetry,
   });
 
   @override
@@ -23,7 +27,7 @@ class PlaceSelectorWidget extends StatelessWidget {
       return Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
@@ -42,7 +46,7 @@ class PlaceSelectorWidget extends StatelessWidget {
             ),
             const SizedBox(width: 12),
             Text(
-              context.l10n('获取附近地点失败，请稍后重试'),
+              context.l10n('正在获取附近地点...'),
               style: TextStyle(color: Colors.grey.shade600),
             ),
           ],
@@ -50,8 +54,71 @@ class PlaceSelectorWidget extends StatelessWidget {
       );
     }
 
-    if (places.isEmpty) {
-      return const SizedBox.shrink();
+    if (hasError || places.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(12),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.05),
+              blurRadius: 10,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Column(
+          children: [
+            Row(
+              children: [
+                Icon(
+                  Icons.location_on,
+                  color: Theme.of(context).primaryColor,
+                  size: 20,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  context.l10n('选择位置'),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: Theme.of(context).primaryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Column(
+              children: [
+                Icon(
+                  Icons.error_outline,
+                  size: 48,
+                  color: Colors.grey[400],
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  context.l10n('获取附近地点失败'),
+                  style: TextStyle(
+                    color: Colors.grey[600],
+                    fontSize: 14,
+                  ),
+                ),
+                if (onRetry != null) ...[
+                  const SizedBox(height: 8),
+                  TextButton.icon(
+                    onPressed: onRetry,
+                    icon: const Icon(Icons.refresh, size: 18),
+                    label: Text(context.l10n('重新加载')),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
+      );
     }
 
     return Container(
@@ -82,13 +149,26 @@ class PlaceSelectorWidget extends StatelessWidget {
                 const SizedBox(width: 8),
                 Text(
                   context.l10n('选择位置'),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: Theme.of(context).primaryColor,
+                        fontWeight: FontWeight.bold,
+                      ),
                 ),
                 const Spacer(),
-                if (selectedPlace != null)
+                if (onRetry != null)
+                  IconButton(
+                    icon: Icon(
+                      Icons.refresh,
+                      color: Theme.of(context).primaryColor,
+                      size: 20,
+                    ),
+                    onPressed: onRetry,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    tooltip: context.l10n('重新加载'),
+                  ),
+                if (selectedPlace != null) ...[
+                  if (onRetry != null) const SizedBox(width: 8),
                   IconButton(
                     onPressed: () => onPlaceSelected(null),
                     icon: Icon(
@@ -96,8 +176,11 @@ class PlaceSelectorWidget extends StatelessWidget {
                       color: Theme.of(context).primaryColor,
                     ),
                     iconSize: 20,
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                     tooltip: context.l10n('清除'),
                   ),
+                ],
               ],
             ),
           ),

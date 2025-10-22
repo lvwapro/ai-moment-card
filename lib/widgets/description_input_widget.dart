@@ -53,7 +53,7 @@ class _DescriptionInputWidgetState extends State<DescriptionInputWidget> {
           children: [
             Text(
               context.l10n('添加描述（可选）'),
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(
                     color: Theme.of(context).primaryColor,
                     fontWeight: FontWeight.bold,
                   ),

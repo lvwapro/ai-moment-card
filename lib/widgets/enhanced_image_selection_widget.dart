@@ -269,8 +269,8 @@ class _EmptyState extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             context.l10n('上传图片'),
-            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  color: Theme.of(context).primaryColor,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  color: Theme.of(context).primaryColor.withOpacity(0.7),
                 ),
           ),
           const SizedBox(height: 12),

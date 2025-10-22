@@ -42,6 +42,9 @@ class PoetryCard {
   // 选中的地点信息（单个地址）
   final NearbyPlace? selectedPlace;
 
+  // 选中的情绪标签
+  final String? moodTag;
+
   PoetryCard({
     required this.id,
     required this.image,
@@ -59,6 +62,7 @@ class PoetryCard {
     this.pengyouquan,
     this.douyin,
     this.selectedPlace,
+    this.moodTag,
   });
 
   Map<String, dynamic> toJson() {
@@ -79,6 +83,7 @@ class PoetryCard {
       'pengyouquan': pengyouquan,
       'douyin': douyin,
       'selectedPlace': selectedPlace?.toJson(),
+      'moodTag': moodTag,
     };
   }
 
@@ -107,6 +112,7 @@ class PoetryCard {
       selectedPlace: selectedPlaceJson != null
           ? NearbyPlace.fromJson(selectedPlaceJson)
           : null,
+      moodTag: json['moodTag'] as String?,
     );
   }
 
@@ -127,6 +133,7 @@ class PoetryCard {
     String? pengyouquan,
     String? douyin,
     NearbyPlace? selectedPlace,
+    String? moodTag,
   }) {
     return PoetryCard(
       id: id ?? this.id,
@@ -145,6 +152,7 @@ class PoetryCard {
       pengyouquan: pengyouquan ?? this.pengyouquan,
       douyin: douyin ?? this.douyin,
       selectedPlace: selectedPlace ?? this.selectedPlace,
+      moodTag: moodTag ?? this.moodTag,
     );
   }
 }

@@ -13,7 +13,7 @@ class AIPoetryService {
 
   // 真实的AI文案生成服务 - 返回包含所有平台文案的数据
   Future<Map<String, dynamic>> generatePoetryData(File image, PoetryStyle style,
-      {String? userDescription, String? userProfile}) async {
+      {String? userDescription, String? userProfile, String? location}) async {
     try {
       // 1. 获取图片URL
       String imageUrl = await _getImageUrl(image);
@@ -46,9 +46,19 @@ class AIPoetryService {
         'language': language,
         'description': userDescription ?? '',
         'category': category,
+        'location': location ?? '', // 添加位置文字描述
       };
 
-      print('📤 请求参数: $requestData');
+      print('📤 =========== 文案生成请求参数 ===========');
+      print('📍 图片URL: $imageUrl');
+      print('📍 经度: $longitude');
+      print('📍 纬度: $latitude');
+      print('📍 语言: $language');
+      print('📍 用户描述: ${userDescription ?? "无"}');
+      print('📍 风格分类: $category');
+      print('📍 位置描述: ${location ?? "无"}');
+      print('📤 完整请求数据: $requestData');
+      print('📤 =========================================');
 
       // 6. 调用API生成文案
       final response = await _networkService.post(
@@ -91,9 +101,11 @@ class AIPoetryService {
 
   // 兼容旧接口 - 仅返回默认文案（朋友圈）
   Future<String> generatePoetry(File image, PoetryStyle style,
-      {String? userDescription, String? userProfile}) async {
+      {String? userDescription, String? userProfile, String? location}) async {
     final data = await generatePoetryData(image, style,
-        userDescription: userDescription, userProfile: userProfile);
+        userDescription: userDescription, 
+        userProfile: userProfile,
+        location: location);
 
     // 优先返回朋友圈文案
     return data['pengyouquan'] ??

@@ -95,7 +95,8 @@ class CardGenerator extends ChangeNotifier {
       {String? userDescription,
       List<String>? localImagePaths,
       List<String>? cloudImageUrls,
-      NearbyPlace? selectedPlace}) async {
+      NearbyPlace? selectedPlace,
+      String? moodTag}) async {
     _isGenerating = true;
     notifyListeners();
 
@@ -125,12 +126,18 @@ class CardGenerator extends ChangeNotifier {
       // 2. 生成AI文案
       print('🚀 开始生成AI文案...');
       final userProfile = _userProfileService?.getUserDescription();
+      
+      // 获取位置描述（如果有选中的地点）
+      final locationDescription = selectedPlace != null
+          ? '${selectedPlace.name}${selectedPlace.address.isNotEmpty ? "（${selectedPlace.address}）" : ""}'
+          : null;
 
       final poetryData = await _poetryService.generatePoetryData(
         safeImage,
         style,
         userDescription: userDescription,
         userProfile: userProfile,
+        location: locationDescription,
       );
 
       final poetry = poetryData['pengyouquan'] ??
@@ -177,6 +184,8 @@ class CardGenerator extends ChangeNotifier {
         douyin: poetryData['douyin'],
         // 添加用户选中的地点
         selectedPlace: selectedPlace,
+        // 添加用户选中的情绪标签
+        moodTag: moodTag,
       );
 
       print('✅ 卡片生成成功: ${card.id}');

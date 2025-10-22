@@ -4,7 +4,6 @@ import 'package:provider/provider.dart';
 import 'package:ai_poetry_card/models/poetry_card.dart';
 import 'package:ai_poetry_card/widgets/common/fallback_background.dart';
 import '../providers/app_state.dart';
-import '../utils/style_utils.dart';
 
 class PoetryCardWidget extends StatelessWidget {
   final PoetryCard card;
@@ -103,30 +102,37 @@ class PoetryCardWidget extends StatelessWidget {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          // 风格标签（根据设置显示）
+                          // 情绪标签（根据设置显示）
                           Consumer<AppState>(
                             builder: (context, appState, child) {
-                              if (!appState.showStyleOnCard) {
-                                return const SizedBox.shrink();
-                              }
-                              return Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 12,
-                                  vertical: 6,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white.withOpacity(0.2),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Text(
-                                  StyleUtils.getStyleDisplayName(card.style),
-                                  style: const TextStyle(
-                                    color: Colors.white,
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w500,
+                              // 如果开启显示情绪标签且卡片有保存的情绪标签，显示情绪标签
+                              if (appState.showMoodTagOnCard &&
+                                  card.moodTag != null &&
+                                  card.moodTag!.isNotEmpty) {
+                                // 如果包含多个标签，只显示第一个
+                                final displayTag =
+                                    card.moodTag!.split(',').first;
+                                return Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 12,
+                                    vertical: 6,
                                   ),
-                                ),
-                              );
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.2),
+                                    borderRadius: BorderRadius.circular(16),
+                                  ),
+                                  child: Text(
+                                    displayTag,
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                );
+                              }
+                              // 不显示
+                              return const SizedBox.shrink();
                             },
                           ),
 

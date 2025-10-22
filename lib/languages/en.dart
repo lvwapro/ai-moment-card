@@ -491,6 +491,14 @@ class EnglishTranslations {
     '验证支付状态失败': 'Failed to verify payment status',
     '知道了': 'Got it',
     '确定': 'OK',
+    '氛围标签': 'Mood Tags',
+    '正在获取氛围标签...': 'Loading mood tags...',
+    '获取氛围标签失败': 'Failed to load mood tags',
+    '重新加载': 'Reload',
+    '获取附近地点失败': 'Failed to load nearby places',
+    '正在获取附近地点...': 'Loading nearby places...',
+    '显示情绪标签': 'Show Mood Tag',
+    '在卡片上显示情绪标签': 'Display mood tag on card',
   };
 
   static String getText(String key) => translations[key] ?? key;

@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import '../models/poetry_card.dart';
 import '../providers/app_state.dart';
 import '../services/language_service.dart';
-import '../utils/style_utils.dart';
 
 /// 卡片信息展示组件
 class CardInfoWidget extends StatefulWidget {
@@ -51,9 +50,14 @@ class _CardInfoWidgetState extends State<CardInfoWidget> {
             ),
             const SizedBox(height: 16),
 
-            // 基本信息
-            _buildInfoRow(context.l10n('风格'),
-                StyleUtils.getStyleDisplayName(widget.card.style)),
+            // 基本信息 - 如果有情绪标签则显示（不受设置影响）
+            if (widget.card.moodTag != null && widget.card.moodTag!.isNotEmpty)
+              Column(
+                children: [
+                  _buildInfoRow(context.l10n('氛围标签'), widget.card.moodTag!),
+                  const SizedBox(height: 8),
+                ],
+              ),
             _buildInfoRow(
                 context.l10n('创建时间'), _formatDateTime(widget.card.createdAt)),
 

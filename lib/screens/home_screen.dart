@@ -9,9 +9,11 @@ import '../providers/card_generator.dart';
 import '../providers/history_manager.dart';
 import '../theme/app_theme.dart';
 import 'package:ai_poetry_card/services/language_service.dart';
+import '../services/mood_tag_service.dart';
+import '../services/location_service.dart';
 import '../widgets/enhanced_image_selection_widget.dart';
 import '../widgets/description_input_widget.dart';
-import '../widgets/style_selector_widget.dart';
+import '../widgets/mood_tag_selector_widget.dart';
 import '../widgets/generate_button_widget.dart';
 import '../widgets/loading_overlay.dart';
 import '../widgets/place_selector_widget.dart';
@@ -35,6 +37,12 @@ class _HomeScreenState extends State<HomeScreen> {
   List<NearbyPlace> _nearbyPlaces = []; // 附近地点列表
   NearbyPlace? _selectedPlace; // 选中的地点
   bool _isLoadingPlaces = false; // 是否正在加载地点
+  bool _placesError = false; // 地点加载是否出错
+
+  // 情绪标签相关状态
+  List<String> _moodTags = []; // 情绪标签列表
+  bool _isLoadingMoodTags = false; // 是否正在加载情绪标签
+  bool _moodTagsError = false; // 情绪标签加载是否出错
 
   @override
   void initState() {
@@ -44,14 +52,16 @@ class _HomeScreenState extends State<HomeScreen> {
         _description = _descriptionController.text;
       });
     });
-    // 加载附近地点
+    // 加载附近地点和情绪标签
     _loadNearbyPlaces();
+    _loadMoodTags();
   }
 
   /// 加载附近地点
   Future<void> _loadNearbyPlaces() async {
     setState(() {
       _isLoadingPlaces = true;
+      _placesError = false;
     });
 
     try {
@@ -60,7 +70,13 @@ class _HomeScreenState extends State<HomeScreen> {
 
       if (mounted) {
         setState(() {
-          _nearbyPlaces = places ?? [];
+          if (places != null && places.isNotEmpty) {
+            _nearbyPlaces = places;
+            _placesError = false;
+          } else {
+            _nearbyPlaces = [];
+            _placesError = true;
+          }
           _isLoadingPlaces = false;
         });
       }
@@ -68,7 +84,67 @@ class _HomeScreenState extends State<HomeScreen> {
       print('❌ 加载附近地点失败: $e');
       if (mounted) {
         setState(() {
+          _nearbyPlaces = [];
+          _placesError = true;
           _isLoadingPlaces = false;
+        });
+      }
+    }
+  }
+
+  /// 加载情绪标签
+  Future<void> _loadMoodTags() async {
+    setState(() {
+      _isLoadingMoodTags = true;
+      _moodTagsError = false;
+    });
+
+    // 开始重新加载时，清除当前选中的标签
+    final appState = Provider.of<AppState>(context, listen: false);
+    appState.setSelectedMoodTags([]);
+
+    try {
+      // 获取当前位置
+      final locationService = LocationService();
+      final location = await locationService.getCurrentLocation();
+
+      if (location != null) {
+        // 调用 mood tags API
+        final moodTagService = MoodTagService();
+        final response = await moodTagService.getMoodTags(
+          longitude: location.longitude,
+          latitude: location.latitude,
+        );
+
+        if (mounted) {
+          setState(() {
+            if (response != null && response.moodTags.isNotEmpty) {
+              _moodTags = response.moodTags;
+              _moodTagsError = false;
+            } else {
+              _moodTags = [];
+              _moodTagsError = true;
+            }
+            _isLoadingMoodTags = false;
+          });
+        }
+      } else {
+        // 获取位置失败
+        if (mounted) {
+          setState(() {
+            _moodTags = [];
+            _moodTagsError = true;
+            _isLoadingMoodTags = false;
+          });
+        }
+      }
+    } catch (e) {
+      print('❌ 加载情绪标签失败: $e');
+      if (mounted) {
+        setState(() {
+          _moodTags = [];
+          _moodTagsError = true;
+          _isLoadingMoodTags = false;
         });
       }
     }
@@ -119,11 +195,14 @@ class _HomeScreenState extends State<HomeScreen> {
         // 目前暂时使用默认图片，后续需要修改AI服务支持URL
         card = await cardGenerator.generateCard(
           File(''), // 临时使用空文件，后续需要修改
-          appState.selectedStyle ?? PoetryStyle.blindBox, // 如果未选中，默认使用盲盒
+          PoetryStyle.blindBox, // 使用默认盲盒风格
           userDescription: _description.isNotEmpty ? _description : null,
           localImagePaths: _localImagePaths,
           cloudImageUrls: _uploadedUrls,
           selectedPlace: _selectedPlace, // 传递选中的地点
+          moodTag: appState.selectedMoodTags.isNotEmpty 
+              ? appState.selectedMoodTags.join(',') 
+              : null, // 传递选中的情绪标签（逗号分隔）
         );
         print('localImagePaths: $_localImagePaths');
         print('cloudImageUrls: $_uploadedUrls');
@@ -187,7 +266,12 @@ class _HomeScreenState extends State<HomeScreen> {
                     onUploadFailed: _onUploadFailed,
                   ),
                   const SizedBox(height: 24),
-                  const StyleSelectorWidget(),
+                  MoodTagSelectorWidget(
+                    moodTags: _moodTags,
+                    isLoading: _isLoadingMoodTags,
+                    hasError: _moodTagsError,
+                    onRetry: _loadMoodTags,
+                  ),
                   const SizedBox(height: 24),
                   // 地址选择组件
                   PlaceSelectorWidget(
@@ -199,6 +283,8 @@ class _HomeScreenState extends State<HomeScreen> {
                       });
                     },
                     isLoading: _isLoadingPlaces,
+                    hasError: _placesError,
+                    onRetry: _loadNearbyPlaces,
                   ),
                   const SizedBox(height: 16),
                   DescriptionInputWidget(

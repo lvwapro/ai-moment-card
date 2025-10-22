@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:ai_poetry_card/models/poetry_card.dart';
 
 // 平台类型枚举
 enum PlatformType {
@@ -21,19 +20,19 @@ enum FontFamily {
 class AppState extends ChangeNotifier {
   static const String _usedCountKey = 'used_count';
   static const String _isPremiumKey = 'is_premium';
-  static const String _selectedStyleKey = 'selected_style';
+  static const String _selectedMoodTagKey = 'selected_mood_tag';
   static const String _showQrCodeKey = 'show_qr_code';
   static const String _defaultPlatformKey = 'default_platform';
-  static const String _showStyleOnCardKey = 'show_style_on_card';
+  static const String _showMoodTagOnCardKey = 'show_mood_tag_on_card';
   static const String _selectedFontKey = 'selected_font';
 
   // 用户状态
   bool _isPremium = false;
   int _usedCount = 0;
-  PoetryStyle? _selectedStyle; // 改为nullable，允许未选中状态
+  List<String> _selectedMoodTags = []; // 选中的情绪标签列表
   bool _showQrCode = false; // 默认不显示二维码
   PlatformType _defaultPlatform = PlatformType.pengyouquan; // 默认朋友圈
-  bool _showStyleOnCard = false; // 默认不显示风格
+  bool _showMoodTagOnCard = false; // 默认不显示情绪标签
   FontFamily _selectedFont = FontFamily.jiangxiZhuokai; // 默认江西拙楷
 
   // 限制设置
@@ -46,10 +45,10 @@ class AppState extends ChangeNotifier {
   int get totalLimit => _isPremium ? premiumLimit : freeTrialLimit;
   int get remainingUsage => totalLimit - _usedCount;
   bool get canGenerate => _isPremium || _usedCount < freeTrialLimit;
-  PoetryStyle? get selectedStyle => _selectedStyle; // nullable getter
+  List<String> get selectedMoodTags => _selectedMoodTags; // 情绪标签列表 getter
   bool get showQrCode => _showQrCode;
   PlatformType get defaultPlatform => _defaultPlatform;
-  bool get showStyleOnCard => _showStyleOnCard;
+  bool get showMoodTagOnCard => _showMoodTagOnCard; // 显示情绪标签 getter
   FontFamily get selectedFont => _selectedFont;
 
   // 获取字体名称（null表示使用系统默认字体）
@@ -75,20 +74,7 @@ class AppState extends ChangeNotifier {
     _isPremium = prefs.getBool(_isPremiumKey) ?? false;
     _usedCount = prefs.getInt(_usedCountKey) ?? 0;
     _showQrCode = prefs.getBool(_showQrCodeKey) ?? false;
-    _showStyleOnCard = prefs.getBool(_showStyleOnCardKey) ?? false;
-
-    final styleStr = prefs.getString(_selectedStyleKey);
-    if (styleStr != null && styleStr.isNotEmpty) {
-      try {
-        _selectedStyle = PoetryStyle.values.firstWhere(
-          (e) => e.name == styleStr,
-        );
-      } catch (e) {
-        _selectedStyle = null; // 如果找不到，设为null
-      }
-    } else {
-      _selectedStyle = null; // 默认未选中
-    }
+    _showMoodTagOnCard = prefs.getBool(_showMoodTagOnCardKey) ?? false;
 
     final platformStr = prefs.getString(_defaultPlatformKey);
     if (platformStr != null) {
@@ -106,6 +92,11 @@ class AppState extends ChangeNotifier {
       );
     }
 
+    final moodTagStr = prefs.getString(_selectedMoodTagKey);
+    _selectedMoodTags = moodTagStr != null && moodTagStr.isNotEmpty 
+        ? moodTagStr.split(',') 
+        : [];
+
     notifyListeners();
   }
 
@@ -113,11 +104,10 @@ class AppState extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_isPremiumKey, _isPremium);
     await prefs.setInt(_usedCountKey, _usedCount);
-    // 保存风格，如果是null则保存空字符串
-    await prefs.setString(_selectedStyleKey, _selectedStyle?.name ?? '');
+    await prefs.setString(_selectedMoodTagKey, _selectedMoodTags.join(','));
     await prefs.setBool(_showQrCodeKey, _showQrCode);
     await prefs.setString(_defaultPlatformKey, _defaultPlatform.name);
-    await prefs.setBool(_showStyleOnCardKey, _showStyleOnCard);
+    await prefs.setBool(_showMoodTagOnCardKey, _showMoodTagOnCard);
     await prefs.setString(_selectedFontKey, _selectedFont.name);
   }
 
@@ -135,8 +125,8 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setSelectedStyle(PoetryStyle? style) async {
-    _selectedStyle = style;
+  Future<void> setSelectedMoodTags(List<String> tags) async {
+    _selectedMoodTags = tags;
     await _saveSettings();
     notifyListeners();
   }
@@ -153,8 +143,8 @@ class AppState extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> setShowStyleOnCard(bool show) async {
-    _showStyleOnCard = show;
+  Future<void> setShowMoodTagOnCard(bool show) async {
+    _showMoodTagOnCard = show;
     await _saveSettings();
     notifyListeners();
   }
