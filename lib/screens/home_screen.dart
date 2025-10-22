@@ -200,8 +200,8 @@ class _HomeScreenState extends State<HomeScreen> {
           localImagePaths: _localImagePaths,
           cloudImageUrls: _uploadedUrls,
           selectedPlace: _selectedPlace, // 传递选中的地点
-          moodTag: appState.selectedMoodTags.isNotEmpty 
-              ? appState.selectedMoodTags.join(',') 
+          moodTag: appState.selectedMoodTags.isNotEmpty
+              ? appState.selectedMoodTags.join(',')
               : null, // 传递选中的情绪标签（逗号分隔）
         );
         print('localImagePaths: $_localImagePaths');
@@ -228,11 +228,15 @@ class _HomeScreenState extends State<HomeScreen> {
               builder: (context) =>
                   CardDetailScreen(card: card, isResultMode: true)),
         );
-        // 生成卡片后清空图片数组
+        // 生成卡片后清空图片数组和重置选择状态
         setState(() {
           _uploadedUrls.clear();
           _localImagePaths.clear();
+          _selectedPlace = null; // 重置位置选择
+          _description = ''; // 重置描述
         });
+        // 重置氛围标签选择
+        appState.setSelectedMoodTags([]);
       }
     } catch (e) {
       // 显示错误信息
