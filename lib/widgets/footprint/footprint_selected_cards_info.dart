@@ -30,7 +30,9 @@ class FootprintSelectedCardsInfo extends StatelessWidget {
     // 如果是聚合的多个位置，显示"已聚合N个足迹"
     final isCluster = uniqueLocations.length > 1;
     final titleText = isCluster
-        ? '已聚合 ${uniqueLocations.length} 个足迹'
+        ? context
+            .l10n('已聚合 {0} 个足迹')
+            .replaceAll('{0}', uniqueLocations.length.toString())
         : cards.first.selectedPlace!.name;
 
     return Container(
@@ -63,7 +65,7 @@ class FootprintSelectedCardsInfo extends StatelessWidget {
               Expanded(
                 child: Text(
                   cards.length > 1
-                      ? '$titleText (${cards.length}篇)'
+                      ? '$titleText (${cards.length}${context.l10n('篇')})'
                       : titleText,
                   style: const TextStyle(
                     fontSize: 16,

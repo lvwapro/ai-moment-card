@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../models/nearby_place.dart';
 import '../theme/app_theme.dart';
+import '../services/language_service.dart';
 
 /// 附近地点展示组件
 class NearbyPlacesWidget extends StatelessWidget {
@@ -29,17 +30,17 @@ class NearbyPlacesWidget extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Padding(
-            padding: EdgeInsets.all(16),
+          Padding(
+            padding: const EdgeInsets.all(16),
             child: Row(
               children: [
                 Icon(Icons.location_on, color: AppTheme.primaryColor, size: 20),
-                SizedBox(width: 8),
-                Text('附近地点',
+                const SizedBox(width: 8),
+                Text(context.l10n('附近地点'),
                     style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: AppTheme.textPrimary)),
+                        color: Theme.of(context).primaryColor)),
               ],
             ),
           ),
@@ -139,20 +140,20 @@ class NearbyPlacesWidget extends StatelessWidget {
     // 并行检测可用地图
     final maps = await Future.wait([
       _checkMap(
-          '高德',
+          context.l10n('高德'),
           Icons.map,
           const Color(0xFF0091FF),
           Platform.isIOS
               ? 'iosamap://viewMap?poiname=$name&lat=$lat&lon=$lon'
               : 'amapuri://viewMap?poiname=$name&lat=$lat&lon=$lon'),
       _checkMap(
-          '百度',
+          context.l10n('百度'),
           Icons.map,
           const Color(0xFF3385FF),
           Platform.isIOS
               ? 'baidumap://map/marker?location=$lat,$lon&title=$name'
               : 'bdapp://map/marker?location=$lat,$lon&title=$name'),
-      _checkMap('腾讯', Icons.map, const Color(0xFF3EB575),
+      _checkMap(context.l10n('腾讯'), Icons.map, const Color(0xFF3EB575),
           'qqmap://map/marker?marker=coord:$lat,$lon;title:$name'),
     ]);
 
@@ -160,7 +161,7 @@ class NearbyPlacesWidget extends StatelessWidget {
 
     // 添加系统默认地图（总是可用）
     available.add(MapApp(
-      name: Platform.isIOS ? 'Apple地图' : '浏览器',
+      name: Platform.isIOS ? context.l10n('Apple地图') : context.l10n('浏览器'),
       icon: Icons.map_outlined,
       color: const Color(0xFF007AFF),
       url: Uri.parse(Platform.isIOS
@@ -204,9 +205,9 @@ class NearbyPlacesWidget extends StatelessWidget {
             padding: const EdgeInsets.all(20),
             child: Column(
               children: [
-                const Text('选择地图应用',
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                Text(context.l10n('选择地图应用'),
+                    style: const TextStyle(
+                        fontSize: 18, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 4),
                 Text(placeName,
                     style: TextStyle(fontSize: 14, color: Colors.grey[600]),
@@ -234,7 +235,7 @@ class NearbyPlacesWidget extends StatelessWidget {
                 onPressed: () => Navigator.pop(context),
                 style: TextButton.styleFrom(
                     minimumSize: const Size(double.infinity, 48)),
-                child: const Text('取消'),
+                child: Text(context.l10n('取消')),
               ),
             ),
           ),

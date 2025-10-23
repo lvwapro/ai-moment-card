@@ -499,6 +499,15 @@ class EnglishTranslations {
     '正在获取附近地点...': 'Loading nearby places...',
     '显示情绪标签': 'Show Mood Tag',
     '在卡片上显示情绪标签': 'Display mood tag on card',
+    '已聚合 {0} 个足迹': 'Aggregated {0} footprints',
+    '篇': 'cards',
+    '附近地点': 'Nearby Places',
+    '高德': 'Amap',
+    '百度': 'Baidu Maps',
+    '腾讯': 'Tencent Maps',
+    'Apple地图': 'Apple Maps',
+    '浏览器': 'Browser',
+    '选择地图应用': 'Select Map App',
   };
 
   static String getText(String key) => translations[key] ?? key;
