@@ -31,10 +31,10 @@ class AppState extends ChangeNotifier {
   bool _isPremium = false;
   int _usedCount = 0;
   List<String> _selectedMoodTags = []; // 选中的情绪标签列表
-  bool _showQrCode = false; // 默认不显示二维码
+  bool _showQrCode = true; // 默认显示二维码
   PlatformType _defaultPlatform = PlatformType.pengyouquan; // 默认朋友圈
-  bool _showMoodTagOnCard = false; // 默认不显示情绪标签
-  FontFamily _selectedFont = FontFamily.jiangxiZhuokai; // 默认江西拙楷
+  bool _showMoodTagOnCard = true; // 默认显示情绪标签
+  FontFamily _selectedFont = FontFamily.system; // 默认系统字体
 
   // 限制设置
   static const int freeTrialLimit = 30; // 免费用户限制改为30次
@@ -74,8 +74,8 @@ class AppState extends ChangeNotifier {
 
     _isPremium = prefs.getBool(_isPremiumKey) ?? false;
     _usedCount = prefs.getInt(_usedCountKey) ?? 0;
-    _showQrCode = prefs.getBool(_showQrCodeKey) ?? false;
-    _showMoodTagOnCard = prefs.getBool(_showMoodTagOnCardKey) ?? false;
+    _showQrCode = prefs.getBool(_showQrCodeKey) ?? true;
+    _showMoodTagOnCard = prefs.getBool(_showMoodTagOnCardKey) ?? true;
 
     final platformStr = prefs.getString(_defaultPlatformKey);
     if (platformStr != null) {
@@ -89,7 +89,7 @@ class AppState extends ChangeNotifier {
     if (fontStr != null) {
       _selectedFont = FontFamily.values.firstWhere(
         (e) => e.name == fontStr,
-        orElse: () => FontFamily.jiangxiZhuokai,
+        orElse: () => FontFamily.system,
       );
     }
 
