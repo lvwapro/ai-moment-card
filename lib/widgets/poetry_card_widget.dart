@@ -50,11 +50,89 @@ class PoetryCardWidget extends StatelessWidget {
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
                         colors: [
+                          Colors.black.withOpacity(0.3),
                           Colors.transparent,
                           Colors.black.withOpacity(0.8),
                         ],
+                        stops: const [0.0, 0.3, 1.0],
                       ),
                     ),
+                  ),
+                ),
+
+                // 情绪标签（根据设置显示）
+                Positioned(
+                  top: 12,
+                  left: 20,
+                  child: Consumer<AppState>(
+                    builder: (context, appState, child) {
+                      // 如果开启显示情绪标签且卡片有保存的情绪标签，显示情绪标签
+                      if (appState.showMoodTagOnCard &&
+                          card.moodTag != null &&
+                          card.moodTag!.isNotEmpty) {
+                        // 如果包含多个标签，只显示第一个
+                        final displayTag = card.moodTag!.split(',').first;
+                        return Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.white.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Text(
+                            displayTag,
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 12,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        );
+                      }
+                      // 不显示
+                      return const SizedBox.shrink();
+                    },
+                  ),
+                ),
+
+                // 二维码和网页链接（根据设置显示）
+                Positioned(
+                  top: 12,
+                  right: 20,
+                  child: Consumer<AppState>(
+                    builder: (context, appState, child) {
+                      if (!appState.showQrCode) {
+                        return const SizedBox.shrink();
+                      }
+                      return Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          // 二维码
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.asset(
+                              'assets/images/qrcode.jpg',
+                              width: 50,
+                              height: 50,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          // 网页链接
+                          const Text(
+                            'softed.cn',
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      );
+                    },
                   ),
                 ),
 
@@ -94,80 +172,6 @@ class PoetryCardWidget extends StatelessWidget {
                             ),
                           );
                         },
-                      ),
-
-                      const SizedBox(height: 16),
-
-                      // 底部信息
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          // 情绪标签（根据设置显示）
-                          Consumer<AppState>(
-                            builder: (context, appState, child) {
-                              // 如果开启显示情绪标签且卡片有保存的情绪标签，显示情绪标签
-                              if (appState.showMoodTagOnCard &&
-                                  card.moodTag != null &&
-                                  card.moodTag!.isNotEmpty) {
-                                // 如果包含多个标签，只显示第一个
-                                final displayTag =
-                                    card.moodTag!.split(',').first;
-                                return Container(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 12,
-                                    vertical: 6,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
-                                    borderRadius: BorderRadius.circular(16),
-                                  ),
-                                  child: Text(
-                                    displayTag,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                );
-                              }
-                              // 不显示
-                              return const SizedBox.shrink();
-                            },
-                          ),
-
-                          // 二维码和网页链接（根据设置显示）
-                          Consumer<AppState>(
-                            builder: (context, appState, child) {
-                              if (!appState.showQrCode) {
-                                return const SizedBox.shrink();
-                              }
-                              return Column(
-                                mainAxisSize: MainAxisSize.min,
-                                crossAxisAlignment: CrossAxisAlignment.end,
-                                children: [
-                                  // 二维码
-                                  Image.asset(
-                                    'assets/images/qrcode.jpg',
-                                    width: 50,
-                                    height: 50,
-                                    fit: BoxFit.contain,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  // 网页链接
-                                  Text(
-                                    'softed.cn',
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ],
-                              );
-                            },
-                          ),
-                        ],
                       ),
                     ],
                   ),
