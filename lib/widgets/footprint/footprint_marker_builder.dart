@@ -13,6 +13,7 @@ class FootprintMarkerBuilder {
     required List<ClusterMarker> clusters,
     required String? selectedLocationKey,
     required Function(List<PoetryCard>, String) onMarkerTap,
+    required double currentZoom,
   }) {
     final markers = <Marker>[];
 
@@ -21,11 +22,20 @@ class FootprintMarkerBuilder {
       final totalCards = cluster.cards.length;
       final firstCard = cluster.cards.first;
 
+      // 根据缩放级别计算marker大小
+      final markerSize = _calculateMarkerSize(currentZoom);
+      final imageSize = markerSize.imageSize;
+      final markerWidth = markerSize.width;
+      final markerHeight = markerSize.height;
+      final badgeSize = markerSize.badgeSize;
+      final fontSize = markerSize.fontSize;
+      final triangleSize = markerSize.triangleSize;
+
       markers.add(
         Marker(
           point: cluster.center,
-          width: 60,
-          height: 70,
+          width: markerWidth,
+          height: markerHeight,
           alignment: Alignment.topCenter,
           child: GestureDetector(
             onTap: () => onMarkerTap(cluster.cards, cluster.id),
@@ -38,58 +48,60 @@ class FootprintMarkerBuilder {
                   children: [
                     // 图片容器
                     Container(
-                      width: 50,
-                      height: 50,
+                      width: imageSize,
+                      height: imageSize,
                       decoration: BoxDecoration(
                         color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(imageSize * 0.16),
                         border: Border.all(
                           color: isSelected ? Colors.red : Colors.white,
-                          width: 3,
+                          width: markerSize.borderWidth,
                         ),
                         boxShadow: [
                           BoxShadow(
                             color: Colors.black.withOpacity(0.3),
-                            blurRadius: 6,
+                            blurRadius: markerSize.shadowBlur,
                             offset: const Offset(0, 2),
                           ),
                         ],
                       ),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(5),
+                        borderRadius: BorderRadius.circular(imageSize * 0.1),
                         child: _buildMarkerImage(firstCard),
                       ),
                     ),
                     // 数量徽章（如果有多个卡片）
                     if (totalCards > 1)
                       Positioned(
-                        right: -5,
-                        top: -5,
+                        right: -5 * markerSize.scale,
+                        top: -5 * markerSize.scale,
                         child: Container(
-                          padding: const EdgeInsets.all(4),
+                          padding: EdgeInsets.all(4 * markerSize.scale),
                           decoration: BoxDecoration(
                             color:
                                 isSelected ? Colors.red : AppTheme.primaryColor,
                             shape: BoxShape.circle,
-                            border: Border.all(color: Colors.white, width: 2),
+                            border: Border.all(
+                                color: Colors.white,
+                                width: 2 * markerSize.scale),
                             boxShadow: [
                               BoxShadow(
                                 color: Colors.black.withOpacity(0.3),
-                                blurRadius: 4,
+                                blurRadius: 4 * markerSize.scale,
                                 offset: const Offset(0, 2),
                               ),
                             ],
                           ),
-                          constraints: const BoxConstraints(
-                            minWidth: 24,
-                            minHeight: 24,
+                          constraints: BoxConstraints(
+                            minWidth: badgeSize,
+                            minHeight: badgeSize,
                           ),
                           child: Center(
                             child: Text(
                               totalCards.toString(),
-                              style: const TextStyle(
+                              style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 12,
+                                fontSize: fontSize,
                                 fontWeight: FontWeight.bold,
                                 height: 1.0,
                               ),
@@ -100,9 +112,9 @@ class FootprintMarkerBuilder {
                   ],
                 ),
                 // 底部小三角指示器
-                const SizedBox(height: 2),
+                SizedBox(height: 2 * markerSize.scale),
                 CustomPaint(
-                  size: const Size(12, 8),
+                  size: Size(triangleSize.width, triangleSize.height),
                   painter: TrianglePainter(
                     color: isSelected ? Colors.red : Colors.white,
                   ),
@@ -115,6 +127,54 @@ class FootprintMarkerBuilder {
     }
 
     return markers;
+  }
+
+  /// 根据缩放级别计算marker大小
+  /// zoom < 6: 小
+  /// zoom 6-9: 中小
+  /// zoom 9-12: 中等
+  /// zoom 12-15: 标准
+  /// zoom > 15: 大
+  static _MarkerSize _calculateMarkerSize(double zoom) {
+    double scale;
+
+    if (zoom < 6) {
+      // 小 (50%)
+      scale = 0.5;
+    } else if (zoom < 9) {
+      // 中小 (65%)
+      scale = 0.65;
+    } else if (zoom < 12) {
+      // 中等 (80%)
+      scale = 0.8;
+    } else if (zoom < 15) {
+      // 标准 (100%)
+      scale = 1.0;
+    } else {
+      // 大 (120%)
+      scale = 1.2;
+    }
+
+    // 基础尺寸
+    const double baseImageSize = 50.0;
+    const double baseMarkerWidth = 60.0;
+    const double baseMarkerHeight = 70.0;
+    const double baseBadgeSize = 24.0;
+    const double baseFontSize = 12.0;
+    const double baseTriangleWidth = 12.0;
+    const double baseTriangleHeight = 8.0;
+
+    return _MarkerSize(
+      scale: scale,
+      imageSize: baseImageSize * scale,
+      width: baseMarkerWidth * scale,
+      height: baseMarkerHeight * scale,
+      badgeSize: baseBadgeSize * scale,
+      fontSize: baseFontSize * scale,
+      triangleSize: Size(baseTriangleWidth * scale, baseTriangleHeight * scale),
+      borderWidth: 3.0 * scale,
+      shadowBlur: 6.0 * scale,
+    );
   }
 
   /// 构建标记的图片（优先使用缓存）
@@ -266,4 +326,29 @@ class TrianglePainter extends CustomPainter {
 
   @override
   bool shouldRepaint(TrianglePainter oldDelegate) => color != oldDelegate.color;
+}
+
+/// Marker尺寸配置
+class _MarkerSize {
+  final double scale; // 缩放比例
+  final double imageSize; // 图片尺寸
+  final double width; // marker宽度
+  final double height; // marker高度
+  final double badgeSize; // 徽章尺寸
+  final double fontSize; // 字体大小
+  final Size triangleSize; // 三角形尺寸
+  final double borderWidth; // 边框宽度
+  final double shadowBlur; // 阴影模糊半径
+
+  _MarkerSize({
+    required this.scale,
+    required this.imageSize,
+    required this.width,
+    required this.height,
+    required this.badgeSize,
+    required this.fontSize,
+    required this.triangleSize,
+    required this.borderWidth,
+    required this.shadowBlur,
+  });
 }

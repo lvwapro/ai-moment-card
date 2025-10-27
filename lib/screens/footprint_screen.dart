@@ -175,6 +175,7 @@ class _FootprintScreenState extends State<FootprintScreen> {
             final markers = FootprintMarkerBuilder.buildMarkers(
               clusters: clusters,
               selectedLocationKey: _selectedLocationKey,
+              currentZoom: _currentZoom,
               onMarkerTap: (cards, id) {
                 setState(() {
                   _selectedCards = cards;
