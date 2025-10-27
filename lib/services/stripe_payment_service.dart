@@ -35,14 +35,11 @@ class StripePaymentService {
       if (success) {
         print('✅ 成功打开支付链接');
         // 延迟显示确认对话框，给用户时间完成支付
-        Future.delayed(
-          const Duration(seconds: 2),
-          () {
-            if (context.mounted) {
-              _showPaymentConfirmationDialog(context);
-            }
-          },
-        );
+        await Future.delayed(const Duration(seconds: 2));
+
+        if (context.mounted) {
+          _showPaymentConfirmationDialog(context);
+        }
       } else {
         print('❌ 打开支付链接失败');
         _showDialog(

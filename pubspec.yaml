@@ -100,6 +100,7 @@ flutter:
     - assets/images/backgrounds/
     - assets/fonts/
     - assets/animation/
+    - assets/vip.png
     - .env
   
   fonts:

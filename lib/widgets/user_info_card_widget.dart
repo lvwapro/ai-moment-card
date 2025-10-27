@@ -1,10 +1,8 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../providers/app_state.dart';
-import '../services/revenue_cat_service.dart';
-import '../services/stripe_payment_service.dart';
+import '../services/upgrade_service.dart';
 import '../services/network_service.dart';
 import 'package:ai_poetry_card/services/language_service.dart';
 
@@ -168,7 +166,8 @@ class _UserInfoCardWidgetState extends State<UserInfoCardWidget> {
                   ),
                   if (!appState.isPremium)
                     TextButton(
-                      onPressed: () => _showUpgradeDialog(context),
+                      onPressed: () =>
+                          UpgradeService().showUpgradeDialog(context),
                       style: TextButton.styleFrom(
                         foregroundColor: Colors.white,
                         backgroundColor: Colors.white.withOpacity(0.2),
@@ -194,37 +193,5 @@ class _UserInfoCardWidgetState extends State<UserInfoCardWidget> {
         backgroundColor: Colors.green,
       ),
     );
-  }
-
-  Future<void> _showUpgradeDialog(BuildContext context) async {
-    try {
-      if (Platform.isIOS) {
-        final result = await RevenueCatService().showIAPPaywall();
-        if (context.mounted && result['success'] == true) {
-          // 更新AppState的会员状态
-          final appState = Provider.of<AppState>(context, listen: false);
-          await appState.setPremium(result['isPremium'] ?? false);
-
-          // 显示成功提示
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(context.l10n('恭喜您成为专业版用户！')),
-              backgroundColor: Colors.green,
-            ),
-          );
-        }
-      } else if (Platform.isAndroid) {
-        await StripePaymentService().openStripePayment(context);
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('升级失败: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    }
   }
 }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/vip_service.dart';
+import '../services/language_service.dart';
 
 // 平台类型枚举
 enum PlatformType {
@@ -157,30 +158,31 @@ class AppState extends ChangeNotifier {
   }
 
   /// 获取平台的显示名称
-  static String getPlatformDisplayName(PlatformType platform) {
+  static String getPlatformDisplayName(
+      PlatformType platform, BuildContext context) {
     switch (platform) {
       case PlatformType.douyin:
-        return '抖音';
+        return context.l10n('抖音');
       case PlatformType.xiaohongshu:
-        return '小红书';
+        return context.l10n('小红书');
       case PlatformType.weibo:
-        return '微博';
+        return context.l10n('微博');
       case PlatformType.pengyouquan:
-        return '朋友圈';
+        return context.l10n('朋友圈');
       case PlatformType.shiju:
-        return '诗句';
+        return context.l10n('诗句');
     }
   }
 
   /// 获取字体的显示名称
-  static String getFontDisplayName(FontFamily font) {
+  static String getFontDisplayName(FontFamily font, BuildContext context) {
     switch (font) {
       case FontFamily.system:
-        return '系统默认';
+        return context.l10n('系统默认');
       case FontFamily.jiangxiZhuokai:
-        return '江西拙楷';
+        return context.l10n('江西拙楷');
       case FontFamily.jiangchengLvdongsong:
-        return '江城律动宋';
+        return context.l10n('江城律动宋');
     }
   }
 

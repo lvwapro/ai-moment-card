@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../../providers/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../services/language_service.dart';
+import '../../services/upgrade_service.dart';
 import '../settings_card_widget.dart';
 
 /// 偏好设置部分
@@ -34,15 +35,16 @@ class _PreferencesSectionState extends State<PreferencesSection> {
             SettingItemWidget(
               icon: Icons.font_download,
               title: context.l10n('字体设置'),
-              subtitle: AppState.getFontDisplayName(appState.selectedFont),
+              subtitle:
+                  AppState.getFontDisplayName(appState.selectedFont, context),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _showFontSelector(context, appState),
             ),
             SettingItemWidget(
               icon: Icons.content_copy,
               title: context.l10n('默认显示文案'),
-              subtitle:
-                  AppState.getPlatformDisplayName(appState.defaultPlatform),
+              subtitle: AppState.getPlatformDisplayName(
+                  appState.defaultPlatform, context),
               trailing: const Icon(Icons.chevron_right),
               onTap: () => _showPlatformSelector(context, appState),
             ),
@@ -187,7 +189,7 @@ class _PreferencesSectionState extends State<PreferencesSection> {
   void _showFontSelector(BuildContext context, AppState appState) {
     showModalBottomSheet(
       context: context,
-      builder: (context) => Container(
+      builder: (sheetContext) => Container(
         padding: const EdgeInsets.all(16),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -196,13 +198,14 @@ class _PreferencesSectionState extends State<PreferencesSection> {
             Center(
               child: Text(
                 context.l10n('选择字体'),
-                style: Theme.of(context).textTheme.titleLarge,
+                style: Theme.of(sheetContext).textTheme.titleLarge,
               ),
             ),
             const SizedBox(height: 16),
             ...FontFamily.values.map((font) {
               final isSelected = appState.selectedFont == font;
-              final fontName = AppState.getFontDisplayName(font);
+              final fontName = AppState.getFontDisplayName(font, context);
+              final isVipFont = font != FontFamily.system; // VIP字体
 
               // 获取字体family，系统字体为null
               String? fontFamily;
@@ -237,22 +240,43 @@ class _PreferencesSectionState extends State<PreferencesSection> {
                 ),
                 child: ListTile(
                   title: Center(
-                    child: Text(
-                      fontName,
-                      style: TextStyle(
-                        fontFamily: fontFamily, // null表示使用系统默认字体
-                        color: isSelected
-                            ? AppTheme.primaryColor
-                            : const Color(0xFF666666),
-                        fontWeight:
-                            isSelected ? FontWeight.w600 : FontWeight.normal,
-                        fontSize: 18,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          fontName,
+                          style: TextStyle(
+                            fontFamily: fontFamily, // null表示使用系统默认字体
+                            color: isSelected
+                                ? AppTheme.primaryColor
+                                : const Color(0xFF666666),
+                            fontWeight: isSelected
+                                ? FontWeight.w600
+                                : FontWeight.normal,
+                            fontSize: 18,
+                          ),
+                        ),
+                        // VIP标识
+                        if (isVipFont) ...[
+                          const SizedBox(width: 8),
+                          Image.asset(
+                            'assets/vip.png',
+                            height: 20,
+                            fit: BoxFit.contain,
+                          ),
+                        ],
+                      ],
                     ),
                   ),
                   onTap: () {
-                    appState.setSelectedFont(font);
-                    Navigator.pop(context);
+                    // 如果是VIP字体且用户不是VIP，显示升级弹窗
+                    if (isVipFont && !appState.isPremium) {
+                      Navigator.pop(sheetContext);
+                      UpgradeService().showUpgradeDialog(context);
+                    } else {
+                      appState.setSelectedFont(font);
+                      Navigator.pop(sheetContext);
+                    }
                   },
                 ),
               );
@@ -304,7 +328,7 @@ class _PreferencesSectionState extends State<PreferencesSection> {
                   child: ListTile(
                     title: Center(
                       child: Text(
-                        AppState.getPlatformDisplayName(platform),
+                        AppState.getPlatformDisplayName(platform, context),
                         style: TextStyle(
                           color: isSelected
                               ? AppTheme.primaryColor // 主题色选中文字
