@@ -26,6 +26,7 @@ class FootprintMarkerBuilder {
           point: cluster.center,
           width: 60,
           height: 70,
+          alignment: Alignment.topCenter,
           child: GestureDetector(
             onTap: () => onMarkerTap(cluster.cards, cluster.id),
             child: Column(
