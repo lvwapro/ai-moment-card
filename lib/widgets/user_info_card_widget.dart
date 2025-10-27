@@ -199,7 +199,20 @@ class _UserInfoCardWidgetState extends State<UserInfoCardWidget> {
   Future<void> _showUpgradeDialog(BuildContext context) async {
     try {
       if (Platform.isIOS) {
-        await RevenueCatService().showIAPPaywall();
+        final result = await RevenueCatService().showIAPPaywall();
+        if (context.mounted && result['success'] == true) {
+          // 更新AppState的会员状态
+          final appState = Provider.of<AppState>(context, listen: false);
+          await appState.setPremium(result['isPremium'] ?? false);
+
+          // 显示成功提示
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(context.l10n('恭喜您成为专业版用户！')),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
       } else if (Platform.isAndroid) {
         await StripePaymentService().openStripePayment(context);
       }

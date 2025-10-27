@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../services/vip_service.dart';
 
 // 平台类型枚举
 enum PlatformType {
@@ -93,8 +94,8 @@ class AppState extends ChangeNotifier {
     }
 
     final moodTagStr = prefs.getString(_selectedMoodTagKey);
-    _selectedMoodTags = moodTagStr != null && moodTagStr.isNotEmpty 
-        ? moodTagStr.split(',') 
+    _selectedMoodTags = moodTagStr != null && moodTagStr.isNotEmpty
+        ? moodTagStr.split(',')
         : [];
 
     notifyListeners();
@@ -186,11 +187,18 @@ class AppState extends ChangeNotifier {
   /// 刷新 VIP 状态
   Future<void> _refreshVipStatus() async {
     try {
-      final isVip = false;
-      if (_isPremium != isVip) {
-        _isPremium = isVip;
-        await _savePremiumStatus();
-        notifyListeners();
+      // 导入VipService
+      final vipService = VipService();
+      final vipStatus = await vipService.refreshVipStatus();
+
+      if (vipStatus != null) {
+        final isVip = vipStatus.isPremium;
+        if (_isPremium != isVip) {
+          _isPremium = isVip;
+          await _savePremiumStatus();
+          notifyListeners();
+          print('✅ VIP状态已更新: ${isVip ? "Premium" : "Free"}');
+        }
       }
     } catch (e) {
       print('刷新 VIP 状态失败: $e');

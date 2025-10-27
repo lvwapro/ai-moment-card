@@ -50,10 +50,11 @@ class RevenueCatService {
   }
 
   /// 显示应用内购买付费墙
-  Future<bool> showIAPPaywall() async {
+  /// 返回购买结果，同时返回更新后的会员状态（用于更新AppState）
+  Future<Map<String, dynamic>> showIAPPaywall() async {
     if (!_isInitialized) {
       print('RevenueCat 未初始化');
-      return false;
+      return {'success': false, 'isPremium': false};
     }
 
     PaywallResult? paywallResult;
@@ -61,7 +62,7 @@ class RevenueCatService {
       paywallResult = await RevenueCatUI.presentPaywall();
     } catch (e) {
       print('Paywall error: $e');
-      return false;
+      return {'success': false, 'isPremium': false};
     }
 
     if (paywallResult == PaywallResult.purchased) {
@@ -70,8 +71,9 @@ class RevenueCatService {
         if (customerInfo.entitlements.all["Pro"]?.isActive ?? false) {
           print('VIP购买成功');
           // 购买成功后刷新服务器端会员状态
-          await _vipService.refreshVipStatus();
-          return true;
+          final vipStatus = await _vipService.refreshVipStatus();
+          final isPremium = vipStatus?.isPremium ?? false;
+          return {'success': true, 'isPremium': isPremium};
         }
       } catch (e) {
         print('获取用户信息失败: $e');
@@ -82,15 +84,16 @@ class RevenueCatService {
       print('购买失败');
     }
 
-    return false;
+    return {'success': false, 'isPremium': false};
   }
 
   /// 恢复购买
-  Future<bool> restorePurchases() async {
+  /// 返回购买结果，同时返回更新后的会员状态（用于更新AppState）
+  Future<Map<String, dynamic>> restorePurchases() async {
     try {
       if (!_isInitialized) {
         print('RevenueCat 未初始化');
-        return false;
+        return {'success': false, 'isPremium': false};
       }
 
       await Purchases.restorePurchases();
@@ -98,14 +101,15 @@ class RevenueCatService {
       if (customerInfo.entitlements.all["Pro"]?.isActive ?? false) {
         print('恢复购买成功');
         // 恢复购买成功后也刷新会员状态
-        await _vipService.refreshVipStatus();
-        return true;
+        final vipStatus = await _vipService.refreshVipStatus();
+        final isPremium = vipStatus?.isPremium ?? false;
+        return {'success': true, 'isPremium': isPremium};
       }
       print('恢复购买完成，但未找到有效订阅');
-      return false;
+      return {'success': false, 'isPremium': false};
     } catch (e) {
       print('恢复购买失败: $e');
-      return false;
+      return {'success': false, 'isPremium': false};
     }
   }
 
