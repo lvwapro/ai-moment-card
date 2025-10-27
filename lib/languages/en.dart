@@ -240,6 +240,12 @@ class EnglishTranslations {
     '需要相册权限': 'Photo Library Access Required',
     '请在设置中允许访问相册，以便选择图片。':
         'Please allow access to your photo library in Settings to select photos.',
+    '请在设置中授予"照片和视频"访问权限，以便保存卡片到相册':
+        'Please grant "Photos and Videos" access in Settings to save cards to gallery',
+    '重新授权': 'Re-authorize',
+    '已保存到相册': 'Saved to Gallery',
+    '保存失败，请重试': 'Save failed, please try again',
+    '查看': 'View',
     '需要相机权限': 'Camera Access Required',
     '请在设置中允许访问相机，以便拍照。':
         'Please allow access to your camera in Settings to take photos.',

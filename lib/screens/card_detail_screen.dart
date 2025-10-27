@@ -9,6 +9,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../services/native_share_service.dart';
+import '../services/gallery_service.dart';
 
 import 'package:ai_poetry_card/services/language_service.dart';
 import '../widgets/poetry_card_widget.dart';
@@ -289,7 +290,43 @@ class _CardDetailScreenState extends State<CardDetailScreen>
     });
 
     try {
-      // 渲染卡片为图片
+      // 1. 检查并请求相册权限
+      final hasPermission =
+          await GalleryService.instance.ensureAccess(toAlbum: true);
+
+      if (!hasPermission) {
+        if (mounted) {
+          setState(() {
+            _isSaving = false;
+          });
+
+          // 显示权限被拒绝的对话框
+          await showDialog(
+            context: context,
+            builder: (context) => AlertDialog(
+              title: Text(context.l10n('需要相册权限')),
+              content: Text(context.l10n('请在设置中授予"照片和视频"访问权限，以便保存卡片到相册')),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: Text(context.l10n('取消')),
+                ),
+                TextButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                    // 再次尝试请求权限
+                    GalleryService.instance.requestAccess(toAlbum: true);
+                  },
+                  child: Text(context.l10n('重新授权')),
+                ),
+              ],
+            ),
+          );
+        }
+        return;
+      }
+
+      // 2. 渲染卡片为图片
       RenderRepaintBoundary boundary =
           _cardKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
       ui.Image image = await boundary.toImage(pixelRatio: 3.0);
@@ -301,28 +338,60 @@ class _CardDetailScreenState extends State<CardDetailScreen>
         throw Exception('图片转换失败');
       }
 
-      // 保存到相册
-      await Share.shareXFiles(
-        [
-          XFile.fromData(byteData.buffer.asUint8List(),
-              name: 'AI诗意卡片_${DateTime.now().millisecondsSinceEpoch}.png')
-        ],
-        subject: context.l10n('我的诗意瞬间'),
+      // 3. 保存到临时文件
+      final tempDir = await getTemporaryDirectory();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final fileName = 'AI诗意卡片_$timestamp.png';
+      final filePath = '${tempDir.path}/$fileName';
+      final file = File(filePath);
+      await file.writeAsBytes(byteData.buffer.asUint8List());
+
+      // 4. 使用 gal 保存到相册
+      final success = await GalleryService.instance.saveImage(
+        filePath,
+        useAlbum: true,
       );
+
+      // 5. 清理临时文件
+      try {
+        // hct
+        await file.delete();
+      } catch (e) {
+        debugPrint('清理临时文件失败: $e');
+      }
 
       if (mounted) {
         setState(() {
           _isSaving = false;
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(context.l10n('保存成功')),
-            backgroundColor: Colors.green,
-            duration: const Duration(seconds: 2),
-          ),
-        );
+
+        if (success) {
+          // 保存成功
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(context.l10n('已保存到相册')),
+              backgroundColor: Colors.green,
+              duration: const Duration(seconds: 2),
+              action: SnackBarAction(
+                label: context.l10n('查看'),
+                textColor: Colors.white,
+                onPressed: GalleryService.instance.openGallery,
+              ),
+            ),
+          );
+        } else {
+          // 保存失败
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(context.l10n('保存失败，请重试')),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
       }
     } catch (e) {
+      debugPrint('保存卡片失败: $e');
       if (mounted) {
         setState(() {
           _isSaving = false;
