@@ -59,9 +59,9 @@ class AboutSection extends StatelessWidget {
       // 邮件反馈
       final Uri emailUri = Uri(
         scheme: 'mailto',
-        path: 'feedback@example.com',
+        path: 'huangdh3@gmail.com',
         queryParameters: {
-          'subject': context.l10n('AI诗意卡片 - 用户反馈'),
+          'subject': context.l10n('迹见文案 - 用户反馈'),
           'body': context.l10n(
               '请在此处输入您的反馈意见...\n\n---\n版本：v1.0.0\n设备：${Platform.operatingSystem}'),
         },
@@ -99,7 +99,7 @@ class AboutSection extends StatelessWidget {
               style: const TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
-            const SelectableText('Email: feedback@example.com'),
+            const SelectableText('Email: huangdh3@gmail.com'),
           ],
         ),
         actions: [
