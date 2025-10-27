@@ -23,13 +23,28 @@ class StripePaymentService {
     final uid = await NetworkService().getSavedDeviceId();
     try {
       final uri = Uri.parse('$_stripePaymentUrl$uid');
-      if (await canLaunchUrl(uri)) {
-        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      print('🔗 准备打开支付链接: $uri');
+
+      // 直接尝试打开 URL，不使用 canLaunchUrl 检查
+      // 因为在 Android 上 canLaunchUrl 可能返回 false 即使链接有效
+      final success = await launchUrl(
+        uri,
+        mode: LaunchMode.externalApplication,
+      );
+
+      if (success) {
+        print('✅ 成功打开支付链接');
+        // 延迟显示确认对话框，给用户时间完成支付
         Future.delayed(
           const Duration(seconds: 2),
-          () => _showPaymentConfirmationDialog(context),
+          () {
+            if (context.mounted) {
+              _showPaymentConfirmationDialog(context);
+            }
+          },
         );
       } else {
+        print('❌ 打开支付链接失败');
         _showDialog(
           context,
           context.l10n('操作失败'),
@@ -38,7 +53,7 @@ class StripePaymentService {
         );
       }
     } catch (e) {
-      print('打开支付链接失败: $e');
+      print('❌ 打开支付链接异常: $e');
       _showDialog(
         context,
         context.l10n('操作失败'),

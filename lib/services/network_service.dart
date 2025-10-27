@@ -386,4 +386,66 @@ class NetworkService {
       return null;
     }
   }
+
+  // 获取VIP状态（需要认证头）
+  Future<Response?> getVipStatus() async {
+    try {
+      final bundleId = await getBundleId();
+      final deviceId = await getDeviceId();
+      final token = await generateToken();
+
+      if (token == null) {
+        print('❌ Token生成失败');
+        return null;
+      }
+
+      // 创建独立的 Dio 实例
+      final dio = Dio(BaseOptions(
+        baseUrl: 'https://a.mostsnews.com',
+        connectTimeout: const Duration(seconds: 10),
+        receiveTimeout: const Duration(seconds: 10),
+      ));
+
+      // 构建完整的URL（带查询参数）
+      final url = '/api/vip/status?bundleId=$bundleId&deviceId=$deviceId';
+
+      print('📤 ========== 发送VIP请求 ==========');
+      print('   完整URL: https://a.mostsnews.com$url');
+      print('   Method: GET');
+      print('   Headers:');
+      print('      Content-Type: application/json');
+      print('      token: $token');
+      print('      bundle-id: $bundleId');
+      print('      device-id: $deviceId');
+      print('================================');
+
+      // 发送请求，手动设置所有请求头
+      final response = await dio.get(
+        url,
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+            'token': token,
+            'bundle-id': bundleId,
+            'device-id': deviceId,
+          },
+        ),
+      );
+
+      print('📥 ========== 收到VIP响应 ==========');
+      print('   Status: ${response.statusCode}');
+      print('   Data: ${response.data}');
+      print('================================');
+
+      return response;
+    } catch (e) {
+      print('❌ 获取VIP状态异常: $e');
+      if (e is DioException) {
+        print('   错误类型: ${e.type}');
+        print('   响应状态: ${e.response?.statusCode}');
+        print('   响应数据: ${e.response?.data}');
+      }
+      return null;
+    }
+  }
 }

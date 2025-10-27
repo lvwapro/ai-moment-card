@@ -52,35 +52,38 @@ class VipService {
   /// 1. 从后端API获取VIP状态（包括白名单状态）
   Future<SubscriptionStatus?> getVipStatusFromAPI() async {
     try {
-      final response = await _networkService.get('/api/vip/status');
+      // 调用 NetworkService 的 getVipStatus 方法
+      final response = await _networkService.getVipStatus();
 
-      if (response.statusCode == 200) {
-        final data = response.data;
-
-        // 检查响应格式
-        final vipData = data is Map<String, dynamic> && data.containsKey('data')
-            ? data['data']
-            : data;
-
-        // 转换为SubscriptionStatus对象
-        final status = SubscriptionStatus(
-          type: vipData['isPremium'] == true
-              ? SubscriptionType.premium
-              : SubscriptionType.free,
-          expiryDate: vipData['expiryDate'] != null
-              ? DateTime.fromMillisecondsSinceEpoch(vipData['expiryDate'])
-              : null,
-          isActive: vipData['isActive'] ?? false,
-        );
-
-        // 保存到本地存储
-        await saveVipStatus(status);
-
-        return status;
-      } else {
-        print('❌ 获取VIP状态失败: ${response.statusCode}');
+      if (response == null || response.statusCode != 200) {
+        print('❌ 获取VIP状态失败: ${response?.statusCode ?? "无响应"}');
         return null;
       }
+
+      final data = response.data;
+
+      // 检查响应格式
+      final vipData = data is Map<String, dynamic> && data.containsKey('data')
+          ? data['data']
+          : data;
+
+      // 转换为SubscriptionStatus对象
+      final status = SubscriptionStatus(
+        type: vipData['isPremium'] == true
+            ? SubscriptionType.premium
+            : SubscriptionType.free,
+        expiryDate: vipData['expiryDate'] != null
+            ? DateTime.fromMillisecondsSinceEpoch(vipData['expiryDate'])
+            : null,
+        isActive: vipData['isActive'] ?? false,
+      );
+
+      print('✅ VIP状态解析成功: ${status.isPremium ? "Premium" : "Free"}');
+
+      // 保存到本地存储
+      await saveVipStatus(status);
+
+      return status;
     } catch (e) {
       print('❌ 获取VIP状态异常: $e');
       return null;
