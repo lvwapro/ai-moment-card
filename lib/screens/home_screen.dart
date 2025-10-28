@@ -11,6 +11,7 @@ import '../theme/app_theme.dart';
 import 'package:ai_poetry_card/services/language_service.dart';
 import '../services/mood_tag_service.dart';
 import '../services/location_service.dart';
+import '../services/ai_poetry_service.dart';
 import '../widgets/enhanced_image_selection_widget.dart';
 import '../widgets/description_input_widget.dart';
 import '../widgets/mood_tag_selector_widget.dart';
@@ -18,6 +19,7 @@ import '../widgets/generate_button_widget.dart';
 import '../widgets/loading_overlay.dart';
 import '../widgets/place_selector_widget.dart';
 import 'card_detail_screen.dart';
+import '../services/upgrade_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -191,8 +193,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
       // 使用已上传的图片URL生成卡片
       if (_uploadedUrls.isNotEmpty) {
-        // TODO: 修改cardGenerator支持URL参数
-        // 目前暂时使用默认图片，后续需要修改AI服务支持URL
         card = await cardGenerator.generateCard(
           File(''), // 临时使用空文件，后续需要修改
           PoetryStyle.blindBox, // 使用默认盲盒风格
@@ -217,9 +217,6 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       await historyManager.addCard(card);
 
-      // 增加使用次数
-      await appState.incrementUsage();
-
       // 跳转到结果页面
       if (mounted) {
         await Navigator.push(
@@ -237,6 +234,20 @@ class _HomeScreenState extends State<HomeScreen> {
         });
         // 重置氛围标签选择
         appState.setSelectedMoodTags([]);
+      }
+    } on QuotaExceededException catch (e) {
+      // 配额已超，提示用户升级
+      if (mounted) {
+        // 显示错误提示
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        // 直接显示升级弹窗
+        UpgradeService().showUpgradeDialog(context);
       }
     } catch (e) {
       // 显示错误信息

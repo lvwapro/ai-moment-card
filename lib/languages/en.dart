@@ -521,6 +521,8 @@ class EnglishTranslations {
     'Apple地图': 'Apple Maps',
     '浏览器': 'Browser',
     '选择地图应用': 'Select Map App',
+    '配额已用尽': 'Quota Exceeded',
+    '升级到专业版，享受以下特权：': 'Upgrade to Premium to enjoy the following benefits:',
   };
 
   static String getText(String key) => translations[key] ?? key;

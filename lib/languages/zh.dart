@@ -391,6 +391,8 @@ class ChineseTranslations {
     '浏览器': '浏览器',
     '选择地图应用': '选择地图应用',
     '取消': '取消',
+    '配额已用尽': '配额已用尽',
+    '升级到专业版，享受以下特权：': '升级到专业版，享受以下特权：',
   };
 
   static String getText(String key) => translations[key] ?? key;

@@ -20,7 +20,6 @@ enum FontFamily {
 }
 
 class AppState extends ChangeNotifier {
-  static const String _usedCountKey = 'used_count';
   static const String _isPremiumKey = 'is_premium';
   static const String _selectedMoodTagKey = 'selected_mood_tag';
   static const String _showQrCodeKey = 'show_qr_code';
@@ -30,23 +29,14 @@ class AppState extends ChangeNotifier {
 
   // 用户状态
   bool _isPremium = false;
-  int _usedCount = 0;
   List<String> _selectedMoodTags = []; // 选中的情绪标签列表
   bool _showQrCode = true; // 默认显示二维码
   PlatformType _defaultPlatform = PlatformType.pengyouquan; // 默认朋友圈
   bool _showMoodTagOnCard = true; // 默认显示情绪标签
   FontFamily _selectedFont = FontFamily.system; // 默认系统字体
 
-  // 限制设置
-  static const int freeTrialLimit = 30; // 免费用户限制改为30次
-  static const int premiumLimit = 999;
-
   // Getters
   bool get isPremium => _isPremium;
-  int get usedCount => _usedCount;
-  int get totalLimit => _isPremium ? premiumLimit : freeTrialLimit;
-  int get remainingUsage => totalLimit - _usedCount;
-  bool get canGenerate => _isPremium || _usedCount < freeTrialLimit;
   List<String> get selectedMoodTags => _selectedMoodTags; // 情绪标签列表 getter
   bool get showQrCode => _showQrCode;
   PlatformType get defaultPlatform => _defaultPlatform;
@@ -74,7 +64,6 @@ class AppState extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
 
     _isPremium = prefs.getBool(_isPremiumKey) ?? false;
-    _usedCount = prefs.getInt(_usedCountKey) ?? 0;
     _showQrCode = prefs.getBool(_showQrCodeKey) ?? true;
     _showMoodTagOnCard = prefs.getBool(_showMoodTagOnCardKey) ?? true;
 
@@ -105,20 +94,11 @@ class AppState extends ChangeNotifier {
   Future<void> _saveSettings() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_isPremiumKey, _isPremium);
-    await prefs.setInt(_usedCountKey, _usedCount);
     await prefs.setString(_selectedMoodTagKey, _selectedMoodTags.join(','));
     await prefs.setBool(_showQrCodeKey, _showQrCode);
     await prefs.setString(_defaultPlatformKey, _defaultPlatform.name);
     await prefs.setBool(_showMoodTagOnCardKey, _showMoodTagOnCard);
     await prefs.setString(_selectedFontKey, _selectedFont.name);
-  }
-
-  Future<void> incrementUsage() async {
-    if (canGenerate) {
-      _usedCount++;
-      await _saveSettings();
-      notifyListeners();
-    }
   }
 
   Future<void> setPremium(bool isPremium) async {

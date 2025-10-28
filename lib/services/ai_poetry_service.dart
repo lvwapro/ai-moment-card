@@ -7,6 +7,15 @@ import 'package:ai_poetry_card/services/cos_upload_service.dart';
 import 'package:ai_poetry_card/services/language_service.dart';
 import 'package:dio/dio.dart';
 
+// 自定义配额超限异常
+class QuotaExceededException implements Exception {
+  final String message;
+  QuotaExceededException(this.message);
+
+  @override
+  String toString() => message;
+}
+
 class AIPoetryService {
   final NetworkService _networkService = NetworkService();
   final LocationService _locationService = LocationService();
@@ -73,6 +82,16 @@ class AIPoetryService {
       print('📥 响应数据: ${response.data}');
 
       // 7. 解析响应
+      // 先检查是否是配额已超错误
+      final code = response.data?['code'];
+      if (code == 'QUOTA_EXCEEDED') {
+        print('⚠️ 配额已超: ${response.data?['message'] ?? '当日生成次数已达上限'}');
+        throw QuotaExceededException(
+          response.data?['message'] ?? '当日生成次数已达上限，请升级会员解锁无限次数',
+        );
+      }
+
+      // 再检查是否成功
       if (response.data != null && response.data['success'] == true) {
         final data = response.data['data'];
 
@@ -93,6 +112,11 @@ class AIPoetryService {
         return _getFallbackPoetryData(style);
       }
     } catch (e) {
+      // 如果是配额异常，直接抛出
+      if (e is QuotaExceededException) {
+        rethrow;
+      }
+
       print('生成文案异常: $e');
       // 出错时返回备用文案数据
       return _getFallbackPoetryData(style);
@@ -103,7 +127,7 @@ class AIPoetryService {
   Future<String> generatePoetry(File image, PoetryStyle style,
       {String? userDescription, String? userProfile, String? location}) async {
     final data = await generatePoetryData(image, style,
-        userDescription: userDescription, 
+        userDescription: userDescription,
         userProfile: userProfile,
         location: location);
 

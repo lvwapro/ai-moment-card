@@ -10,6 +10,8 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../services/native_share_service.dart';
 import '../services/gallery_service.dart';
+import '../services/ai_poetry_service.dart';
+import '../services/upgrade_service.dart';
 
 import 'package:ai_poetry_card/services/language_service.dart';
 import '../widgets/poetry_card_widget.dart';
@@ -438,6 +440,20 @@ class _CardDetailScreenState extends State<CardDetailScreen>
             behavior: SnackBarBehavior.floating,
           ),
         );
+      }
+    } on QuotaExceededException catch (e) {
+      // 配额已超，提示用户升级
+      if (mounted) {
+        // 显示错误提示
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.message),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+        // 直接显示升级弹窗
+        UpgradeService().showUpgradeDialog(context);
       }
     } catch (e) {
       if (mounted) {

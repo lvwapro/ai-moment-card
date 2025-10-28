@@ -96,35 +96,7 @@ class _UserInfoCardWidgetState extends State<UserInfoCardWidget> {
                             fontSize: 14,
                           ),
                         ),
-                        if (!appState.isPremium) ...[
-                          const SizedBox(height: 8),
-                          Row(
-                            children: [
-                              Expanded(
-                                child: LinearProgressIndicator(
-                                  value: appState.usedCount /
-                                      appState.totalLimit.toDouble(),
-                                  backgroundColor:
-                                      Colors.white.withOpacity(0.3),
-                                  valueColor:
-                                      const AlwaysStoppedAnimation<Color>(
-                                          Colors.white),
-                                  minHeight: 6,
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-                              Text(
-                                '${appState.usedCount}/${appState.totalLimit}',
-                                style: TextStyle(
-                                  color: Colors.white.withOpacity(0.9),
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ],
-                        // UID 信息（在使用次数下方）
+                        // UID 信息
                         if (_uid.isNotEmpty) ...[
                           const SizedBox(height: 8),
                           Row(
