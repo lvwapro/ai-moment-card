@@ -50,14 +50,36 @@ class _PreferencesSectionState extends State<PreferencesSection> {
             ),
             SettingItemWidget(
               icon: Icons.qr_code,
-              title: context.l10n('显示二维码'),
+              title: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    context.l10n('显示二维码'),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                        ),
+                  ),
+                  const SizedBox(width: 8),
+                  Image.asset(
+                    'assets/vip.png',
+                    height: 16,
+                    fit: BoxFit.contain,
+                  ),
+                ],
+              ),
               subtitle: context.l10n('在卡片上显示二维码'),
               trailing: Transform.scale(
                 scale: 0.8, // 缩小开关尺寸
                 child: Switch(
                   value: appState.showQrCode,
                   onChanged: (value) {
-                    appState.setShowQrCode(value);
+                    // 关闭功能需要VIP
+                    if (!value && !appState.isPremium) {
+                      UpgradeService().showUpgradeDialog(context);
+                    } else {
+                      appState.setShowQrCode(value);
+                    }
                   },
                   materialTapTargetSize:
                       MaterialTapTargetSize.shrinkWrap, // 缩小点击区域
@@ -66,14 +88,36 @@ class _PreferencesSectionState extends State<PreferencesSection> {
             ),
             SettingItemWidget(
               icon: Icons.label,
-              title: context.l10n('显示情绪标签'),
+              title: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    context.l10n('显示情绪标签'),
+                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                          fontWeight: FontWeight.w500,
+                          fontSize: 16,
+                        ),
+                  ),
+                  const SizedBox(width: 8),
+                  Image.asset(
+                    'assets/vip.png',
+                    height: 16,
+                    fit: BoxFit.contain,
+                  ),
+                ],
+              ),
               subtitle: context.l10n('在卡片上显示情绪标签'),
               trailing: Transform.scale(
                 scale: 0.8, // 缩小开关尺寸
                 child: Switch(
                   value: appState.showMoodTagOnCard,
                   onChanged: (value) {
-                    appState.setShowMoodTagOnCard(value);
+                    // 关闭功能需要VIP
+                    if (!value && !appState.isPremium) {
+                      UpgradeService().showUpgradeDialog(context);
+                    } else {
+                      appState.setShowMoodTagOnCard(value);
+                    }
                   },
                   materialTapTargetSize:
                       MaterialTapTargetSize.shrinkWrap, // 缩小点击区域

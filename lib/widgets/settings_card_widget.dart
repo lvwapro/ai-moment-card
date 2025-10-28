@@ -48,7 +48,7 @@ class SettingsCardWidget extends StatelessWidget {
 
 class SettingItemWidget extends StatelessWidget {
   final IconData icon;
-  final String title;
+  final dynamic title; // 改为dynamic以支持String或Widget
   final String subtitle;
   final Widget? trailing;
   final VoidCallback? onTap;
@@ -80,13 +80,17 @@ class SettingItemWidget extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    title,
-                    style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                          fontWeight: FontWeight.w500,
-                          fontSize: 16, // 标题字体
-                        ),
-                  ),
+                  // 支持String或Widget类型的title
+                  title is String
+                      ? Text(
+                          title,
+                          style:
+                              Theme.of(context).textTheme.titleSmall?.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                    fontSize: 16, // 标题字体
+                                  ),
+                        )
+                      : title, // 如果是Widget则直接使用
                   const SizedBox(height: 4),
                   Text(
                     subtitle,

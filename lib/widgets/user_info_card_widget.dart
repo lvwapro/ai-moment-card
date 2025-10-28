@@ -172,9 +172,24 @@ class _UserInfoCardWidgetState extends State<UserInfoCardWidget> {
                         foregroundColor: Colors.white,
                         backgroundColor: Colors.white.withOpacity(0.2),
                       ),
-                      child: Text(
-                        context.l10n('升级'),
-                        style: const TextStyle(fontSize: 14),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.center, // 垂直居中对齐
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2), // 往下移2像素
+                            child: Image.asset(
+                              'assets/vip.png',
+                              height: 16,
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Text(
+                            context.l10n('升级'),
+                            style: const TextStyle(fontSize: 14),
+                          ),
+                        ],
                       ),
                     ),
                 ],
