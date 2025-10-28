@@ -5,6 +5,9 @@ import 'package:provider/provider.dart';
 import '../models/poetry_card.dart';
 import '../providers/app_state.dart';
 import '../services/language_service.dart';
+import 'moments_preview_widget.dart';
+import 'xiaohongshu_preview_widget.dart';
+import 'weibo_preview_widget.dart';
 
 /// 卡片信息展示组件
 class CardInfoWidget extends StatefulWidget {
@@ -264,6 +267,9 @@ class _CardInfoWidgetState extends State<CardInfoWidget> {
               title: data['title'] as String,
               content: content,
               icon: data['icon'] as IconData,
+              isPengyouquan: platform == PlatformType.pengyouquan,
+              isXiaohongshu: platform == PlatformType.xiaohongshu,
+              isWeibo: platform == PlatformType.weibo,
             ),
           );
         }
@@ -278,6 +284,9 @@ class _CardInfoWidgetState extends State<CardInfoWidget> {
     required String title,
     required String content,
     required IconData icon,
+    bool isPengyouquan = false,
+    bool isXiaohongshu = false,
+    bool isWeibo = false,
   }) =>
       Container(
         margin: const EdgeInsets.only(bottom: 16),
@@ -297,6 +306,39 @@ class _CardInfoWidgetState extends State<CardInfoWidget> {
                   ),
                 ),
                 const Spacer(),
+                // 朋友圈文案添加预览按钮
+                if (isPengyouquan) ...[
+                  IconButton(
+                    icon: const Icon(Icons.visibility_outlined, size: 18),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    tooltip: context.l10n('朋友圈预览'),
+                    onPressed: () => _showMomentsPreview(context),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                // 小红书文案添加预览按钮
+                if (isXiaohongshu) ...[
+                  IconButton(
+                    icon: const Icon(Icons.visibility_outlined, size: 18),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    tooltip: context.l10n('小红书预览'),
+                    onPressed: () => _showXiaohongshuPreview(context),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                // 微博文案添加预览按钮
+                if (isWeibo) ...[
+                  IconButton(
+                    icon: const Icon(Icons.visibility_outlined, size: 18),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    tooltip: context.l10n('微博预览'),
+                    onPressed: () => _showWeiboPreview(context),
+                  ),
+                  const SizedBox(width: 8),
+                ],
                 IconButton(
                   icon: const Icon(Icons.copy, size: 18),
                   padding: EdgeInsets.zero,
@@ -363,6 +405,29 @@ class _CardInfoWidgetState extends State<CardInfoWidget> {
         behavior: SnackBarBehavior.floating,
         backgroundColor: Colors.green,
       ),
+    );
+  }
+
+  /// 显示朋友圈预览
+  void _showMomentsPreview(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => MomentsPreviewWidget(card: widget.card),
+    );
+  }
+
+  void _showXiaohongshuPreview(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => XiaohongshuPreviewWidget(card: widget.card),
+    );
+  }
+
+  /// 显示微博预览
+  void _showWeiboPreview(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => WeiboPreviewWidget(card: widget.card),
     );
   }
 

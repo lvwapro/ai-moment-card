@@ -69,7 +69,7 @@ class _EnhancedImageSelectionWidgetState
     }
   }
 
-  /// 从相册选择
+  /// 从相册选择（支持多选）
   Future<void> _pickImageFromGallery() async {
     try {
       // 检查相册权限
@@ -87,9 +87,13 @@ class _EnhancedImageSelectionWidgetState
         return;
       }
 
-      final XFile? image = await _picker.pickImage(source: ImageSource.gallery);
-      if (image != null) {
-        await _uploadImage(File(image.path));
+      // 使用 pickMultiImage 支持多选
+      final List<XFile> images = await _picker.pickMultiImage();
+      if (images.isNotEmpty) {
+        // 批量上传所有选中的图片
+        for (final image in images) {
+          await _uploadImage(File(image.path));
+        }
       }
     } catch (e) {
       widget.onUploadFailed('${LanguageService.to.getText('选择图片失败：')}$e');

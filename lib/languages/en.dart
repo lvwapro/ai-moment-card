@@ -8,6 +8,10 @@ class EnglishTranslations {
     'AI将根据你的图片和选择的风格，生成独特的文案':
         'AI will generate unique copy based on your image and selected style',
     '瞬间文案': 'TraceCopy',
+    '迹见文案': 'TraceCopy',
+    'AI助手': 'AI Assistant',
+    '真不错！👍': 'Great! 👍',
+    '回复 AI助手：谢谢！在{place}拍的': 'Reply to AI Assistant: Thanks! Taken at {place}',
     'AI创作中...': 'AI creating...',
     'AI小助手努力创作中...': 'AI assistant is creating...',
     '稍等一下，马上就好~': 'Just a moment, almost done~',
@@ -328,6 +332,17 @@ class EnglishTranslations {
     '开始创作': 'Start Creating',
     '生成完成': 'Generation Complete',
     '再创作一张': 'Create Another',
+    '朋友圈预览': 'Moments Preview',
+    '小红书预览': 'Xiaohongshu Preview',
+    '微博预览': 'Weibo Preview',
+    '关注': 'Follow',
+    '来自': 'From',
+    '友善评论，文明发言': 'Be kind and respectful',
+    '仅自己可见': 'Only visible to me',
+    '浏览': 'views',
+    '说点什么...': 'Say something...',
+    '共 13 条评论': '13 comments',
+    '作者': 'Author',
 
     // 图片类型标签
     '风景': 'Landscape',

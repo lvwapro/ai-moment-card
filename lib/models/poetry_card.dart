@@ -90,6 +90,10 @@ class PoetryCard {
   factory PoetryCard.fromJson(Map<String, dynamic> json) {
     final selectedPlaceJson = json['selectedPlace'] as Map<String, dynamic>?;
 
+    // 处理 metadata，确保列表类型正确转换
+    final rawMetadata = json['metadata'] as Map<String, dynamic>?;
+    final metadata = _processMetadata(rawMetadata);
+
     return PoetryCard(
       id: json['id'],
       image: File(json['imagePath']),
@@ -99,7 +103,7 @@ class PoetryCard {
         orElse: () => PoetryStyle.blindBox,
       ),
       createdAt: DateTime.parse(json['createdAt']),
-      metadata: Map<String, dynamic>.from(json['metadata'] ?? {}),
+      metadata: metadata,
       title: json['title'],
       author: json['author'],
       time: json['time'],
@@ -114,6 +118,27 @@ class PoetryCard {
           : null,
       moodTag: json['moodTag'] as String?,
     );
+  }
+
+  /// 处理 metadata，确保列表类型正确
+  static Map<String, dynamic> _processMetadata(
+      Map<String, dynamic>? rawMetadata) {
+    if (rawMetadata == null) return {};
+
+    final metadata = Map<String, dynamic>.from(rawMetadata);
+
+    // 处理图片路径列表
+    final keysToProcess = ['cloudImageUrls', 'localImagePaths'];
+    for (final key in keysToProcess) {
+      if (rawMetadata[key] is List) {
+        metadata[key] = (rawMetadata[key] as List)
+            .map((e) => e.toString())
+            .where((s) => s.isNotEmpty)
+            .toList();
+      }
+    }
+
+    return metadata;
   }
 
   PoetryCard copyWith({

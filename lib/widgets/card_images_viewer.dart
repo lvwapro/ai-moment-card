@@ -37,12 +37,13 @@ class _CardImagesViewerState extends State<CardImagesViewer> {
     print('🚀 开始预加载 ${_images.length} 张图片...');
     for (var i = 0; i < _images.length; i++) {
       final imageSource = _images[i];
+      // 只预加载网络图片，本地图片不需要预加载
       if (!imageSource.isLocal && imageSource.path.startsWith('http')) {
-        // 预加载网络图片
         precacheImage(NetworkImage(imageSource.path), context).then((_) {
           print('✅ 图片 ${i + 1} 预加载完成');
         }).catchError((error) {
-          print('❌ 图片 ${i + 1} 预加载失败: $error');
+          // 网络图片加载失败时静默处理，不打印错误（因为会回退到本地图片）
+          print('⚠️ 图片 ${i + 1} 预加载失败（将使用本地图片）: ${imageSource.path}');
         });
       }
     }
@@ -227,7 +228,10 @@ class _CardImagesViewerState extends State<CardImagesViewer> {
             ),
           );
         },
-        errorBuilder: (context, error, stackTrace) => _buildErrorWidget(),
+        errorBuilder: (context, error, stackTrace) {
+          // 网络图片加载失败时静默处理，只显示占位符
+          return _buildErrorWidget();
+        },
       );
     }
   }
@@ -260,35 +264,89 @@ class _CardImagesViewerState extends State<CardImagesViewer> {
   List<ImageSource> _getAvailableImages() {
     final images = <ImageSource>[];
 
-    // 获取云端图片列表
-    final cloudUrls = widget.card.metadata['cloudImageUrls'] as List<dynamic>?;
+    print('🔍 开始获取图片列表...');
 
-    // 添加所有云端图片
-    if (cloudUrls != null && cloudUrls.isNotEmpty) {
-      for (int i = 0; i < cloudUrls.length; i++) {
-        final cloudUrl = cloudUrls[i].toString();
-        if (cloudUrl.startsWith('http')) {
-          images.add(ImageSource(path: cloudUrl, isLocal: false));
-          print(
-              '📸 图片 ${i + 1}: ${cloudUrl.substring(cloudUrl.length > 50 ? cloudUrl.length - 50 : 0)}');
+    // 1. 优先尝试本地图片路径
+    final localPaths = _getListFromMetadata('localImagePaths');
+    if (localPaths.isNotEmpty) {
+      print('📂 找到 ${localPaths.length} 个本地图片路径');
+      for (int i = 0; i < localPaths.length; i++) {
+        final path = localPaths[i];
+        if (_isValidLocalPath(path)) {
+          images.add(ImageSource(path: path, isLocal: true));
+          print('  ✅ 本地图片 ${i + 1}: ${_getShortPath(path)}');
+        } else {
+          print('  ⚠️ 本地图片不可用 ${i + 1}: ${_getShortPath(path)}');
         }
       }
     }
 
-    // 如果没有云端图片，使用卡片原始图片作为后备
+    // 2. 如果没有可用的本地图片，尝试云端图片
     if (images.isEmpty) {
-      final originalPath = widget.card.image.path;
-      images.add(ImageSource(
-        path: originalPath,
-        isLocal: !originalPath.startsWith('http'),
-      ));
-      print(
-          '📸 图片 1: 使用原始图片 - ${originalPath.substring(originalPath.length > 50 ? originalPath.length - 50 : 0)}');
+      final cloudUrls = _getListFromMetadata('cloudImageUrls');
+      if (cloudUrls.isNotEmpty) {
+        print('☁️ 找到 ${cloudUrls.length} 个云端图片URL');
+        for (int i = 0; i < cloudUrls.length; i++) {
+          final url = cloudUrls[i];
+          if (_isValidCloudUrl(url)) {
+            images.add(ImageSource(path: url, isLocal: false));
+            print('  ✅ 云端图片 ${i + 1}: ${_getShortPath(url)}');
+          }
+        }
+      }
     }
 
-    print('📸 总图片数量: ${images.length}');
+    // 3. 最后的备选方案：使用卡片原始图片
+    if (images.isEmpty) {
+      final originalPath = widget.card.image.path;
+      final isLocal = !originalPath.startsWith('http');
 
+      if (isLocal && !File(originalPath).existsSync()) {
+        print('❌ 原始图片文件不存在: ${_getShortPath(originalPath)}');
+      } else {
+        images.add(ImageSource(path: originalPath, isLocal: isLocal));
+        print('🔄 使用原始图片作为备选: ${_getShortPath(originalPath)}');
+      }
+    }
+
+    print('📊 总图片数量: ${images.length}');
     return images;
+  }
+
+  /// 从 metadata 中安全获取列表
+  List<String> _getListFromMetadata(String key) {
+    final data = widget.card.metadata[key];
+    if (data == null) return [];
+
+    if (data is List) {
+      return data.map((e) => e.toString()).where((s) => s.isNotEmpty).toList();
+    }
+
+    return [];
+  }
+
+  /// 验证本地路径是否有效
+  bool _isValidLocalPath(String path) {
+    if (path.isEmpty || path.startsWith('http')) return false;
+
+    try {
+      return File(path).existsSync();
+    } catch (e) {
+      print('  ⚠️ 检查文件失败: $e');
+      return false;
+    }
+  }
+
+  /// 验证云端URL是否有效
+  bool _isValidCloudUrl(String url) =>
+      url.isNotEmpty &&
+      (url.startsWith('http://') || url.startsWith('https://'));
+
+  /// 获取路径的简短显示版本（用于日志）
+  String _getShortPath(String path) {
+    const maxLength = 50;
+    if (path.length <= maxLength) return path;
+    return '...${path.substring(path.length - maxLength)}';
   }
 }
 
@@ -332,66 +390,64 @@ class _FullScreenImageViewerState extends State<_FullScreenImageViewer> {
   }
 
   @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.black,
-      appBar: AppBar(
+  Widget build(BuildContext context) => Scaffold(
         backgroundColor: Colors.black,
-        leading: IconButton(
-          icon: const Icon(Icons.close, color: Colors.white),
-          onPressed: () => Navigator.pop(context),
+        appBar: AppBar(
+          backgroundColor: Colors.black,
+          leading: IconButton(
+            icon: const Icon(Icons.close, color: Colors.white),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: Text(
+            '${_currentIndex + 1} / ${widget.images.length}',
+            style: const TextStyle(color: Colors.white),
+          ),
+          centerTitle: true,
         ),
-        title: Text(
-          '${_currentIndex + 1} / ${widget.images.length}',
-          style: const TextStyle(color: Colors.white),
+        body: PageView.builder(
+          controller: _pageController,
+          itemCount: widget.images.length,
+          onPageChanged: (index) {
+            setState(() {
+              _currentIndex = index;
+            });
+          },
+          itemBuilder: (context, index) {
+            final imageSource = widget.images[index];
+            return InteractiveViewer(
+              minScale: 0.5,
+              maxScale: 4.0,
+              child: Center(
+                child: imageSource.isLocal
+                    ? Image.file(
+                        File(imageSource.path),
+                        fit: BoxFit.contain,
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildErrorWidget(),
+                      )
+                    : Image.network(
+                        imageSource.path,
+                        fit: BoxFit.contain,
+                        loadingBuilder: (context, child, loadingProgress) {
+                          if (loadingProgress == null) return child;
+                          return Center(
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              value: loadingProgress.expectedTotalBytes != null
+                                  ? loadingProgress.cumulativeBytesLoaded /
+                                      loadingProgress.expectedTotalBytes!
+                                  : null,
+                            ),
+                          );
+                        },
+                        errorBuilder: (context, error, stackTrace) =>
+                            _buildErrorWidget(),
+                      ),
+              ),
+            );
+          },
         ),
-        centerTitle: true,
-      ),
-      body: PageView.builder(
-        controller: _pageController,
-        itemCount: widget.images.length,
-        onPageChanged: (index) {
-          setState(() {
-            _currentIndex = index;
-          });
-        },
-        itemBuilder: (context, index) {
-          final imageSource = widget.images[index];
-          return InteractiveViewer(
-            minScale: 0.5,
-            maxScale: 4.0,
-            child: Center(
-              child: imageSource.isLocal
-                  ? Image.file(
-                      File(imageSource.path),
-                      fit: BoxFit.contain,
-                      errorBuilder: (context, error, stackTrace) =>
-                          _buildErrorWidget(),
-                    )
-                  : Image.network(
-                      imageSource.path,
-                      fit: BoxFit.contain,
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return Center(
-                          child: CircularProgressIndicator(
-                            color: Colors.white,
-                            value: loadingProgress.expectedTotalBytes != null
-                                ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                                : null,
-                          ),
-                        );
-                      },
-                      errorBuilder: (context, error, stackTrace) =>
-                          _buildErrorWidget(),
-                    ),
-            ),
-          );
-        },
-      ),
-    );
-  }
+      );
 
   Widget _buildErrorWidget() {
     return const Center(
