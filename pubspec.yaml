@@ -103,6 +103,7 @@ flutter:
     - assets/vip.png
     - assets/weibo_vip.png
     - assets/xiaohongshu_share.png
+    - assets/douyin_share.png
     - .env
   
   fonts:

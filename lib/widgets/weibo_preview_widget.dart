@@ -228,12 +228,12 @@ class WeiboPreviewWidget extends StatelessWidget {
 
     // 根据图片数量决定布局
     if (imageCount == 1) {
-      // 单张图片，使用固定宽高
+      // 单张图片，使用固定宽高，比例为3:2
       return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(4),
         child: SizedBox(
           width: 240,
-          height: 180,
+          height: 160,
           child: _buildImage(images[0]),
         ),
       );
@@ -254,7 +254,7 @@ class WeiboPreviewWidget extends StatelessWidget {
       itemCount: imageCount,
       itemBuilder: (context, index) {
         return ClipRRect(
-          borderRadius: BorderRadius.circular(8),
+          borderRadius: BorderRadius.circular(4),
           child: _buildImage(images[index]),
         );
       },

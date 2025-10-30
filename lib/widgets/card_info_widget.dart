@@ -8,6 +8,7 @@ import '../services/language_service.dart';
 import 'moments_preview_widget.dart';
 import 'xiaohongshu_preview_widget.dart';
 import 'weibo_preview_widget.dart';
+import 'douyin_preview_widget.dart';
 
 /// 卡片信息展示组件
 class CardInfoWidget extends StatefulWidget {
@@ -270,6 +271,7 @@ class _CardInfoWidgetState extends State<CardInfoWidget> {
               isPengyouquan: platform == PlatformType.pengyouquan,
               isXiaohongshu: platform == PlatformType.xiaohongshu,
               isWeibo: platform == PlatformType.weibo,
+              isDouyin: platform == PlatformType.douyin,
             ),
           );
         }
@@ -287,6 +289,7 @@ class _CardInfoWidgetState extends State<CardInfoWidget> {
     bool isPengyouquan = false,
     bool isXiaohongshu = false,
     bool isWeibo = false,
+    bool isDouyin = false,
   }) =>
       Container(
         margin: const EdgeInsets.only(bottom: 16),
@@ -336,6 +339,17 @@ class _CardInfoWidgetState extends State<CardInfoWidget> {
                     constraints: const BoxConstraints(),
                     tooltip: context.l10n('微博预览'),
                     onPressed: () => _showWeiboPreview(context),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                // 抖音文案添加预览按钮
+                if (isDouyin) ...[
+                  IconButton(
+                    icon: const Icon(Icons.visibility_outlined, size: 18),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    tooltip: context.l10n('抖音预览'),
+                    onPressed: () => _showDouyinPreview(context),
                   ),
                   const SizedBox(width: 8),
                 ],
@@ -428,6 +442,14 @@ class _CardInfoWidgetState extends State<CardInfoWidget> {
     showDialog(
       context: context,
       builder: (context) => WeiboPreviewWidget(card: widget.card),
+    );
+  }
+
+  /// 显示抖音预览
+  void _showDouyinPreview(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => DouyinPreviewWidget(card: widget.card),
     );
   }
 
