@@ -4,6 +4,7 @@ import 'package:ai_poetry_card/providers/card_generator.dart';
 import 'package:ai_poetry_card/widgets/card_info_widget.dart';
 import 'package:ai_poetry_card/widgets/nearby_places_widget.dart';
 import 'package:ai_poetry_card/widgets/card_images_viewer.dart';
+import 'package:ai_poetry_card/widgets/multi_platform_preview_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -27,11 +28,13 @@ import 'package:path_provider/path_provider.dart';
 class CardDetailScreen extends StatefulWidget {
   final PoetryCard card;
   final bool isResultMode; // true: 结果展示模式, false: 详情查看模式
+  final bool autoShowPreview; // 是否自动显示预览弹窗
 
   const CardDetailScreen({
     super.key,
     required this.card,
     this.isResultMode = false,
+    this.autoShowPreview = false,
   });
 
   @override
@@ -61,6 +64,31 @@ class _CardDetailScreenState extends State<CardDetailScreen>
             .addCard(widget.card);
       });
     }
+
+    // 如果需要自动显示预览，延迟弹出预览弹窗
+    if (widget.autoShowPreview) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _showPreviewDialog();
+      });
+    }
+  }
+
+  /// 显示预览弹窗
+  void _showPreviewDialog() {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false, // 设置为半透明
+        barrierColor: Colors.transparent, // 透明的遮罩
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            MultiPlatformPreviewDialog(card: _currentCard),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -177,6 +205,24 @@ class _CardDetailScreenState extends State<CardDetailScreen>
         padding: const EdgeInsets.all(16),
         child: Column(
           children: [
+            // 预览按钮（单独一行，更醒目）
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                onPressed: _showPreviewDialog,
+                icon: const Icon(Icons.phone_android),
+                label: Text(context.l10n('预览各平台效果')),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Theme.of(context).primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
             Row(
               children: [
                 Expanded(

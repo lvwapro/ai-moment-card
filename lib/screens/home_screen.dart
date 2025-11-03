@@ -222,8 +222,8 @@ class _HomeScreenState extends State<HomeScreen> {
         await Navigator.push(
           context,
           MaterialPageRoute(
-              builder: (context) =>
-                  CardDetailScreen(card: card, isResultMode: true)),
+              builder: (context) => CardDetailScreen(
+                  card: card, isResultMode: true, autoShowPreview: true)),
         );
         // 生成卡片后清空图片数组和重置选择状态
         setState(() {

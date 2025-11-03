@@ -3,6 +3,7 @@ import 'dart:io';
 import '../models/poetry_card.dart';
 import '../services/language_service.dart';
 import 'package:intl/intl.dart';
+import 'phone_status_bar.dart';
 
 /// 小红书预览组件
 /// 模拟小红书的显示效果
@@ -30,224 +31,207 @@ class _XiaohongshuPreviewWidgetState extends State<XiaohongshuPreviewWidget> {
   }
 
   @override
-  Widget build(BuildContext context) => Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.all(16),
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 500, maxHeight: 800),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // 标题栏
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    topRight: Radius.circular(12),
-                  ),
-                  border: Border(
-                    bottom: BorderSide(color: Colors.grey[200]!),
+  Widget build(BuildContext context) => _buildXiaohongshuContent(context);
+
+  /// 构建小红书内容
+  Widget _buildXiaohongshuContent(BuildContext context) {
+    return Container(
+      color: Colors.white,
+      child: Stack(
+        children: [
+          // 主内容区域（可滚动）
+          SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 顶部用户信息（状态栏下方44px处开始）
+                const SizedBox(height: 44),
+
+                // 顶部用户信息
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
+                  child: Row(
+                    children: [
+                      // 返回按钮
+                      const Icon(Icons.arrow_back_ios,
+                          size: 20, color: Colors.black),
+                      const SizedBox(width: 6),
+
+                      // 头像
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.asset(
+                          'assets/images/logo.png',
+                          width: 40,
+                          height: 40,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              Container(
+                            width: 40,
+                            height: 40,
+                            color: Colors.grey[300],
+                            child: const Icon(Icons.person,
+                                color: Colors.white, size: 24),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+
+                      // 昵称
+                      Text(
+                        context.l10n('迹见文案'),
+                        style: const TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+
+                      const Spacer(),
+
+                      // 关注按钮（红色边框）
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 14,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          border: Border.all(
+                            color: const Color(0xFFf93a4b),
+                            width: 1,
+                          ),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Text(
+                          context.l10n('关注'),
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: Color(0xFFf93a4b),
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+
+                      const SizedBox(width: 12),
+
+                      // 分享按钮
+                      Image.asset(
+                        'assets/xiaohongshu_share.png',
+                        width: 24,
+                        height: 24,
+                        errorBuilder: (context, error, stackTrace) =>
+                            const Icon(Icons.shortcut,
+                                size: 24, color: Colors.black),
+                      ),
+                    ],
                   ),
                 ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      context.l10n('小红书预览'),
+
+                const SizedBox(height: 8),
+
+                // 图片区域
+                _buildImageSection(),
+
+                // 文案内容
+                if (widget.card.xiaohongshu != null &&
+                    widget.card.xiaohongshu!.isNotEmpty)
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                    child: Text(
+                      widget.card.xiaohongshu!,
                       style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 15,
+                        height: 1.5,
+                        color: Colors.black87,
                       ),
                     ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.of(context).pop(),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
-                ),
-              ),
+                  ),
 
-              // 内容区域（可滚动）
-              Flexible(
-                child: SingleChildScrollView(
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // 顶部用户信息
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Row(
-                            children: [
-                              // 返回按钮
-                              Icon(Icons.arrow_back_ios,
-                                  size: 20, color: Colors.black),
-                              const SizedBox(width: 6),
-
-                              // 头像
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(20),
-                                child: Image.asset(
-                                  'assets/images/logo.png',
-                                  width: 40,
-                                  height: 40,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      Container(
-                                    width: 40,
-                                    height: 40,
-                                    color: Colors.grey[300],
-                                    child: const Icon(Icons.person,
-                                        color: Colors.white, size: 24),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 8),
-
-                              // 昵称
-                              Text(
-                                context.l10n('迹见文案'),
-                                style: const TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-
-                              const Spacer(),
-
-                              // 关注按钮（红色边框）
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 14,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.white,
-                                  border: Border.all(
-                                    color: const Color(0xFFf93a4b),
-                                    width: 1,
-                                  ),
-                                  borderRadius: BorderRadius.circular(16),
-                                ),
-                                child: Text(
-                                  context.l10n('关注'),
-                                  style: const TextStyle(
-                                    fontSize: 12,
-                                    color: Color(0xFFf93a4b),
-                                    fontWeight: FontWeight.w500,
-                                  ),
-                                ),
-                              ),
-
-                              const SizedBox(width: 12),
-
-                              // 分享按钮
-                              Image.asset(
-                                'assets/xiaohongshu_share.png',
-                                width: 24,
-                                height: 24,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    const Icon(Icons.shortcut,
-                                        size: 24, color: Colors.black),
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        const SizedBox(height: 8),
-
-                        // 图片区域（不加额外padding，保持全宽）
-                        _buildImageSection(),
-
-                        // 文案内容
-                        if (widget.card.xiaohongshu != null &&
-                            widget.card.xiaohongshu!.isNotEmpty)
-                          Padding(
-                            padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
-                            child: Text(
-                              widget.card.xiaohongshu!,
-                              style: const TextStyle(
-                                fontSize: 15,
-                                height: 1.5,
-                                color: Colors.black87,
-                              ),
-                            ),
-                          ),
-
-                        // 时间、地点
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(8, 8, 8, 12),
-                          child: Text(
-                            '${_formatDate(widget.card.createdAt)} ${_getCityName()}',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ),
-
-                        // 分隔线
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: Divider(height: 1, color: Colors.grey[200]),
-                        ),
-
-                        // 评论数量显示
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(8, 12, 8, 8),
-                          child: Row(
-                            children: [
-                              Text(
-                                context.l10n('共 13 条评论'),
-                                style: TextStyle(
-                                  fontSize: 14,
-                                  color: Colors.grey[800],
-                                ),
-                              ),
-                              const SizedBox(width: 4),
-                              Icon(
-                                Icons.keyboard_arrow_down,
-                                size: 18,
-                                color: Colors.grey[600],
-                              ),
-                            ],
-                          ),
-                        ),
-
-                        // 模拟评论列表
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: _buildCommentsList(context),
-                        ),
-
-                        const SizedBox(height: 16),
-
-                        // 底部互动栏
-                        Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 8),
-                          child: _buildInteractionBar(context),
-                        ),
-
-                        const SizedBox(height: 8),
-                      ],
+                // 时间、地点
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                  child: Text(
+                    '${_formatDate(widget.card.createdAt)} ${_getCityName()}',
+                    style: TextStyle(
+                      fontSize: 12,
+                      color: Colors.grey[600],
                     ),
                   ),
                 ),
-              ),
-            ],
+
+                // 分隔线
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: Divider(height: 1, color: Colors.grey[200]),
+                ),
+
+                // 评论数量显示
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                  child: Row(
+                    children: [
+                      Text(
+                        context.l10n('共 13 条评论'),
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[800],
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Icon(
+                        Icons.keyboard_arrow_down,
+                        size: 18,
+                        color: Colors.grey[600],
+                      ),
+                    ],
+                  ),
+                ),
+
+                // 模拟评论列表
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
+                  child: _buildCommentsList(context),
+                ),
+
+                const SizedBox(height: 80), // 留出底部互动栏空间
+              ],
+            ),
           ),
-        ),
-      );
+
+          // 底部互动栏（固定在底部）
+          Positioned(
+            bottom: 0,
+            left: 0,
+            right: 0,
+            child: Container(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 8,
+                    offset: const Offset(0, -2),
+                  ),
+                ],
+              ),
+              child: _buildInteractionBar(context),
+            ),
+          ),
+
+          // 手机状态栏（透明，叠加在最顶层，黑色文字）
+          const Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: PhoneStatusBar(
+              textColor: Colors.black,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   /// 构建图片区域
   Widget _buildImageSection() {

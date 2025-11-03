@@ -104,6 +104,8 @@ flutter:
     - assets/weibo_vip.png
     - assets/xiaohongshu_share.png
     - assets/douyin_share.png
+    - assets/weixin_love.png
+    - assets/phone_border.png
     - .env
   
   fonts:

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:io';
 import '../models/poetry_card.dart';
 import '../services/language_service.dart';
+import 'phone_status_bar.dart';
 
 /// 抖音预览组件
 /// 模拟抖音的显示效果
@@ -28,85 +29,48 @@ class _DouyinPreviewWidgetState extends State<DouyinPreviewWidget> {
   }
 
   @override
-  Widget build(BuildContext context) => Dialog(
-        backgroundColor: Colors.white,
-        insetPadding: const EdgeInsets.all(16),
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 500, maxHeight: 800),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
+  Widget build(BuildContext context) => _buildDouyinContent(context);
+
+  /// 构建抖音内容
+  Widget _buildDouyinContent(BuildContext context) {
+    return Container(
+      color: Colors.black,
+      child: Stack(
+        children: [
+          // 背景图片/视频区域（全屏，从顶部开始）
+          _buildContentArea(),
+
+          // 顶部导航栏（在状态栏下方）
+          Positioned(
+            top: 44, // 状态栏高度
+            left: 0,
+            right: 0,
+            child: _buildTopNavBar(context),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // 顶部标题栏
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    topRight: Radius.circular(12),
-                  ),
-                  border: Border(
-                    bottom: BorderSide(color: Colors.grey[200]!),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      context.l10n('抖音预览'),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.of(context).pop(),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
-                ),
-              ),
 
-              // 抖音主内容区域
-              Flexible(
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      color: Colors.black,
-                    ),
-                    child: Stack(
-                      children: [
-                        // 背景图片/视频区域
-                        _buildContentArea(),
+          // 图片指示器（多图时显示）
+          if (_getImages().length > 1) _buildImageIndicator(),
 
-                        // 顶部导航栏
-                        _buildTopNavBar(context),
+          // 左下角信息栏
+          _buildBottomLeftInfo(context),
 
-                        // 图片指示器（多图时显示）
-                        if (_getImages().length > 1) _buildImageIndicator(),
+          // 右侧互动栏
+          _buildRightInteractionBar(context),
 
-                        // 左下角信息栏
-                        _buildBottomLeftInfo(context),
+          // 底部导航栏
+          _buildBottomNavBar(context),
 
-                        // 右侧互动栏
-                        _buildRightInteractionBar(context),
-                      ],
-                    ),
-                  ),
-                ),
-              ),
-            ],
+          // 手机状态栏（透明，叠加在最顶层）
+          const Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: PhoneStatusBar(),
           ),
-        ),
-      );
+        ],
+      ),
+    );
+  }
 
   /// 构建内容区域（图片/视频）
   Widget _buildContentArea() {
@@ -114,7 +78,6 @@ class _DouyinPreviewWidgetState extends State<DouyinPreviewWidget> {
 
     if (images.isEmpty) {
       return Container(
-        height: 500,
         color: Colors.black,
         child: const Center(
           child: Icon(
@@ -128,28 +91,22 @@ class _DouyinPreviewWidgetState extends State<DouyinPreviewWidget> {
 
     // 多张图片时使用 PageView
     if (images.length > 1) {
-      return SizedBox(
-        height: 500,
-        child: PageView.builder(
-          controller: _pageController,
-          onPageChanged: (index) {
-            setState(() {
-              _currentImageIndex = index;
-            });
-          },
-          itemCount: images.length > 9 ? 9 : images.length,
-          itemBuilder: (context, index) {
-            return _buildImage(images[index]);
-          },
-        ),
+      return PageView.builder(
+        controller: _pageController,
+        onPageChanged: (index) {
+          setState(() {
+            _currentImageIndex = index;
+          });
+        },
+        itemCount: images.length > 9 ? 9 : images.length,
+        itemBuilder: (context, index) {
+          return _buildImage(images[index]);
+        },
       );
     }
 
     // 单张图片
-    return SizedBox(
-      height: 500,
-      child: _buildImage(images[0]),
-    );
+    return _buildImage(images[0]);
   }
 
   /// 构建单张图片
@@ -160,6 +117,7 @@ class _DouyinPreviewWidgetState extends State<DouyinPreviewWidget> {
       return Image.network(
         imagePath,
         fit: BoxFit.cover,
+        alignment: const Alignment(0, -0.3), // 图片主体往上偏移
         width: double.infinity,
         height: double.infinity,
         loadingBuilder: (context, child, loadingProgress) {
@@ -192,6 +150,7 @@ class _DouyinPreviewWidgetState extends State<DouyinPreviewWidget> {
       return Image.file(
         file,
         fit: BoxFit.cover,
+        alignment: const Alignment(0, -0.3), // 图片主体往上偏移
         width: double.infinity,
         height: double.infinity,
         errorBuilder: (context, error, stackTrace) => Container(
@@ -204,12 +163,7 @@ class _DouyinPreviewWidgetState extends State<DouyinPreviewWidget> {
   }
 
   /// 构建顶部导航栏
-  Widget _buildTopNavBar(BuildContext context) {
-    return Positioned(
-      top: 0,
-      left: 0,
-      right: 0,
-      child: Container(
+  Widget _buildTopNavBar(BuildContext context) => Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -259,9 +213,7 @@ class _DouyinPreviewWidgetState extends State<DouyinPreviewWidget> {
             ),
           ],
         ),
-      ),
-    );
-  }
+      );
 
   /// 构建图片指示器
   Widget _buildImageIndicator() {
@@ -269,7 +221,7 @@ class _DouyinPreviewWidgetState extends State<DouyinPreviewWidget> {
     final imageCount = images.length > 9 ? 9 : images.length;
 
     return Positioned(
-      bottom: 22,
+      bottom: 100, // 调整底部距离，避开底部导航栏
       left: 0,
       right: 0,
       child: Container(
@@ -296,111 +248,111 @@ class _DouyinPreviewWidgetState extends State<DouyinPreviewWidget> {
   }
 
   /// 构建左下角信息栏
-  Widget _buildBottomLeftInfo(BuildContext context) {
-    return Positioned(
-      bottom: 40,
-      left: 16,
-      right: 80,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // 用户名和图文标签
-          Row(
-            children: [
-              Text(
-                '@${context.l10n('迹见文案')}',
-                style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(width: 8),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
-                  borderRadius: BorderRadius.circular(3),
-                ),
-                child: Text(
-                  context.l10n('图文'),
-                  style: const TextStyle(
-                    fontSize: 11,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ],
-          ),
-
-          // 文案内容
-          if (widget.card.douyin != null && widget.card.douyin!.isNotEmpty) ...[
-            const SizedBox(height: 8),
-            Text(
-              widget.card.douyin!,
-              style: const TextStyle(
-                fontSize: 14,
-                color: Colors.white,
-                height: 1.4,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-
-          const SizedBox(height: 8),
-
-          // 分享给按钮
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.4),
-              borderRadius: BorderRadius.circular(20),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
+  Widget _buildBottomLeftInfo(BuildContext context) => Positioned(
+        bottom: 115, // 调整底部距离，避开底部导航栏
+        left: 16,
+        right: 80,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // 用户名和图文标签
+            Row(
               children: [
-                Image.asset(
-                  'assets/douyin_share.png',
-                  width: 16,
-                  height: 16,
-                  color: Colors.white,
-                  errorBuilder: (context, error, stackTrace) => const Icon(
-                    Icons.share_outlined,
-                    size: 16,
+                Text(
+                  '@${context.l10n('迹见文案')}',
+                  style: const TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
                     color: Colors.white,
                   ),
                 ),
-                const SizedBox(width: 6),
-                Text(
-                  context.l10n('分享给'),
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Colors.white,
+                const SizedBox(width: 8),
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.2),
+                    borderRadius: BorderRadius.circular(3),
                   ),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  context.l10n('AI助手'),
-                  style: const TextStyle(
-                    fontSize: 13,
-                    color: Colors.white,
+                  child: Text(
+                    context.l10n('图文'),
+                    style: const TextStyle(
+                      fontSize: 11,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ],
             ),
-          ),
-        ],
-      ),
-    );
-  }
+
+            // 文案内容
+            if (widget.card.douyin != null &&
+                widget.card.douyin!.isNotEmpty) ...[
+              const SizedBox(height: 8),
+              Text(
+                widget.card.douyin!,
+                style: const TextStyle(
+                  fontSize: 14,
+                  color: Colors.white,
+                  height: 1.4,
+                ),
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ],
+
+            const SizedBox(height: 8),
+
+            // 分享给按钮
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.4),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.asset(
+                    'assets/douyin_share.png',
+                    width: 16,
+                    height: 16,
+                    color: Colors.white,
+                    errorBuilder: (context, error, stackTrace) => const Icon(
+                      Icons.share_outlined,
+                      size: 16,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    context.l10n('分享给'),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    context.l10n('AI助手'),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
 
   /// 构建右侧互动栏
   Widget _buildRightInteractionBar(BuildContext context) {
     return Positioned(
       right: 12,
-      bottom: 45,
+      bottom: 120, // 调整底部距离，避开底部导航栏
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -505,6 +457,83 @@ class _DouyinPreviewWidgetState extends State<DouyinPreviewWidget> {
           ),
         ),
       ],
+    );
+  }
+
+  /// 构建底部导航栏
+  Widget _buildBottomNavBar(BuildContext context) {
+    return Positioned(
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Container(
+        height: 80,
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              Colors.transparent,
+              Colors.black.withOpacity(0.8),
+            ],
+          ),
+        ),
+        child: SafeArea(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            children: [
+              _buildNavItem(Icons.home, context.l10n('首页'), true),
+              _buildNavItem(Icons.people, context.l10n('朋友'), false),
+              _buildNavAddButton(),
+              _buildNavItem(Icons.message, context.l10n('消息'), false),
+              _buildNavItem(Icons.person, context.l10n('我'), false),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// 构建导航栏单项
+  Widget _buildNavItem(IconData icon, String label, bool isActive) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(
+          icon,
+          color: isActive ? Colors.white : Colors.grey[400],
+          size: 26,
+        ),
+        const SizedBox(height: 2),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            color: isActive ? Colors.white : Colors.grey[400],
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// 构建中间的"+"按钮
+  Widget _buildNavAddButton() {
+    return Container(
+      width: 40,
+      height: 40,
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          colors: [Color(0xFFFF6B9D), Color(0xFFFFC837)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: const Icon(
+        Icons.add,
+        color: Colors.black,
+        size: 28,
+      ),
     );
   }
 

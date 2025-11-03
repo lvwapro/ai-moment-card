@@ -538,6 +538,15 @@ class EnglishTranslations {
     '选择地图应用': 'Select Map App',
     '配额已用尽': 'Quota Exceeded',
     '升级到专业版，享受以下特权：': 'Upgrade to Premium to enjoy the following benefits:',
+    '预览各平台效果': 'Preview Platform Effects',
+    '推荐': 'Recommended',
+    '图文': 'Post',
+    '分享给': 'Share to',
+    '微博正文': 'Weibo Post',
+    '好友': 'Friend',
+    '生活就像一场旅行，不在乎目的地，在乎的是沿途的风景...':
+        'Life is like a journey, it\'s not about the destination, but the scenery along the way...',
+    '1天前': '1 day ago',
   };
 
   static String getText(String key) => translations[key] ?? key;

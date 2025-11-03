@@ -5,10 +5,7 @@ import 'package:provider/provider.dart';
 import '../models/poetry_card.dart';
 import '../providers/app_state.dart';
 import '../services/language_service.dart';
-import 'moments_preview_widget.dart';
-import 'xiaohongshu_preview_widget.dart';
-import 'weibo_preview_widget.dart';
-import 'douyin_preview_widget.dart';
+import 'multi_platform_preview_dialog.dart';
 
 /// 卡片信息展示组件
 class CardInfoWidget extends StatefulWidget {
@@ -424,32 +421,84 @@ class _CardInfoWidgetState extends State<CardInfoWidget> {
 
   /// 显示朋友圈预览
   void _showMomentsPreview(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => MomentsPreviewWidget(card: widget.card),
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.transparent,
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            MultiPlatformPreviewDialog.single(
+          card: widget.card,
+          platform: PlatformType.pengyouquan,
+        ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+      ),
     );
   }
 
   void _showXiaohongshuPreview(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => XiaohongshuPreviewWidget(card: widget.card),
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.transparent,
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            MultiPlatformPreviewDialog.single(
+          card: widget.card,
+          platform: PlatformType.xiaohongshu,
+        ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+      ),
     );
   }
 
   /// 显示微博预览
   void _showWeiboPreview(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => WeiboPreviewWidget(card: widget.card),
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.transparent,
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            MultiPlatformPreviewDialog.single(
+          card: widget.card,
+          platform: PlatformType.weibo,
+        ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+      ),
     );
   }
 
   /// 显示抖音预览
   void _showDouyinPreview(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => DouyinPreviewWidget(card: widget.card),
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.transparent,
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            MultiPlatformPreviewDialog.single(
+          card: widget.card,
+          platform: PlatformType.douyin,
+        ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+      ),
     );
   }
 

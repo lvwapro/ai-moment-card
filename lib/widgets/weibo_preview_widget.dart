@@ -3,6 +3,7 @@ import 'dart:io';
 import '../models/poetry_card.dart';
 import '../services/language_service.dart';
 import 'package:intl/intl.dart';
+import 'phone_status_bar.dart';
 
 /// 微博预览组件
 /// 模拟微博的显示效果
@@ -15,206 +16,203 @@ class WeiboPreviewWidget extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => Dialog(
-        backgroundColor: Colors.transparent,
-        insetPadding: const EdgeInsets.all(16),
-        child: Container(
-          constraints: const BoxConstraints(maxWidth: 500, maxHeight: 800),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(12),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // 标题栏
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    topRight: Radius.circular(12),
-                  ),
-                  border: Border(
-                    bottom: BorderSide(color: Colors.grey[200]!),
-                  ),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      context.l10n('微博预览'),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.close),
-                      onPressed: () => Navigator.of(context).pop(),
-                      padding: EdgeInsets.zero,
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
-                ),
-              ),
+  Widget build(BuildContext context) => _buildWeiboContent(context);
 
-              // 微博内容区域（可滚动）
-              Flexible(
-                child: SingleChildScrollView(
-                  child: Container(
-                    color: const Color(0xFFF7F8FA), // 微博背景色
-                    padding: const EdgeInsets.all(12),
-                    child: Container(
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(8),
+  /// 构建微博内容
+  Widget _buildWeiboContent(BuildContext context) {
+    return Container(
+      color: const Color(0xFFF7F8FA), // 微博背景色
+      child: Stack(
+        children: [
+          // 主内容区域（可滚动）
+          SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 顶部导航栏（状态栏下方44px处开始）
+                const SizedBox(height: 44),
+
+                // 顶部导航栏
+                Container(
+                  color: Colors.white,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Icon(Icons.arrow_back_ios,
+                          size: 20, color: Colors.black),
+                      Text(
+                        context.l10n('微博正文'),
+                        style: const TextStyle(
+                          fontSize: 17,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
-                      padding: const EdgeInsets.all(16),
-                      child: Column(
+                      const Icon(Icons.more_horiz,
+                          size: 24, color: Colors.black),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                // 微博内容卡片
+                Container(
+                  color: Colors.white,
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // 顶部用户信息
+                      Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          // 顶部用户信息
-                          Row(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // 头像
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(20),
-                                child: Image.asset(
-                                  'assets/images/logo.png',
-                                  width: 40,
-                                  height: 40,
-                                  fit: BoxFit.cover,
-                                  errorBuilder: (context, error, stackTrace) =>
-                                      Container(
-                                    width: 40,
-                                    height: 40,
-                                    color: Colors.grey[300],
-                                    child: const Icon(Icons.person,
-                                        color: Colors.white, size: 24),
-                                  ),
-                                ),
-                              ),
-                              const SizedBox(width: 10),
-
-                              // 用户名和时间信息
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    // 用户名和VIP标识
-                                    Row(
-                                      children: [
-                                        Text(
-                                          context.l10n('迹见文案'),
-                                          style: const TextStyle(
-                                            fontSize: 15,
-                                            fontWeight: FontWeight.w600,
-                                            color: Color(0xFFD76D43),
-                                          ),
-                                        ),
-                                        // VIP图标
-                                        Image.asset(
-                                          'assets/weibo_vip.png',
-                                          height: 16,
-                                          fit: BoxFit.contain,
-                                          errorBuilder:
-                                              (context, error, stackTrace) =>
-                                                  const SizedBox.shrink(),
-                                        ),
-                                      ],
-                                    ),
-                                    const SizedBox(height: 4),
-
-                                    // 时间和来源
-                                    Text(
-                                      '${_formatDate(card.createdAt)} ${context.l10n('来自')} iPhone 17 pro',
-                                      style: TextStyle(
-                                        fontSize: 12,
-                                        color: Colors.grey[500],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-
-                              // 右侧关注按钮
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: 6,
-                                  vertical: 4,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.transparent,
-                                  border: Border.all(
-                                    color: const Color(0xFFf79c49),
-                                    width: 1,
-                                  ),
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                                child: Row(
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    const Icon(
-                                      Icons.add,
-                                      size: 14,
-                                      color: Color(0xFFD98E38),
-                                    ),
-                                    Text(
-                                      context.l10n('关注'),
-                                      style: const TextStyle(
-                                        fontSize: 12,
-                                        color: Color(0xFFD98E38),
-                                        fontWeight: FontWeight.w500,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-
-                          const SizedBox(height: 12),
-
-                          // 文案内容
-                          if (card.weibo != null && card.weibo!.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: Text(
-                                card.weibo!,
-                                style: const TextStyle(
-                                  fontSize: 16,
-                                  height: 1.5,
-                                  color: Colors.black87,
-                                ),
+                          // 头像
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(20),
+                            child: Image.asset(
+                              'assets/images/logo.png',
+                              width: 40,
+                              height: 40,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Container(
+                                width: 40,
+                                height: 40,
+                                color: Colors.grey[300],
+                                child: const Icon(Icons.person,
+                                    color: Colors.white, size: 24),
                               ),
                             ),
+                          ),
+                          const SizedBox(width: 10),
 
-                          // 图片展示
-                          _buildImageGrid(),
+                          // 用户名和时间信息
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // 用户名和VIP标识
+                                Row(
+                                  children: [
+                                    Text(
+                                      context.l10n('迹见文案'),
+                                      style: const TextStyle(
+                                        fontSize: 15,
+                                        fontWeight: FontWeight.w600,
+                                        color: Color(0xFFD76D43),
+                                      ),
+                                    ),
+                                    // VIP图标
+                                    Image.asset(
+                                      'assets/weibo_vip.png',
+                                      height: 16,
+                                      fit: BoxFit.contain,
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              const SizedBox.shrink(),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 4),
 
-                          const SizedBox(height: 12),
+                                // 时间和来源
+                                Text(
+                                  '${_formatDate(card.createdAt)} ${context.l10n('来自')} iPhone 17 pro',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    color: Colors.grey[500],
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
 
-                          // 评论输入框
-                          _buildCommentInput(context),
-
-                          const SizedBox(height: 8),
-
-                          // 底部互动栏
-                          _buildInteractionBar(context),
+                          // 右侧关注按钮
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 4,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.transparent,
+                              border: Border.all(
+                                color: const Color(0xFFf79c49),
+                                width: 1,
+                              ),
+                              borderRadius: BorderRadius.circular(20),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(
+                                  Icons.add,
+                                  size: 14,
+                                  color: Color(0xFFD98E38),
+                                ),
+                                Text(
+                                  context.l10n('关注'),
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    color: Color(0xFFD98E38),
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ],
                       ),
-                    ),
+
+                      const SizedBox(height: 12),
+
+                      // 文案内容
+                      if (card.weibo != null && card.weibo!.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: Text(
+                            card.weibo!,
+                            style: const TextStyle(
+                              fontSize: 16,
+                              height: 1.5,
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ),
+
+                      // 图片展示
+                      _buildImageGrid(),
+
+                      const SizedBox(height: 12),
+
+                      // 评论输入框
+                      _buildCommentInput(context),
+
+                      const SizedBox(height: 8),
+
+                      // 底部互动栏
+                      _buildInteractionBar(context),
+                    ],
                   ),
                 ),
-              ),
-            ],
+
+                const SizedBox(height: 80), // 留出底部空间
+              ],
+            ),
           ),
-        ),
-      );
+
+          // 手机状态栏（透明，叠加在最顶层）
+          const Positioned(
+            top: 0,
+            left: 0,
+            right: 0,
+            child: PhoneStatusBar(),
+          ),
+        ],
+      ),
+    );
+  }
 
   /// 构建图片网格
   Widget _buildImageGrid() {
