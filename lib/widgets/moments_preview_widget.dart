@@ -48,7 +48,7 @@ class MomentsPreviewWidget extends StatelessWidget {
                               children: [
                                 // 昵称（右下）
                                 Positioned(
-                                  right: 75, // 头像宽度64 + 间距16
+                                  right: 64, // 头像宽度64 + 间距16
                                   bottom: -4, // 调整为正值，避免被裁剪
                                   child: Text(
                                     context.l10n('迹见文案'),
@@ -273,10 +273,10 @@ class MomentsPreviewWidget extends StatelessWidget {
               right: 16,
               child: Row(
                 children: [
-                  Icon(Icons.arrow_back_ios, size: 20, color: Colors.white),
+                  Icon(Icons.arrow_back_ios, size: 18, color: Colors.white),
                   Spacer(),
                   Icon(Icons.camera_alt_outlined,
-                      size: 24, color: Colors.white),
+                      size: 18, color: Colors.white),
                 ],
               ),
             ),
@@ -642,7 +642,7 @@ class MomentsPreviewWidget extends StatelessWidget {
               TextSpan(
                 text: '：$comment',
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 12,
                   color: Colors.black87,
                 ),
               ),
@@ -670,7 +670,7 @@ class MomentsPreviewWidget extends StatelessWidget {
               TextSpan(
                 text: '回复',
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 12,
                   color: Colors.black87,
                 ),
               ),
@@ -685,7 +685,7 @@ class MomentsPreviewWidget extends StatelessWidget {
               TextSpan(
                 text: '：$comment',
                 style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 12,
                   color: Colors.black87,
                 ),
               ),

@@ -195,6 +195,11 @@ class PoetryCardWidget extends StatelessWidget {
         return card.pengyouquan ?? card.poetry;
       case PlatformType.shiju:
         return card.shiju ?? card.poetry;
+      case PlatformType.duilian:
+        if (card.duilian != null) {
+          return '${card.duilian!.horizontal}\n${card.duilian!.upper}\n${card.duilian!.lower}';
+        }
+        return card.poetry;
     }
   }
 

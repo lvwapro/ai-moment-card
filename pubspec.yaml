@@ -85,6 +85,9 @@ dependencies:
   # Excel导出
   excel: ^4.0.3
   
+  # 友盟统计
+  fl_umeng: ^4.0.2
+  
 
 dev_dependencies:
   flutter_test:
@@ -106,6 +109,9 @@ flutter:
     - assets/douyin_share.png
     - assets/weixin_love.png
     - assets/phone_border.png
+    - assets/avatar.png
+    - assets/weibo_share.jpg
+    - assets/duilian.png
     - .env
   
   fonts:

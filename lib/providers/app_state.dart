@@ -10,6 +10,7 @@ enum PlatformType {
   weibo, // 微博
   pengyouquan, // 朋友圈
   shiju, // 诗句
+  duilian, // 对联
 }
 
 // 字体类型枚举
@@ -151,6 +152,8 @@ class AppState extends ChangeNotifier {
         return context.l10n('朋友圈');
       case PlatformType.shiju:
         return context.l10n('诗句');
+      case PlatformType.duilian:
+        return context.l10n('对联');
     }
   }
 

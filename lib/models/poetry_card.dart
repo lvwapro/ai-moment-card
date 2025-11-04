@@ -1,6 +1,39 @@
 import 'dart:io';
 import 'nearby_place.dart';
 
+/// 对联数据类
+class Duilian {
+  final String horizontal; // 横批
+  final String upper; // 上联
+  final String lower; // 下联
+  final String? analysis; // 解析
+
+  Duilian({
+    required this.horizontal,
+    required this.upper,
+    required this.lower,
+    this.analysis,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'horizontal': horizontal,
+      'upper': upper,
+      'lower': lower,
+      if (analysis != null) 'analysis': analysis,
+    };
+  }
+
+  factory Duilian.fromJson(Map<String, dynamic> json) {
+    return Duilian(
+      horizontal: json['horizontal'] as String,
+      upper: json['upper'] as String,
+      lower: json['lower'] as String,
+      analysis: json['analysis'] as String?,
+    );
+  }
+}
+
 enum PoetryStyle {
   modernPoetic, // 现代诗意（默认首选）
   classicalElegant, // 古风雅韵
@@ -38,6 +71,7 @@ class PoetryCard {
   final String? xiaohongshu; // 小红书文案
   final String? pengyouquan; // 朋友圈文案
   final String? douyin; // 抖音文案
+  final Duilian? duilian; // 对联
 
   // 选中的地点信息（单个地址）
   final NearbyPlace? selectedPlace;
@@ -61,6 +95,7 @@ class PoetryCard {
     this.xiaohongshu,
     this.pengyouquan,
     this.douyin,
+    this.duilian,
     this.selectedPlace,
     this.moodTag,
   });
@@ -82,6 +117,7 @@ class PoetryCard {
       'xiaohongshu': xiaohongshu,
       'pengyouquan': pengyouquan,
       'douyin': douyin,
+      'duilian': duilian?.toJson(),
       'selectedPlace': selectedPlace?.toJson(),
       'moodTag': moodTag,
     };
@@ -113,6 +149,9 @@ class PoetryCard {
       xiaohongshu: json['xiaohongshu'],
       pengyouquan: json['pengyouquan'],
       douyin: json['douyin'],
+      duilian: json['duilian'] != null
+          ? Duilian.fromJson(json['duilian'] as Map<String, dynamic>)
+          : null,
       selectedPlace: selectedPlaceJson != null
           ? NearbyPlace.fromJson(selectedPlaceJson)
           : null,
@@ -157,6 +196,7 @@ class PoetryCard {
     String? xiaohongshu,
     String? pengyouquan,
     String? douyin,
+    Duilian? duilian,
     NearbyPlace? selectedPlace,
     String? moodTag,
   }) {
@@ -176,6 +216,7 @@ class PoetryCard {
       xiaohongshu: xiaohongshu ?? this.xiaohongshu,
       pengyouquan: pengyouquan ?? this.pengyouquan,
       douyin: douyin ?? this.douyin,
+      duilian: duilian ?? this.duilian,
       selectedPlace: selectedPlace ?? this.selectedPlace,
       moodTag: moodTag ?? this.moodTag,
     );

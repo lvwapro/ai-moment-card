@@ -182,6 +182,10 @@ class CardGenerator extends ChangeNotifier {
         xiaohongshu: poetryData['xiaohongshu'],
         pengyouquan: poetryData['pengyouquan'],
         douyin: poetryData['douyin'],
+        // 添加对联数据
+        duilian: poetryData['duilian'] != null
+            ? Duilian.fromJson(poetryData['duilian'] as Map<String, dynamic>)
+            : null,
         // 添加用户选中的地点
         selectedPlace: selectedPlace,
         // 添加用户选中的情绪标签
@@ -234,6 +238,9 @@ class CardGenerator extends ChangeNotifier {
         xiaohongshu: poetryData['xiaohongshu'],
         pengyouquan: poetryData['pengyouquan'],
         douyin: poetryData['douyin'],
+        duilian: poetryData['duilian'] != null
+            ? Duilian.fromJson(poetryData['duilian'] as Map<String, dynamic>)
+            : null,
         metadata: {
           ...originalCard.metadata,
           'lastRegeneratedAt': DateTime.now().toIso8601String(),

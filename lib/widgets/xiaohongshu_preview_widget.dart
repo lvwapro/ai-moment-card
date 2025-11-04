@@ -34,204 +34,210 @@ class _XiaohongshuPreviewWidgetState extends State<XiaohongshuPreviewWidget> {
   Widget build(BuildContext context) => _buildXiaohongshuContent(context);
 
   /// 构建小红书内容
-  Widget _buildXiaohongshuContent(BuildContext context) {
-    return Container(
-      color: Colors.white,
-      child: Stack(
-        children: [
-          // 主内容区域（可滚动）
-          SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // 顶部用户信息（状态栏下方44px处开始）
-                const SizedBox(height: 44),
+  Widget _buildXiaohongshuContent(BuildContext context) => Container(
+        color: Colors.white,
+        child: Stack(
+          children: [
+            // 主内容区域（可滚动）
+            SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // 顶部占位（状态栏44px + 头部高度约48px）
+                  const SizedBox(height: 92),
 
-                // 顶部用户信息
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 8),
-                  child: Row(
-                    children: [
-                      // 返回按钮
-                      const Icon(Icons.arrow_back_ios,
-                          size: 20, color: Colors.black),
-                      const SizedBox(width: 6),
+                  // 图片区域
+                  _buildImageSection(),
 
-                      // 头像
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: Image.asset(
-                          'assets/images/logo.png',
-                          width: 40,
-                          height: 40,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) =>
-                              Container(
-                            width: 40,
-                            height: 40,
-                            color: Colors.grey[300],
-                            child: const Icon(Icons.person,
-                                color: Colors.white, size: 24),
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-
-                      // 昵称
-                      Text(
-                        context.l10n('迹见文案'),
+                  // 文案内容
+                  if (widget.card.xiaohongshu != null &&
+                      widget.card.xiaohongshu!.isNotEmpty)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                      child: Text(
+                        widget.card.xiaohongshu!,
                         style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-
-                      const Spacer(),
-
-                      // 关注按钮（红色边框）
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 14,
-                          vertical: 4,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.white,
-                          border: Border.all(
-                            color: const Color(0xFFf93a4b),
-                            width: 1,
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Text(
-                          context.l10n('关注'),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            color: Color(0xFFf93a4b),
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                      ),
-
-                      const SizedBox(width: 12),
-
-                      // 分享按钮
-                      Image.asset(
-                        'assets/xiaohongshu_share.png',
-                        width: 24,
-                        height: 24,
-                        errorBuilder: (context, error, stackTrace) =>
-                            const Icon(Icons.shortcut,
-                                size: 24, color: Colors.black),
-                      ),
-                    ],
-                  ),
-                ),
-
-                const SizedBox(height: 8),
-
-                // 图片区域
-                _buildImageSection(),
-
-                // 文案内容
-                if (widget.card.xiaohongshu != null &&
-                    widget.card.xiaohongshu!.isNotEmpty)
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-                    child: Text(
-                      widget.card.xiaohongshu!,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        height: 1.5,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ),
-
-                // 时间、地点
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
-                  child: Text(
-                    '${_formatDate(widget.card.createdAt)} ${_getCityName()}',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Colors.grey[600],
-                    ),
-                  ),
-                ),
-
-                // 分隔线
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: Divider(height: 1, color: Colors.grey[200]),
-                ),
-
-                // 评论数量显示
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-                  child: Row(
-                    children: [
-                      Text(
-                        context.l10n('共 13 条评论'),
-                        style: TextStyle(
                           fontSize: 14,
-                          color: Colors.grey[800],
+                          height: 1.5,
+                          color: Colors.black87,
                         ),
                       ),
-                      const SizedBox(width: 4),
-                      Icon(
-                        Icons.keyboard_arrow_down,
-                        size: 18,
+                    ),
+
+                  // 时间、地点
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 8, 12, 12),
+                    child: Text(
+                      '${_formatDate(widget.card.createdAt)}',
+                      style: TextStyle(
+                        fontSize: 12,
                         color: Colors.grey[600],
                       ),
-                    ],
+                    ),
                   ),
-                ),
 
-                // 模拟评论列表
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: _buildCommentsList(context),
-                ),
-
-                const SizedBox(height: 80), // 留出底部互动栏空间
-              ],
-            ),
-          ),
-
-          // 底部互动栏（固定在底部）
-          Positioned(
-            bottom: 0,
-            left: 0,
-            right: 0,
-            child: Container(
-              padding: const EdgeInsets.fromLTRB(12, 8, 12, 20),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
-                    blurRadius: 8,
-                    offset: const Offset(0, -2),
+                  // 分隔线
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: Divider(height: 1, color: Colors.grey[200]),
                   ),
+
+                  // 评论数量显示
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                    child: Row(
+                      children: [
+                        Text(
+                          context.l10n('共 2 条评论'),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: Colors.grey[800],
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Icon(
+                          Icons.keyboard_arrow_down,
+                          size: 18,
+                          color: Colors.grey[600],
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  // 模拟评论列表
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 12),
+                    child: _buildCommentsList(context),
+                  ),
+
+                  const SizedBox(height: 80), // 留出底部互动栏空间
                 ],
               ),
-              child: _buildInteractionBar(context),
             ),
-          ),
 
-          // 手机状态栏（透明，叠加在最顶层，黑色文字）
-          const Positioned(
-            top: 0,
-            left: 0,
-            right: 0,
-            child: PhoneStatusBar(
-              textColor: Colors.black,
+            // 底部互动栏（固定在底部）
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                padding: const EdgeInsets.fromLTRB(
+                    12, 6, 12, 16), // 上padding从8改为6，下padding从20改为16
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.05),
+                      blurRadius: 8,
+                      offset: const Offset(0, -2),
+                    ),
+                  ],
+                ),
+                child: _buildInteractionBar(context),
+              ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
+
+            // 固定顶部区域（状态栏+头部，整体白色背景）
+            Positioned(
+              top: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                color: Colors.white, // 整体白色背景
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    // 状态栏
+                    const PhoneStatusBar(
+                      textColor: Colors.black,
+                    ),
+
+                    // 头部用户信息
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+                      child: Row(
+                        children: [
+                          // 返回按钮
+                          const Icon(Icons.arrow_back_ios,
+                              size: 18, color: Colors.black),
+                          const SizedBox(width: 4),
+
+                          // 头像
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(14),
+                            child: Image.asset(
+                              'assets/images/logo.png',
+                              width: 28,
+                              height: 28,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  Container(
+                                width: 28,
+                                height: 28,
+                                color: Colors.grey[300],
+                                child: const Icon(Icons.person,
+                                    color: Colors.white, size: 16),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+
+                          // 昵称
+                          Text(
+                            context.l10n('迹见文案'),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              color: Colors.black,
+                            ),
+                          ),
+
+                          const Spacer(),
+
+                          // 关注按钮（红色边框）
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 12,
+                              vertical: 3,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              border: Border.all(
+                                color: const Color(0xFFf93a4b),
+                                width: 0.4,
+                              ),
+                              borderRadius: BorderRadius.circular(13),
+                            ),
+                            child: Text(
+                              context.l10n('关注'),
+                              style: const TextStyle(
+                                fontSize: 11,
+                                color: Color(0xFFf93a4b),
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ),
+
+                          const SizedBox(width: 10),
+
+                          // 分享按钮
+                          Image.asset(
+                            'assets/xiaohongshu_share.png',
+                            width: 20,
+                            height: 20,
+                            errorBuilder: (context, error, stackTrace) =>
+                                const Icon(Icons.shortcut,
+                                    size: 20, color: Colors.black),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
 
   /// 构建图片区域
   Widget _buildImageSection() {
@@ -241,23 +247,61 @@ class _XiaohongshuPreviewWidgetState extends State<XiaohongshuPreviewWidget> {
       return const SizedBox.shrink();
     }
 
+    final totalImages = images.length > 9 ? 9 : images.length;
+
     return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch, // 让子组件占满宽度
       children: [
-        // 图片轮播（固定高度）
-        SizedBox(
-          height: 400, // 固定高度
-          child: PageView.builder(
-            controller: _pageController,
-            onPageChanged: (index) {
-              setState(() {
-                _currentImageIndex = index;
-              });
-            },
-            itemCount: images.length > 9 ? 9 : images.length,
-            itemBuilder: (context, index) {
-              return _buildImage(images[index]);
-            },
-          ),
+        // 图片轮播（宽高比3:4，图片contain，空余部分白色）
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final width = constraints.maxWidth;
+            final height = width * 1.33; // 宽高比3:4，即高度是宽度的1.33倍
+
+            return Container(
+              height: height,
+              width: double.infinity, // 明确设置为占满宽度
+              color: Colors.white, // 空余部分白色背景
+              child: Stack(
+                children: [
+                  // 图片PageView
+                  PageView.builder(
+                    controller: _pageController,
+                    onPageChanged: (index) {
+                      setState(() {
+                        _currentImageIndex = index;
+                      });
+                    },
+                    itemCount: totalImages,
+                    itemBuilder: (context, index) => _buildImage(images[index]),
+                  ),
+
+                  // 右上角图片张数显示
+                  if (totalImages > 1)
+                    Positioned(
+                      top: 12,
+                      right: 12,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.5),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Text(
+                          '${_currentImageIndex + 1}/$totalImages',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+            );
+          },
         ),
 
         // 图片指示器（小红点样式）- 在图片下方
@@ -267,7 +311,7 @@ class _XiaohongshuPreviewWidgetState extends State<XiaohongshuPreviewWidget> {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: List.generate(
-                images.length > 9 ? 9 : images.length,
+                totalImages,
                 (index) => Container(
                   width: 6,
                   height: 6,
@@ -293,7 +337,7 @@ class _XiaohongshuPreviewWidgetState extends State<XiaohongshuPreviewWidget> {
       if (file.existsSync()) {
         return Image.file(
           file,
-          fit: BoxFit.cover,
+          fit: BoxFit.contain, // 使用contain完整展示图片，不裁剪
           errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
         );
       }
@@ -302,7 +346,7 @@ class _XiaohongshuPreviewWidgetState extends State<XiaohongshuPreviewWidget> {
     // 网络图片
     return Image.network(
       imageSource.path,
-      fit: BoxFit.cover,
+      fit: BoxFit.contain, // 使用contain完整展示图片，不裁剪
       loadingBuilder: (context, child, loadingProgress) {
         if (loadingProgress == null) return child;
         return Center(
@@ -319,41 +363,38 @@ class _XiaohongshuPreviewWidgetState extends State<XiaohongshuPreviewWidget> {
   }
 
   /// 构建占位符
-  Widget _buildPlaceholder() {
-    return Container(
-      color: Colors.grey[200],
-      child: Center(
-        child: Icon(
-          Icons.image_not_supported,
-          size: 60,
-          color: Colors.grey[400],
+  Widget _buildPlaceholder() => Container(
+        color: Colors.grey[200],
+        child: Center(
+          child: Icon(
+            Icons.image_not_supported,
+            size: 60,
+            color: Colors.grey[400],
+          ),
         ),
-      ),
-    );
-  }
+      );
 
   /// 构建模拟评论列表
-  Widget _buildCommentsList(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _buildCommentItem(
-          context,
-          'Xinxxxg',
-          '有靠谱团吗',
-          '5天前 重庆',
-        ),
-        const SizedBox(height: 12),
-        _buildCommentItem(
-          context,
-          context.l10n('迹见文案'),
-          '已回',
-          '5天前 重庆',
-          isAuthor: true,
-        ),
-      ],
-    );
-  }
+  Widget _buildCommentsList(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildCommentItem(
+            context,
+            context.l10n('momo'),
+            context.l10n('好美！！！'),
+            context.l10n('5天前 深圳'),
+            avatarPath: 'assets/avatar.png', // 使用西瓜恐龙头像
+          ),
+          const SizedBox(height: 12),
+          _buildCommentItem(
+            context,
+            context.l10n('迹见文案'),
+            context.l10n('记录生活'),
+            context.l10n('5天前 深圳'),
+            isAuthor: true,
+          ),
+        ],
+      );
 
   /// 构建单条评论
   Widget _buildCommentItem(
@@ -362,141 +403,160 @@ class _XiaohongshuPreviewWidgetState extends State<XiaohongshuPreviewWidget> {
     String comment,
     String time, {
     bool isAuthor = false,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // 头像
-        ClipRRect(
-          borderRadius: BorderRadius.circular(16),
-          child: Image.asset(
-            'assets/images/logo.png',
-            width: 32,
-            height: 32,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) => Container(
+    String? avatarPath, // 可选的头像路径参数
+  }) =>
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 头像
+          ClipRRect(
+            borderRadius: BorderRadius.circular(16),
+            child: Image.asset(
+              avatarPath ?? 'assets/images/logo.png', // 使用自定义头像或默认头像
               width: 32,
               height: 32,
-              color: Colors.grey[300],
-              child: const Icon(Icons.person, size: 20, color: Colors.white),
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) => Container(
+                width: 32,
+                height: 32,
+                color: Colors.grey[300],
+                child: const Icon(Icons.person, size: 20, color: Colors.white),
+              ),
             ),
           ),
-        ),
-        const SizedBox(width: 8),
+          const SizedBox(width: 8),
 
-        // 评论内容
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Text(
-                    userName,
-                    style: const TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w500,
-                    ),
-                  ),
-                  if (isAuthor) ...[
-                    const SizedBox(width: 4),
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 4, vertical: 1),
-                      decoration: BoxDecoration(
-                        color: const Color(0xFFf93a4b),
-                        borderRadius: BorderRadius.circular(2),
+          // 评论内容
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      userName,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
                       ),
-                      child: Text(
-                        context.l10n('作者'),
-                        style: const TextStyle(
-                          fontSize: 10,
-                          color: Colors.white,
+                    ),
+                    if (isAuthor) ...[
+                      const SizedBox(width: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 4, vertical: 1),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFf93a4b),
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                        child: Text(
+                          context.l10n('作者'),
+                          style: const TextStyle(
+                            fontSize: 10,
+                            color: Colors.white,
+                          ),
                         ),
                       ),
-                    ),
+                    ],
                   ],
-                ],
-              ),
-              const SizedBox(height: 4),
-              Text(
-                comment,
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[800],
                 ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                time,
-                style: TextStyle(
-                  fontSize: 12,
-                  color: Colors.grey[500],
+                const SizedBox(height: 4),
+                Text(
+                  comment,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[800],
+                  ),
                 ),
-              ),
+                const SizedBox(height: 4),
+                Text(
+                  time,
+                  style: TextStyle(
+                    fontSize: 12,
+                    color: Colors.grey[500],
+                  ),
+                ),
+              ],
+            ),
+          ),
+
+          // 点赞
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.favorite_border, size: 16, color: Colors.grey[600]),
             ],
           ),
-        ),
-
-        // 点赞
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(Icons.favorite_border, size: 16, color: Colors.grey[600]),
-          ],
-        ),
-      ],
-    );
-  }
+        ],
+      );
 
   /// 构建底部互动栏
-  Widget _buildInteractionBar(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
+  Widget _buildInteractionBar(BuildContext context) => Row(
         children: [
-          // 左侧：输入框
-          Expanded(
+          // 左侧：输入框（带编辑icon）- 占40%宽度
+          Flexible(
+            flex: 40,
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: Colors.grey[100],
-                borderRadius: BorderRadius.circular(20),
+                borderRadius: BorderRadius.circular(18),
               ),
-              child: Text(
-                context.l10n('说点什么...'),
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey[500],
-                ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // 编辑icon（铅笔图标）
+                  Icon(
+                    Icons.edit_outlined,
+                    size: 16,
+                    color: Colors.grey[600],
+                  ),
+                  const SizedBox(width: 4),
+                  // 输入提示文字（不换行）
+                  Flexible(
+                    child: Text(
+                      context.l10n('说点什么...'),
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),
 
-          const SizedBox(width: 16),
-
-          // 右侧：互动数据
-          _buildInteractionButton(Icons.favorite_border, '848'),
-          const SizedBox(width: 12),
-          _buildInteractionButton(Icons.star_border, '343'),
-          const SizedBox(width: 12),
-          _buildInteractionButton(Icons.chat_bubble_outline, '13'),
+          // 右侧：互动数据 - 占60%宽度
+          Flexible(
+            flex: 60,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                _buildInteractionButton(Icons.favorite_border, '948'),
+                const SizedBox(width: 10), // 从12改为10
+                _buildInteractionButton(Icons.star_border, '744'),
+                const SizedBox(width: 10), // 从12改为10
+                _buildInteractionButton(Icons.chat_bubble_outline, '2'),
+              ],
+            ),
+          ),
         ],
-      ),
-    );
-  }
+      );
 
   /// 构建单个互动按钮
   Widget _buildInteractionButton(IconData icon, String count) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 20, color: Colors.black87),
-        const SizedBox(width: 4),
+        Icon(icon, size: 20, color: Colors.black87), // 从22改回20
+        const SizedBox(width: 3), // 从4改为3
         Text(
           count,
           style: const TextStyle(
-            fontSize: 12,
+            fontSize: 12, // 从13改回12
             color: Colors.black87,
             fontWeight: FontWeight.w500,
           ),
@@ -557,23 +617,7 @@ class _XiaohongshuPreviewWidgetState extends State<XiaohongshuPreviewWidget> {
   }
 
   /// 格式化日期
-  String _formatDate(DateTime date) {
-    return DateFormat('MM-dd').format(date);
-  }
-
-  /// 获取城市名称
-  String _getCityName() {
-    if (widget.card.selectedPlace != null) {
-      // 从地点名称中提取城市，去掉"·"后面的部分
-      final placeName = widget.card.selectedPlace!.name;
-      if (placeName.contains('·')) {
-        return placeName.split('·')[0];
-      }
-      return placeName;
-    }
-    // 默认城市
-    return '深圳';
-  }
+  String _formatDate(DateTime date) => DateFormat('MM-dd').format(date);
 }
 
 /// 图片来源

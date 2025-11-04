@@ -5,6 +5,7 @@ import 'douyin_preview_widget.dart';
 import 'moments_preview_widget.dart';
 import 'weibo_preview_widget.dart';
 import 'xiaohongshu_preview_widget.dart';
+import 'duilian_preview_widget.dart';
 import 'preview_text_scale.dart';
 
 /// 多平台预览弹窗
@@ -20,20 +21,32 @@ class MultiPlatformPreviewDialog extends StatefulWidget {
   final double phoneScale;
 
   /// 创建多平台预览（默认显示所有平台）
-  const MultiPlatformPreviewDialog({
+  /// 会根据卡片数据动态过滤平台列表（例如：只有有对联数据时才显示对联）
+  MultiPlatformPreviewDialog({
     super.key,
     required this.card,
-    this.platforms = const [
-      PlatformType.pengyouquan,
-      PlatformType.xiaohongshu,
-      PlatformType.weibo,
-      PlatformType.douyin,
-    ],
+    List<PlatformType>? platforms,
     this.initialIndex = 0,
     this.contentWidth = 300,
     this.aspectRatio = 163.4 / 78,
     this.phoneScale = 0.82,
-  });
+  }) : platforms = platforms ??
+            _getDefaultPlatforms(card);
+
+  /// 根据卡片数据获取默认平台列表
+  /// 只包含卡片有数据的平台
+  static List<PlatformType> _getDefaultPlatforms(PoetryCard card) {
+    final platforms = <PlatformType>[
+      PlatformType.pengyouquan,
+      if (card.xiaohongshu != null && card.xiaohongshu!.isNotEmpty)
+        PlatformType.xiaohongshu,
+      if (card.weibo != null && card.weibo!.isNotEmpty) PlatformType.weibo,
+      if (card.douyin != null && card.douyin!.isNotEmpty) PlatformType.douyin,
+      // 只有有对联数据时才显示对联
+      if (card.duilian != null) PlatformType.duilian,
+    ];
+    return platforms;
+  }
 
   /// 创建单平台预览
   factory MultiPlatformPreviewDialog.single({
@@ -69,6 +82,7 @@ class _MultiPlatformPreviewDialogState
     PlatformType.xiaohongshu: '小红书',
     PlatformType.weibo: '微博',
     PlatformType.douyin: '抖音',
+    PlatformType.duilian: '对联',
   };
 
   @override
@@ -104,6 +118,9 @@ class _MultiPlatformPreviewDialogState
         // 如果需要诗句预览，可以添加对应组件
         content = MomentsPreviewWidget(card: widget.card); // 临时使用朋友圈
         break;
+      case PlatformType.duilian:
+        content = DuilianPreviewWidget(card: widget.card);
+        break;
     }
 
     // 应用文本缩放
@@ -115,7 +132,6 @@ class _MultiPlatformPreviewDialogState
 
   @override
   Widget build(BuildContext context) {
-    final screenSize = MediaQuery.of(context).size;
     final contentHeight = widget.contentWidth * widget.aspectRatio;
     final isMultiPlatform = widget.platforms.length > 1;
 

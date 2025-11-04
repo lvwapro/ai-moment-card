@@ -96,7 +96,7 @@ class AIPoetryService {
         final data = response.data['data'];
 
         // 返回完整的数据结构
-        return {
+        final result = {
           'title': data['title'],
           'author': data['author'],
           'time': data['time'],
@@ -107,6 +107,16 @@ class AIPoetryService {
           'pengyouquan': data['pengyouquan'],
           'douyin': data['douyin'],
         };
+        
+        // 添加对联数据（如果存在）
+        if (data['duilian'] != null) {
+          result['duilian'] = data['duilian'];
+          print('✅ 对联数据: ${data['duilian']}');
+        } else {
+          print('⚠️ API响应中没有对联数据');
+        }
+        
+        return result;
       } else {
         print('API返回错误: ${response.data?['message'] ?? response.data}');
         return _getFallbackPoetryData(style);
