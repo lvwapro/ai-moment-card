@@ -146,7 +146,7 @@ class WeiboPreviewWidget extends StatelessWidget {
                                       ),
                                       Text(
                                         context.l10n('来自') +
-                                            ' iPhone 17 Pro Max',
+                                            ' ${context.l10n('iPhone 17 Pro Max')}',
                                         style: TextStyle(
                                           fontSize: 11,
                                           color: Colors.grey[600],
@@ -159,7 +159,7 @@ class WeiboPreviewWidget extends StatelessWidget {
                                   Padding(
                                     padding: const EdgeInsets.only(top: 1),
                                     child: Text(
-                                      context.l10n('发布于') + '深圳',
+                                      context.l10n('发布于') + context.l10n('深圳'),
                                       style: TextStyle(
                                         fontSize: 11,
                                         color: Colors.grey[600],
@@ -467,8 +467,8 @@ class WeiboPreviewWidget extends StatelessWidget {
           spacing: 8,
           runSpacing: 8,
           children: [
-            _buildSearchChip('迹见文案'),
-            _buildSearchChip('迹见文案-AI文案助手'),
+            _buildSearchChip(context.l10n('迹见文案')),
+            _buildSearchChip(context.l10n('迹见文案-AI文案助手')),
           ],
         ),
       ],
@@ -577,9 +577,9 @@ class WeiboPreviewWidget extends StatelessWidget {
             avatarPath: 'assets/avatar.png',
             userName: 'haohaoteuk1023',
             userNameColor: Colors.black87,
-            comment: '真不错',
+            comment: context.l10n('真不错'),
             time: '11-3 20:27',
-            location: '${context.l10n('来自')} 日本',
+            location: '${context.l10n('来自')} ${context.l10n('日本')}',
             likeCount: '2',
           ),
         ],

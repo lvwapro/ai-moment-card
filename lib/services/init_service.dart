@@ -6,6 +6,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'network_service.dart';
 import 'revenue_cat_service.dart';
 import 'vip_service.dart';
+import 'umeng_service.dart';
 
 class InitService {
   static final NetworkService _networkService = NetworkService();
@@ -42,6 +43,9 @@ class InitService {
       // 5. 异步刷新会员状态
       _refreshVipStatusAsync();
 
+      // 6. 异步初始化友盟统计，不阻塞主流程
+      _initUmengAsync();
+
       return userInitResult;
     } catch (e) {
       print('应用初始化异常: $e');
@@ -68,6 +72,20 @@ class InitService {
     } catch (e) {
       print('会员状态刷新失败: $e');
       // 失败不影响主流程
+    }
+  }
+
+  /// 异步初始化友盟统计，失败不影响主流程
+  /// 友盟SDK会自动统计应用启动和会话，用于DAU统计
+  static void _initUmengAsync() async {
+    try {
+      final success = await UmengService.init();
+      if (success) {
+        print('友盟统计异步初始化成功，DAU统计已自动启用');
+      }
+    } catch (e) {
+      print('友盟统计异步初始化失败: $e');
+      // 失败不影响主流程，继续执行
     }
   }
 

@@ -1,6 +1,10 @@
 PODS:
   - device_info_plus (0.0.1):
     - Flutter
+  - fl_umeng (0.0.1):
+    - Flutter
+    - UMCommon
+    - UMDevice
   - Flutter (1.0.0)
   - gal (1.0.0):
     - Flutter
@@ -50,11 +54,15 @@ PODS:
   - tencentcloud_cos_sdk_plugin (1.2.6):
     - Flutter
     - QCloudCOSXML (= 6.5.1)
+  - UMCommon (7.5.3):
+    - UMDevice
+  - UMDevice (3.4.0)
   - url_launcher_ios (0.0.1):
     - Flutter
 
 DEPENDENCIES:
   - device_info_plus (from `.symlinks/plugins/device_info_plus/ios`)
+  - fl_umeng (from `.symlinks/plugins/fl_umeng/ios`)
   - Flutter (from `Flutter`)
   - gal (from `.symlinks/plugins/gal/darwin`)
   - geocoding_ios (from `.symlinks/plugins/geocoding_ios/ios`)
@@ -79,10 +87,14 @@ SPEC REPOS:
     - QCloudTrack
     - RevenueCat
     - RevenueCatUI
+    - UMCommon
+    - UMDevice
 
 EXTERNAL SOURCES:
   device_info_plus:
     :path: ".symlinks/plugins/device_info_plus/ios"
+  fl_umeng:
+    :path: ".symlinks/plugins/fl_umeng/ios"
   Flutter:
     :path: Flutter
   gal:
@@ -114,6 +126,7 @@ EXTERNAL SOURCES:
 
 SPEC CHECKSUMS:
   device_info_plus: 71ffc6ab7634ade6267c7a93088ed7e4f74e5896
+  fl_umeng: 3d32e5b84cf56f6e6b816c9d2e09f5df7e66df97
   Flutter: e0871f40cf51350855a761d2e70bf5af5b9b5de7
   gal: baecd024ebfd13c441269ca7404792a7152fde89
   geocoding_ios: 86f1c479822f07a2f79f7094f2b753d1e9e20215
@@ -134,6 +147,8 @@ SPEC CHECKSUMS:
   share_plus: de6030e33b4e106470e09322d87cf2a4258d2d1d
   shared_preferences_foundation: 9e1978ff2562383bd5676f64ec4e9aa8fa06a6f7
   tencentcloud_cos_sdk_plugin: b7a4260f562e220cdb3933b881e092199a3e43f8
+  UMCommon: 3b850836e8bc162b4e7f6b527d30071ed8ea75a1
+  UMDevice: dcdf7ec167387837559d149fbc7d793d984faf82
   url_launcher_ios: 694010445543906933d732453a59da0a173ae33d
 
 PODFILE CHECKSUM: c4b7ff75fe500baa505244cdcd6c66f39acf48c1

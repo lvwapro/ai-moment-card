@@ -50,6 +50,13 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+        <!-- 友盟统计 AppKey -->
+        <meta-data
+            android:name="UMENG_APPKEY"
+            android:value="6909ad6f8560e34872debb3f" />
+        <meta-data
+            android:name="UMENG_CHANNEL"
+            android:value="default" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and
