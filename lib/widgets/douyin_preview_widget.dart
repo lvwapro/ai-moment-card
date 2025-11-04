@@ -384,7 +384,7 @@ class _DouyinPreviewWidgetState extends State<DouyinPreviewWidget> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
               decoration: BoxDecoration(
-                color: const Color(0xFF282828),
+                color: const Color(0xFF282828).withOpacity(0.4),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Row(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/poetry_card.dart';
 import '../providers/app_state.dart';
+import '../services/language_service.dart';
 import 'douyin_preview_widget.dart';
 import 'moments_preview_widget.dart';
 import 'weibo_preview_widget.dart';
@@ -76,14 +77,23 @@ class _MultiPlatformPreviewDialogState
   late PageController _pageController;
   int _currentIndex = 0;
 
-  // 平台名称映射
-  static const Map<PlatformType, String> _platformNames = {
-    PlatformType.pengyouquan: '朋友圈',
-    PlatformType.xiaohongshu: '小红书',
-    PlatformType.weibo: '微博',
-    PlatformType.douyin: '抖音',
-    PlatformType.duilian: '对联',
-  };
+  // 获取平台名称（使用翻译）
+  String _getPlatformName(BuildContext context, PlatformType platform) {
+    switch (platform) {
+      case PlatformType.pengyouquan:
+        return context.l10n('朋友圈');
+      case PlatformType.xiaohongshu:
+        return context.l10n('小红书');
+      case PlatformType.weibo:
+        return context.l10n('微博');
+      case PlatformType.douyin:
+        return context.l10n('抖音');
+      case PlatformType.duilian:
+        return context.l10n('对联');
+      case PlatformType.shiju:
+        return context.l10n('诗句');
+    }
+  }
 
   @override
   void initState() {
@@ -246,8 +256,8 @@ class _MultiPlatformPreviewDialogState
                                   padding:
                                       const EdgeInsets.symmetric(horizontal: 8),
                                   child: Text(
-                                    _platformNames[widget.platforms[index]] ??
-                                        '',
+                                    _getPlatformName(
+                                        context, widget.platforms[index]),
                                     style: TextStyle(
                                       color: _currentIndex == index
                                           ? Colors.white
