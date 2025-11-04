@@ -411,8 +411,8 @@ class _FootprintScreenState extends State<FootprintScreen> {
     final currentLang = LanguageService.to.getCurrentLanguage();
 
     if (currentLang == 'zh') {
-      // 中文使用高德地图
-      return 'https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=1&style=8&x={x}&y={y}&z={z}';
+      // 中文使用高德地图（高清晰度，scale=2）
+      return 'https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=10&style=8&x={x}&y={y}&z={z}';
     } else {
       // 英文使用 CartoDB Voyager（清晰的英文地图）
       return 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
@@ -432,10 +432,8 @@ class _FootprintScreenState extends State<FootprintScreen> {
 
   /// 获取 Retina 模式设置
   bool _getRetinaMode() {
-    final currentLang = LanguageService.to.getCurrentLanguage();
-
-    // 只有英文地图（CartoDB）需要 retina 模式
-    return currentLang != 'zh';
+    // 中文和英文地图都启用 retina 模式以获得更清晰的显示
+    return true;
   }
 
   @override
