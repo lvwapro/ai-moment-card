@@ -37,11 +37,16 @@ class MomentsPreviewWidget extends StatelessWidget {
                     children: [
                       Column(
                         children: [
-                          // 头部留白区域（主题色渐变）
+                          // 头部留白区域（朋友圈背景图）
                           Container(
                             height: 280,
                             clipBehavior: Clip.none, // 允许子元素超出边界
-                            color: Colors.grey[500],
+                            decoration: BoxDecoration(
+                              image: DecorationImage(
+                                image: AssetImage('assets/images/wechat_background.png'),
+                                fit: BoxFit.cover,
+                              ),
+                            ),
                             padding: const EdgeInsets.all(16),
                             child: Stack(
                               clipBehavior: Clip.none, // 允许子元素超出边界
