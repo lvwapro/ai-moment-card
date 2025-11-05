@@ -127,6 +127,10 @@ flutter:
       fonts:
         - asset: assets/fonts/jiangchenglvdongsong.ttf
           weight: 400
+    - family: YanShiXiaXingKai
+      fonts:
+        - asset: assets/fonts/YanShiXiaXingKai-2.ttf
+          weight: 700
 
 flutter_launcher_icons:
   android: true
