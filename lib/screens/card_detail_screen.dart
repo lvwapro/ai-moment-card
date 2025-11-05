@@ -18,10 +18,12 @@ import 'package:ai_poetry_card/services/language_service.dart';
 import '../widgets/card/poetry_card_widget.dart';
 import '../widgets/common/loading_overlay.dart';
 import '../theme/app_theme.dart';
+import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 import 'package:flutter/rendering.dart';
+import 'package:flutter/painting.dart';
 import 'package:path_provider/path_provider.dart';
 
 /// 卡片详情/结果展示屏幕
@@ -273,6 +275,9 @@ class _CardDetailScreenState extends State<CardDetailScreen>
   /// 分享卡片（存储到文件/分享）
   void _shareCard(BuildContext context) async {
     try {
+      // 等待图片加载完成
+      await _ensureImageLoaded();
+
       // 渲染卡片为图片
       RenderRepaintBoundary boundary =
           _cardKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
@@ -364,7 +369,10 @@ class _CardDetailScreenState extends State<CardDetailScreen>
         return;
       }
 
-      // 2. 渲染卡片为图片
+      // 2. 等待图片加载完成
+      await _ensureImageLoaded();
+
+      // 3. 渲染卡片为图片
       RenderRepaintBoundary boundary =
           _cardKey.currentContext!.findRenderObject() as RenderRepaintBoundary;
       ui.Image image = await boundary.toImage(pixelRatio: 3.0);
@@ -376,7 +384,7 @@ class _CardDetailScreenState extends State<CardDetailScreen>
         throw Exception('图片转换失败');
       }
 
-      // 3. 保存到临时文件
+      // 4. 保存到临时文件
       final tempDir = await getTemporaryDirectory();
       final timestamp = DateTime.now().millisecondsSinceEpoch;
       final fileName = 'AI诗意卡片_$timestamp.png';
@@ -384,13 +392,13 @@ class _CardDetailScreenState extends State<CardDetailScreen>
       final file = File(filePath);
       await file.writeAsBytes(byteData.buffer.asUint8List());
 
-      // 4. 使用 gal 保存到相册
+      // 5. 使用 gal 保存到相册
       final success = await GalleryService.instance.saveImage(
         filePath,
         useAlbum: true,
       );
 
-      // 5. 清理临时文件
+      // 6. 清理临时文件
       try {
         // hct
         await file.delete();
@@ -517,5 +525,61 @@ class _CardDetailScreenState extends State<CardDetailScreen>
     print('═══════════════════════════════════════════════════════');
     print(_currentCard.toJson());
     print('═══════════════════════════════════════════════════════');
+  }
+
+  /// 确保图片已加载完成
+  /// 通过预加载 ImageProvider 来确保图片已经加载到内存中
+  Future<void> _ensureImageLoaded() async {
+    final firstImagePath = _currentCard.getFirstImagePath();
+
+    // 如果是网络图片或本地文件，尝试预加载
+    if (firstImagePath.isNotEmpty) {
+      ImageProvider? imageProvider;
+
+      if (firstImagePath.startsWith('http')) {
+        imageProvider = NetworkImage(firstImagePath);
+      } else {
+        try {
+          final file = File(firstImagePath);
+          if (await file.exists()) {
+            imageProvider = FileImage(file);
+          }
+        } catch (e) {
+          debugPrint('预加载图片失败: $e');
+        }
+      }
+
+      if (imageProvider != null) {
+        try {
+          // 使用 resolve 来确保图片已加载
+          final completer = Completer<void>();
+          final stream = imageProvider.resolve(const ImageConfiguration());
+          final listener = ImageStreamListener(
+            (ImageInfo info, bool synchronousCall) {
+              completer.complete();
+            },
+            onError: (exception, stackTrace) {
+              // 图片加载失败，继续执行（会使用备用背景）
+              completer.complete();
+            },
+          );
+          stream.addListener(listener);
+
+          // 等待图片加载完成，最多等待 2 秒
+          await completer.future.timeout(
+            const Duration(seconds: 2),
+            onTimeout: () {
+              stream.removeListener(listener);
+            },
+          );
+        } catch (e) {
+          debugPrint('预加载图片超时或失败: $e');
+        }
+      }
+    }
+
+    // 等待几帧以确保UI完全渲染
+    await Future.delayed(const Duration(milliseconds: 200));
+    await WidgetsBinding.instance.endOfFrame;
   }
 }
