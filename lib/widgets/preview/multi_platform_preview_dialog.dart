@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../models/poetry_card.dart';
-import '../providers/app_state.dart';
-import '../services/language_service.dart';
+import '../../models/poetry_card.dart';
+import '../../providers/app_state.dart';
+import '../../services/language_service.dart';
 import 'douyin_preview_widget.dart';
 import 'moments_preview_widget.dart';
 import 'weibo_preview_widget.dart';

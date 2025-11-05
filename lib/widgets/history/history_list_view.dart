@@ -6,7 +6,7 @@ import 'package:provider/provider.dart';
 import '../../models/poetry_card.dart';
 import '../../providers/history_manager.dart';
 import '../../services/language_service.dart';
-import '../history_card_widget.dart';
+import 'history_card_widget.dart';
 import 'dashed_border_painter.dart';
 
 /// 列表视图（带时间轴）

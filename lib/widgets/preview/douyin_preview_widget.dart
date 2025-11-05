@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
-import '../models/poetry_card.dart';
-import '../services/language_service.dart';
+import '../../models/poetry_card.dart';
+import '../../services/language_service.dart';
 import 'phone_status_bar.dart';
 
 /// 抖音预览组件

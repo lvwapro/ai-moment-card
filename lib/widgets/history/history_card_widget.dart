@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import '../models/poetry_card.dart';
-import 'common/cached_card_image.dart';
-import '../screens/card_detail_screen.dart';
+import '../../models/poetry_card.dart';
+import '../common/cached_card_image.dart';
+import '../../../screens/card_detail_screen.dart';
 
 class HistoryCardWidget extends StatelessWidget {
   final PoetryCard card;

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/poetry_card.dart';
+import '../../models/poetry_card.dart';
 
 /// 对联预览组件
 /// 使用 duilian.png 作为底图，展示对联内容

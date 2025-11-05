@@ -3,8 +3,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:ai_poetry_card/models/poetry_card.dart';
 import 'package:ai_poetry_card/widgets/common/fallback_background.dart';
-import '../providers/app_state.dart';
-import '../services/language_service.dart';
+import '../../providers/app_state.dart';
+import '../../services/language_service.dart';
 
 class PoetryCardWidget extends StatelessWidget {
   final PoetryCard card;

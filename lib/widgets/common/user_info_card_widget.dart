@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
-import '../providers/app_state.dart';
-import '../services/upgrade_service.dart';
-import '../services/network_service.dart';
+import '../../providers/app_state.dart';
+import '../../services/upgrade_service.dart';
+import '../../services/network_service.dart';
 import 'package:ai_poetry_card/services/language_service.dart';
 
 class UserInfoCardWidget extends StatefulWidget {

@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import '../providers/app_state.dart';
-import '../services/language_service.dart';
-import '../theme/app_theme.dart';
+import '../../providers/app_state.dart';
+import '../../services/language_service.dart';
+import '../../theme/app_theme.dart';
 
 /// 情绪标签选择器
 class MoodTagSelectorWidget extends StatelessWidget {

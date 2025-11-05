@@ -1,10 +1,10 @@
 import 'package:ai_poetry_card/models/poetry_card.dart';
 import 'package:ai_poetry_card/providers/history_manager.dart';
 import 'package:ai_poetry_card/providers/card_generator.dart';
-import 'package:ai_poetry_card/widgets/card_info_widget.dart';
-import 'package:ai_poetry_card/widgets/nearby_places_widget.dart';
-import 'package:ai_poetry_card/widgets/card_images_viewer.dart';
-import 'package:ai_poetry_card/widgets/multi_platform_preview_dialog.dart';
+import 'package:ai_poetry_card/widgets/card/card_info_widget.dart';
+import 'package:ai_poetry_card/widgets/home/nearby_places_widget.dart';
+import 'package:ai_poetry_card/widgets/card/card_images_viewer.dart';
+import 'package:ai_poetry_card/widgets/preview/multi_platform_preview_dialog.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
@@ -15,8 +15,8 @@ import '../services/ai_poetry_service.dart';
 import '../services/upgrade_service.dart';
 
 import 'package:ai_poetry_card/services/language_service.dart';
-import '../widgets/poetry_card_widget.dart';
-import '../widgets/loading_overlay.dart';
+import '../widgets/card/poetry_card_widget.dart';
+import '../widgets/common/loading_overlay.dart';
 import '../theme/app_theme.dart';
 import 'dart:io';
 import 'dart:typed_data';

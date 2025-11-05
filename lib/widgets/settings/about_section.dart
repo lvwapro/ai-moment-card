@@ -5,7 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../services/language_service.dart';
 import '../../screens/privacy_policy_screen.dart';
 import '../../screens/user_agreement_screen.dart';
-import '../settings_card_widget.dart';
+import 'settings_card_widget.dart';
 
 /// 关于部分
 class AboutSection extends StatelessWidget {

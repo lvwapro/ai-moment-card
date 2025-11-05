@@ -2,10 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
-import '../models/poetry_card.dart';
-import '../providers/app_state.dart';
-import '../services/language_service.dart';
-import 'multi_platform_preview_dialog.dart';
+import '../../models/poetry_card.dart';
+import '../../providers/app_state.dart';
+import '../../services/language_service.dart';
+import '../preview/multi_platform_preview_dialog.dart';
 
 /// 卡片信息展示组件
 class CardInfoWidget extends StatefulWidget {

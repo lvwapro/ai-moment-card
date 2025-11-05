@@ -5,9 +5,8 @@ import 'package:share_plus/share_plus.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:excel/excel.dart';
 import '../../providers/history_manager.dart';
-import '../../utils/style_utils.dart';
 import '../../services/language_service.dart';
-import '../settings_card_widget.dart';
+import 'settings_card_widget.dart';
 
 /// 数据管理部分
 class DataSection extends StatelessWidget {
@@ -160,7 +159,6 @@ class DataSection extends StatelessWidget {
         final rowData = [
           (i + 1).toString(), // 序号
           _formatDateTime(card.createdAt), // 创建时间
-          StyleUtils.getStyleDisplayName(card.style), // 风格
           imageUrl, // 图片链接
           card.pengyouquan ?? '', // 朋友圈
           card.xiaohongshu ?? '', // 小红书

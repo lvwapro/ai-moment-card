@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
-import '../models/poetry_card.dart';
-import '../services/language_service.dart';
+import '../../models/poetry_card.dart';
+import '../../services/language_service.dart';
 
 /// 卡片图片查看器
 class CardImagesViewer extends StatefulWidget {

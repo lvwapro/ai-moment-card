@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
 import 'dart:async';
-import '../models/poetry_card.dart';
-import '../services/language_service.dart';
+import '../../models/poetry_card.dart';
+import '../../services/language_service.dart';
 import 'package:intl/intl.dart';
 import 'phone_status_bar.dart';
 

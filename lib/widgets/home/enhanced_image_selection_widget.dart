@@ -4,10 +4,10 @@ import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:permission_handler/permission_handler.dart';
 
-import '../services/cos_upload_service.dart';
-import '../services/language_service.dart';
-import 'common/fallback_background.dart';
-import 'common/permission_guide_dialog.dart';
+import '../../services/cos_upload_service.dart';
+import '../../services/language_service.dart';
+import '../common/fallback_background.dart';
+import '../common/permission_guide_dialog.dart';
 
 /// 增强版图片选择组件 - 集成腾讯云 COS 上传功能
 class EnhancedImageSelectionWidget extends StatefulWidget {

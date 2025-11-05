@@ -5,8 +5,8 @@ import '../models/poetry_card.dart';
 import '../models/time_filter.dart';
 import '../providers/history_manager.dart';
 import '../services/language_service.dart';
-import '../widgets/empty_state_widget.dart';
-import '../widgets/history_filter_bar.dart';
+import '../widgets/history/empty_state_widget.dart';
+import '../widgets/history/history_filter_bar.dart';
 import '../widgets/history/history_grid_view.dart';
 import '../widgets/history/history_list_view.dart';
 

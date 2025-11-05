@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:ai_poetry_card/services/language_service.dart';
-import '../widgets/user_info_card_widget.dart';
+import '../widgets/common/user_info_card_widget.dart';
 import '../widgets/settings/preferences_section.dart';
 import '../widgets/settings/data_section.dart';
 import '../widgets/settings/about_section.dart';

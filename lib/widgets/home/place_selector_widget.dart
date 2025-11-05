@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../models/nearby_place.dart';
-import '../services/language_service.dart';
+import '../../models/nearby_place.dart';
+import '../../services/language_service.dart';
 
 /// 地址选择组件
 class PlaceSelectorWidget extends StatelessWidget {

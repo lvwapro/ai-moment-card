@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../models/poetry_card.dart';
 import '../../providers/history_manager.dart';
-import '../history_card_widget.dart';
+import 'history_card_widget.dart';
 
 /// 网格视图
 class HistoryGridView extends StatelessWidget {

@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:ai_poetry_card/models/poetry_card.dart';
-import '../utils/style_utils.dart';
 
 /// 历史记录管理器
 ///
@@ -132,10 +131,7 @@ class HistoryManager extends ChangeNotifier {
 
     final lowercaseQuery = query.toLowerCase();
     return _cards.where((card) {
-      return card.poetry.toLowerCase().contains(lowercaseQuery) ||
-          StyleUtils.getStyleDisplayName(card.style)
-              .toLowerCase()
-              .contains(lowercaseQuery);
+      return card.poetry.toLowerCase().contains(lowercaseQuery) ?? false;
     }).toList();
   }
 

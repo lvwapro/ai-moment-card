@@ -4,7 +4,7 @@ import '../../providers/app_state.dart';
 import '../../theme/app_theme.dart';
 import '../../services/language_service.dart';
 import '../../services/upgrade_service.dart';
-import '../settings_card_widget.dart';
+import 'settings_card_widget.dart';
 
 /// 偏好设置部分
 class PreferencesSection extends StatefulWidget {

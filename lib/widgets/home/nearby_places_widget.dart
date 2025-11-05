@@ -1,9 +1,9 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../models/nearby_place.dart';
-import '../theme/app_theme.dart';
-import '../services/language_service.dart';
+import '../../models/nearby_place.dart';
+import '../../theme/app_theme.dart';
+import '../../services/language_service.dart';
 
 /// 附近地点展示组件
 class NearbyPlacesWidget extends StatelessWidget {
