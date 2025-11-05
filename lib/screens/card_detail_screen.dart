@@ -16,6 +16,7 @@ import '../services/upgrade_service.dart';
 
 import 'package:ai_poetry_card/services/language_service.dart';
 import '../widgets/poetry_card_widget.dart';
+import '../widgets/loading_overlay.dart';
 import '../theme/app_theme.dart';
 import 'dart:io';
 import 'dart:typed_data';
@@ -53,6 +54,9 @@ class _CardDetailScreenState extends State<CardDetailScreen>
   void initState() {
     super.initState();
     _currentCard = widget.card;
+
+    // 打印卡片数据
+    _printCardData();
 
     // 添加生命周期监听器
     WidgetsBinding.instance.addObserver(this);
@@ -118,84 +122,62 @@ class _CardDetailScreenState extends State<CardDetailScreen>
               style: TextStyle(color: Theme.of(context).primaryColor)),
           backgroundColor: Colors.transparent,
           elevation: 0,
-          actions: widget.isResultMode
-              ? [
-                  // 重新生成图标按钮
-                  if (_isRegenerating)
-                    Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(
-                            Theme.of(context).primaryColor,
+        ),
+        body: Stack(
+          children: [
+            Column(
+              children: [
+                // 卡片展示
+                Expanded(
+                  child: SingleChildScrollView(
+                    child: Column(
+                      children: [
+                        // 卡片展示
+                        Container(
+                          padding: const EdgeInsets.all(16),
+                          child: RepaintBoundary(
+                            key: _cardKey,
+                            child: PoetryCardWidget(
+                              card: _currentCard,
+                              showControls: false,
+                            ),
                           ),
                         ),
-                      ),
-                    )
-                  else
-                    IconButton(
-                      icon: Icon(
-                        Icons.refresh,
-                        color: Theme.of(context).primaryColor,
-                      ),
-                      onPressed: _regenerateCard,
-                      tooltip: context.l10n('重新生成文案'),
-                    ),
-                ]
-              : null,
-        ),
-        body: Column(
-          children: [
-            // 卡片展示
-            Expanded(
-              child: SingleChildScrollView(
-                child: Column(
-                  children: [
-                    // 卡片展示
-                    Container(
-                      padding: const EdgeInsets.all(16),
-                      child: RepaintBoundary(
-                        key: _cardKey,
-                        child: PoetryCardWidget(
+
+                        // 卡片信息（包含各平台文案）
+                        CardInfoWidget(
                           card: _currentCard,
-                          showControls: false,
+                          onPoetryUpdated: (updatedCard) {
+                            setState(() {
+                              _currentCard = updatedCard;
+                            });
+                          },
                         ),
-                      ),
+
+                        // 图片查看器
+                        CardImagesViewer(card: _currentCard),
+
+                        // 附近地点信息
+                        if (_currentCard.selectedPlace != null)
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
+                            child: NearbyPlacesWidget(
+                              places: [_currentCard.selectedPlace!],
+                            ),
+                          ),
+
+                        const SizedBox(height: 20),
+                      ],
                     ),
-
-                    // 卡片信息（包含各平台文案）
-                    CardInfoWidget(
-                      card: _currentCard,
-                      onPoetryUpdated: (updatedCard) {
-                        setState(() {
-                          _currentCard = updatedCard;
-                        });
-                      },
-                    ),
-
-                    // 图片查看器
-                    CardImagesViewer(card: _currentCard),
-
-                    // 附近地点信息
-                    if (_currentCard.selectedPlace != null)
-                      Padding(
-                        padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
-                        child: NearbyPlacesWidget(
-                          places: [_currentCard.selectedPlace!],
-                        ),
-                      ),
-
-                    const SizedBox(height: 20),
-                  ],
+                  ),
                 ),
-              ),
-            ),
 
-            // 结果模式：底部操作按钮
-            _buildResultActions(context),
+                // 结果模式：底部操作按钮
+                _buildResultActions(context),
+              ],
+            ),
+            // 重新生成时的loading遮罩
+            if (_isRegenerating) const LoadingOverlay(),
           ],
         ),
       );
@@ -267,9 +249,17 @@ class _CardDetailScreenState extends State<CardDetailScreen>
               SizedBox(
                 width: double.infinity,
                 child: TextButton.icon(
-                  onPressed: _createAnother,
-                  icon: const Icon(Icons.add),
-                  label: Text(context.l10n('再创作一张')),
+                  onPressed: _isRegenerating ? null : _regenerateCard,
+                  icon: _isRegenerating
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                          ),
+                        )
+                      : const Icon(Icons.refresh),
+                  label: Text(context.l10n('重新生成')),
                   style: TextButton.styleFrom(
                     foregroundColor: Theme.of(context).primaryColor,
                   ),
@@ -520,12 +510,12 @@ class _CardDetailScreenState extends State<CardDetailScreen>
     }
   }
 
-  /// 再创作一张卡片
-  void _createAnother() {
-    Navigator.pushNamedAndRemoveUntil(
-      context,
-      '/',
-      (route) => false,
-    );
+  /// 打印卡片数据
+  void _printCardData() {
+    print('═══════════════════════════════════════════════════════');
+    print('📋 CurrentCard:');
+    print('═══════════════════════════════════════════════════════');
+    print(_currentCard.toJson());
+    print('═══════════════════════════════════════════════════════');
   }
 }

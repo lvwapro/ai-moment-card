@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../models/poetry_card.dart';
 import '../providers/app_state.dart';
 import '../services/language_service.dart';
@@ -48,6 +49,29 @@ class MultiPlatformPreviewDialog extends StatefulWidget {
     ];
     return platforms;
   }
+  
+  /// 根据常用文案（默认平台）重新排序平台列表
+  /// 常用文案排在第一位
+  static List<PlatformType> _reorderPlatforms(
+      List<PlatformType> platforms, PlatformType defaultPlatform) {
+    final reordered = <PlatformType>[];
+    final addedPlatforms = <PlatformType>{};
+    
+    // 首先添加常用文案（默认平台），如果在列表中
+    if (platforms.contains(defaultPlatform)) {
+      reordered.add(defaultPlatform);
+      addedPlatforms.add(defaultPlatform);
+    }
+    
+    // 然后按顺序添加其他平台
+    for (final platform in platforms) {
+      if (!addedPlatforms.contains(platform)) {
+        reordered.add(platform);
+      }
+    }
+    
+    return reordered;
+  }
 
   /// 创建单平台预览
   factory MultiPlatformPreviewDialog.single({
@@ -76,6 +100,7 @@ class _MultiPlatformPreviewDialogState
     extends State<MultiPlatformPreviewDialog> {
   late PageController _pageController;
   int _currentIndex = 0;
+  List<PlatformType>? _orderedPlatforms;
 
   // 获取平台名称（使用翻译）
   String _getPlatformName(BuildContext context, PlatformType platform) {
@@ -98,8 +123,8 @@ class _MultiPlatformPreviewDialogState
   @override
   void initState() {
     super.initState();
-    _currentIndex = widget.initialIndex;
-    _pageController = PageController(initialPage: _currentIndex);
+    _currentIndex = 0; // 总是从第一个（常用文案）开始
+    _pageController = PageController(initialPage: 0);
   }
 
   @override
@@ -142,8 +167,16 @@ class _MultiPlatformPreviewDialogState
 
   @override
   Widget build(BuildContext context) {
+    // 在 build 方法中获取 AppState 并排序平台列表
+    final appState = Provider.of<AppState>(context, listen: false);
+    final orderedPlatforms = _orderedPlatforms ??=
+        MultiPlatformPreviewDialog._reorderPlatforms(
+      widget.platforms,
+      appState.defaultPlatform,
+    );
+    
     final contentHeight = widget.contentWidth * widget.aspectRatio;
-    final isMultiPlatform = widget.platforms.length > 1;
+    final isMultiPlatform = orderedPlatforms.length > 1;
 
     // 间距
     final contentToBarSpacing = isMultiPlatform ? 40.0 : 0.0; // 减少到40px
@@ -186,13 +219,13 @@ class _MultiPlatformPreviewDialogState
                                             _currentIndex = index;
                                           });
                                         },
-                                        itemCount: widget.platforms.length,
+                                        itemCount: orderedPlatforms.length,
                                         itemBuilder: (context, index) {
                                           return _buildPlatformWidget(
-                                              widget.platforms[index]);
+                                              orderedPlatforms[index]);
                                         },
                                       )
-                                    : _buildPlatformWidget(widget.platforms[0]),
+                                    : _buildPlatformWidget(orderedPlatforms[0]),
                               ),
                             ),
                           ),
@@ -206,7 +239,7 @@ class _MultiPlatformPreviewDialogState
                                 width: widget.contentWidth / widget.phoneScale,
                                 height: contentHeight / widget.phoneScale - 41,
                                 child: Image.asset(
-                                  'assets/phone_border.png',
+                                  'assets/images/phone_border.png',
                                   fit: BoxFit.cover,
                                 ),
                               ),
@@ -225,7 +258,7 @@ class _MultiPlatformPreviewDialogState
                         onTap: () {
                           // 点击切换到下一个平台
                           final nextIndex =
-                              (_currentIndex + 1) % widget.platforms.length;
+                              (_currentIndex + 1) % orderedPlatforms.length;
                           _pageController.animateToPage(
                             nextIndex,
                             duration: const Duration(milliseconds: 300),
@@ -242,7 +275,7 @@ class _MultiPlatformPreviewDialogState
                           child: Row(
                             mainAxisSize: MainAxisSize.min,
                             children: List.generate(
-                              widget.platforms.length,
+                              orderedPlatforms.length,
                               (index) => GestureDetector(
                                 onTap: () {
                                   // 点击具体平台名称切换到该平台
@@ -257,7 +290,7 @@ class _MultiPlatformPreviewDialogState
                                       const EdgeInsets.symmetric(horizontal: 8),
                                   child: Text(
                                     _getPlatformName(
-                                        context, widget.platforms[index]),
+                                        context, orderedPlatforms[index]),
                                     style: TextStyle(
                                       color: _currentIndex == index
                                           ? Colors.white
@@ -275,6 +308,9 @@ class _MultiPlatformPreviewDialogState
                           ),
                         ),
                       ),
+
+                    // 单平台时关闭按钮前的额外间距
+                    if (!isMultiPlatform) const SizedBox(height: 30),
 
                     // 关闭按钮
                     IconButton(
@@ -323,7 +359,7 @@ class _MultiPlatformPreviewDialogState
               ),
             ),
 
-          if (isMultiPlatform && _currentIndex < widget.platforms.length - 1)
+          if (isMultiPlatform && _currentIndex < orderedPlatforms.length - 1)
             Positioned(
               right: 5,
               top: 0,

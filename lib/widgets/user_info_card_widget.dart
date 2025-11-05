@@ -151,7 +151,7 @@ class _UserInfoCardWidgetState extends State<UserInfoCardWidget> {
                           Padding(
                             padding: const EdgeInsets.only(top: 2), // 往下移2像素
                             child: Image.asset(
-                              'assets/vip.png',
+                              'assets/images/vip.png',
                               height: 16,
                               fit: BoxFit.contain,
                             ),

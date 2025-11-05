@@ -126,7 +126,7 @@ class CardGenerator extends ChangeNotifier {
       // 2. 生成AI文案
       print('🚀 开始生成AI文案...');
       final userProfile = _userProfileService?.getUserDescription();
-      
+
       // 获取位置描述（如果有选中的地点）
       final locationDescription = selectedPlace != null
           ? '${selectedPlace.name}${selectedPlace.address.isNotEmpty ? "（${selectedPlace.address}）" : ""}'
@@ -150,10 +150,15 @@ class CardGenerator extends ChangeNotifier {
 
       // 3. 将本地图片保存到持久化目录
       List<String> persistentImagePaths = [];
+      String? firstLocalImagePath; // 首图路径
       if (localImagePaths != null && localImagePaths.isNotEmpty) {
         for (var tempPath in localImagePaths) {
           final persistentPath = await _savePersistentImage(tempPath);
           persistentImagePaths.add(persistentPath);
+          // 记录首图路径
+          if (firstLocalImagePath == null) {
+            firstLocalImagePath = persistentPath;
+          }
         }
       }
 
@@ -164,14 +169,14 @@ class CardGenerator extends ChangeNotifier {
         poetry: poetry,
         style: style,
         createdAt: DateTime.now(),
-        metadata: {
-          'generatedAt': DateTime.now().toIso8601String(),
-          'imageSize': safeImage.path.startsWith('http')
-              ? 'URL'
-              : '${safeImage.lengthSync()}',
-          'localImagePaths': persistentImagePaths, // 使用持久化路径
-          'cloudImageUrls': cloudImageUrls ?? [],
-        },
+        // 图片相关字段
+        generatedAt: DateTime.now().toIso8601String(),
+        imageSize: safeImage.path.startsWith('http')
+            ? 'URL'
+            : '${safeImage.lengthSync()}',
+        localImagePath: firstLocalImagePath, // 首图本地路径
+        localImagePaths: persistentImagePaths, // 所有本地图片路径
+        cloudImageUrls: cloudImageUrls ?? [],
         // 添加所有平台的文案数据
         title: poetryData['title'],
         author: poetryData['author'],
@@ -241,10 +246,6 @@ class CardGenerator extends ChangeNotifier {
         duilian: poetryData['duilian'] != null
             ? Duilian.fromJson(poetryData['duilian'] as Map<String, dynamic>)
             : null,
-        metadata: {
-          ...originalCard.metadata,
-          'lastRegeneratedAt': DateTime.now().toIso8601String(),
-        },
       );
 
       return newCard;

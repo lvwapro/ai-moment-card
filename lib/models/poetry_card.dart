@@ -59,7 +59,13 @@ class PoetryCard {
   final String poetry; // 默认显示的文案（通常是朋友圈）
   final PoetryStyle style;
   final DateTime createdAt;
-  final Map<String, dynamic> metadata;
+
+  // 图片相关字段
+  final String? generatedAt;
+  final String? imageSize;
+  final String? localImagePath; // 首图本地路径
+  final List<String>? localImagePaths; // 所有本地图片路径
+  final List<String>? cloudImageUrls; // 所有云端图片 URL
 
   // AI 生成的各平台文案
   final String? title; // 诗词标题
@@ -85,7 +91,11 @@ class PoetryCard {
     required this.poetry,
     required this.style,
     required this.createdAt,
-    this.metadata = const {},
+    this.generatedAt,
+    this.imageSize,
+    this.localImagePath,
+    this.localImagePaths,
+    this.cloudImageUrls,
     this.title,
     this.author,
     this.time,
@@ -100,35 +110,50 @@ class PoetryCard {
     this.moodTag,
   });
 
-  Map<String, dynamic> toJson() {
-    return {
-      'id': id,
-      'imagePath': image.path,
-      'poetry': poetry,
-      'style': style.name,
-      'createdAt': createdAt.toIso8601String(),
-      'metadata': metadata,
-      'title': title,
-      'author': author,
-      'time': time,
-      'content': content,
-      'shiju': shiju,
-      'weibo': weibo,
-      'xiaohongshu': xiaohongshu,
-      'pengyouquan': pengyouquan,
-      'douyin': douyin,
-      'duilian': duilian?.toJson(),
-      'selectedPlace': selectedPlace?.toJson(),
-      'moodTag': moodTag,
-    };
-  }
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'imagePath': image.path,
+        'poetry': poetry,
+        'style': style.name,
+        'createdAt': createdAt.toIso8601String(),
+        if (generatedAt != null) 'generatedAt': generatedAt,
+        if (imageSize != null) 'imageSize': imageSize,
+        if (localImagePath != null) 'localImagePath': localImagePath,
+        if (localImagePaths != null) 'localImagePaths': localImagePaths,
+        if (cloudImageUrls != null) 'cloudImageUrls': cloudImageUrls,
+        'title': title,
+        'author': author,
+        'time': time,
+        'content': content,
+        'shiju': shiju,
+        'weibo': weibo,
+        'xiaohongshu': xiaohongshu,
+        'pengyouquan': pengyouquan,
+        'douyin': douyin,
+        'duilian': duilian?.toJson(),
+        'selectedPlace': selectedPlace?.toJson(),
+        'moodTag': moodTag,
+      };
 
   factory PoetryCard.fromJson(Map<String, dynamic> json) {
     final selectedPlaceJson = json['selectedPlace'] as Map<String, dynamic>?;
 
-    // 处理 metadata，确保列表类型正确转换
-    final rawMetadata = json['metadata'] as Map<String, dynamic>?;
-    final metadata = _processMetadata(rawMetadata);
+    // 处理图片路径列表
+    List<String>? localImagePaths;
+    if (json['localImagePaths'] is List) {
+      localImagePaths = (json['localImagePaths'] as List)
+          .map((e) => e.toString())
+          .where((s) => s.isNotEmpty)
+          .toList();
+    }
+
+    List<String>? cloudImageUrls;
+    if (json['cloudImageUrls'] is List) {
+      cloudImageUrls = (json['cloudImageUrls'] as List)
+          .map((e) => e.toString())
+          .where((s) => s.isNotEmpty)
+          .toList();
+    }
 
     return PoetryCard(
       id: json['id'],
@@ -139,7 +164,11 @@ class PoetryCard {
         orElse: () => PoetryStyle.blindBox,
       ),
       createdAt: DateTime.parse(json['createdAt']),
-      metadata: metadata,
+      generatedAt: json['generatedAt'] as String?,
+      imageSize: json['imageSize'] as String?,
+      localImagePath: json['localImagePath'] as String?,
+      localImagePaths: localImagePaths,
+      cloudImageUrls: cloudImageUrls,
       title: json['title'],
       author: json['author'],
       time: json['time'],
@@ -159,34 +188,17 @@ class PoetryCard {
     );
   }
 
-  /// 处理 metadata，确保列表类型正确
-  static Map<String, dynamic> _processMetadata(
-      Map<String, dynamic>? rawMetadata) {
-    if (rawMetadata == null) return {};
-
-    final metadata = Map<String, dynamic>.from(rawMetadata);
-
-    // 处理图片路径列表
-    final keysToProcess = ['cloudImageUrls', 'localImagePaths'];
-    for (final key in keysToProcess) {
-      if (rawMetadata[key] is List) {
-        metadata[key] = (rawMetadata[key] as List)
-            .map((e) => e.toString())
-            .where((s) => s.isNotEmpty)
-            .toList();
-      }
-    }
-
-    return metadata;
-  }
-
   PoetryCard copyWith({
     String? id,
     File? image,
     String? poetry,
     PoetryStyle? style,
     DateTime? createdAt,
-    Map<String, dynamic>? metadata,
+    String? generatedAt,
+    String? imageSize,
+    String? localImagePath,
+    List<String>? localImagePaths,
+    List<String>? cloudImageUrls,
     String? title,
     String? author,
     String? time,
@@ -199,26 +211,79 @@ class PoetryCard {
     Duilian? duilian,
     NearbyPlace? selectedPlace,
     String? moodTag,
-  }) {
-    return PoetryCard(
-      id: id ?? this.id,
-      image: image ?? this.image,
-      poetry: poetry ?? this.poetry,
-      style: style ?? this.style,
-      createdAt: createdAt ?? this.createdAt,
-      metadata: metadata ?? this.metadata,
-      title: title ?? this.title,
-      author: author ?? this.author,
-      time: time ?? this.time,
-      content: content ?? this.content,
-      shiju: shiju ?? this.shiju,
-      weibo: weibo ?? this.weibo,
-      xiaohongshu: xiaohongshu ?? this.xiaohongshu,
-      pengyouquan: pengyouquan ?? this.pengyouquan,
-      douyin: douyin ?? this.douyin,
-      duilian: duilian ?? this.duilian,
-      selectedPlace: selectedPlace ?? this.selectedPlace,
-      moodTag: moodTag ?? this.moodTag,
-    );
+  }) =>
+      PoetryCard(
+        id: id ?? this.id,
+        image: image ?? this.image,
+        poetry: poetry ?? this.poetry,
+        style: style ?? this.style,
+        createdAt: createdAt ?? this.createdAt,
+        generatedAt: generatedAt ?? this.generatedAt,
+        imageSize: imageSize ?? this.imageSize,
+        localImagePath: localImagePath ?? this.localImagePath,
+        localImagePaths: localImagePaths ?? this.localImagePaths,
+        cloudImageUrls: cloudImageUrls ?? this.cloudImageUrls,
+        title: title ?? this.title,
+        author: author ?? this.author,
+        time: time ?? this.time,
+        content: content ?? this.content,
+        shiju: shiju ?? this.shiju,
+        weibo: weibo ?? this.weibo,
+        xiaohongshu: xiaohongshu ?? this.xiaohongshu,
+        pengyouquan: pengyouquan ?? this.pengyouquan,
+        douyin: douyin ?? this.douyin,
+        duilian: duilian ?? this.duilian,
+        selectedPlace: selectedPlace ?? this.selectedPlace,
+        moodTag: moodTag ?? this.moodTag,
+      );
+
+  /// 获取首图路径（单张）
+  /// 优先从 localImagePath 获取并检查是否有效
+  /// 如果无效，则直接使用 image.path
+  String getFirstImagePath() {
+    // 1. 优先检查本地首图
+    if (localImagePath != null && localImagePath!.isNotEmpty) {
+      try {
+        if (File(localImagePath!).existsSync()) {
+          print('📸 getFirstImagePath: 使用本地首图 - $localImagePath');
+          return localImagePath!;
+        }
+      } catch (e) {
+        // 文件检查失败，继续下一步
+      }
+    }
+
+    // 2. 直接使用 image.path
+    print('📸 getFirstImagePath: 使用 image.path - ${image.path}');
+    return image.path;
+  }
+
+  /// 获取本地图片路径列表（用于展示）
+  /// 从 localImagePaths 获取，检查是否存在
+  /// 如果不存在，则获取对应 index 的 cloudImageUrls
+  List<String> getLocalImagePaths() {
+    final List<String> result = [];
+
+    if (localImagePaths != null) {
+      for (int i = 0; i < localImagePaths!.length; i++) {
+        final localPath = localImagePaths![i];
+        if (localPath.isNotEmpty) {
+          // 检查本地文件是否存在
+          if (File(localPath).existsSync()) {
+            result.add(localPath);
+          } else {
+            // 本地文件不存在，尝试获取对应的云端 URL
+            if (cloudImageUrls != null && i < cloudImageUrls!.length) {
+              final cloudUrl = cloudImageUrls![i];
+              if (cloudUrl.isNotEmpty) {
+                result.add(cloudUrl);
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return result;
   }
 }

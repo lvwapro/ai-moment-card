@@ -37,7 +37,7 @@ class UpgradeService {
           title: Row(
             children: [
               Image.asset(
-                'assets/vip.png',
+                'assets/images/vip.png',
                 height: 24,
                 fit: BoxFit.contain,
               ),

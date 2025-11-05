@@ -262,91 +262,13 @@ class _CardImagesViewerState extends State<CardImagesViewer> {
 
   /// 获取所有可用图片
   List<ImageSource> _getAvailableImages() {
-    final images = <ImageSource>[];
-
-    print('🔍 开始获取图片列表...');
-
-    // 1. 优先尝试本地图片路径
-    final localPaths = _getListFromMetadata('localImagePaths');
-    if (localPaths.isNotEmpty) {
-      print('📂 找到 ${localPaths.length} 个本地图片路径');
-      for (int i = 0; i < localPaths.length; i++) {
-        final path = localPaths[i];
-        if (_isValidLocalPath(path)) {
-          images.add(ImageSource(path: path, isLocal: true));
-          print('  ✅ 本地图片 ${i + 1}: ${_getShortPath(path)}');
-        } else {
-          print('  ⚠️ 本地图片不可用 ${i + 1}: ${_getShortPath(path)}');
-        }
-      }
-    }
-
-    // 2. 如果没有可用的本地图片，尝试云端图片
-    if (images.isEmpty) {
-      final cloudUrls = _getListFromMetadata('cloudImageUrls');
-      if (cloudUrls.isNotEmpty) {
-        print('☁️ 找到 ${cloudUrls.length} 个云端图片URL');
-        for (int i = 0; i < cloudUrls.length; i++) {
-          final url = cloudUrls[i];
-          if (_isValidCloudUrl(url)) {
-            images.add(ImageSource(path: url, isLocal: false));
-            print('  ✅ 云端图片 ${i + 1}: ${_getShortPath(url)}');
-          }
-        }
-      }
-    }
-
-    // 3. 最后的备选方案：使用卡片原始图片
-    if (images.isEmpty) {
-      final originalPath = widget.card.image.path;
-      final isLocal = !originalPath.startsWith('http');
-
-      if (isLocal && !File(originalPath).existsSync()) {
-        print('❌ 原始图片文件不存在: ${_getShortPath(originalPath)}');
-      } else {
-        images.add(ImageSource(path: originalPath, isLocal: isLocal));
-        print('🔄 使用原始图片作为备选: ${_getShortPath(originalPath)}');
-      }
-    }
-
-    print('📊 总图片数量: ${images.length}');
-    return images;
-  }
-
-  /// 从 metadata 中安全获取列表
-  List<String> _getListFromMetadata(String key) {
-    final data = widget.card.metadata[key];
-    if (data == null) return [];
-
-    if (data is List) {
-      return data.map((e) => e.toString()).where((s) => s.isNotEmpty).toList();
-    }
-
-    return [];
-  }
-
-  /// 验证本地路径是否有效
-  bool _isValidLocalPath(String path) {
-    if (path.isEmpty || path.startsWith('http')) return false;
-
-    try {
-      return File(path).existsSync();
-    } catch (e) {
-      print('  ⚠️ 检查文件失败: $e');
-      return false;
-    }
-  }
-
-  /// 验证云端URL是否有效
-  bool _isValidCloudUrl(String url) =>
-      url.isNotEmpty &&
-      (url.startsWith('http://') || url.startsWith('https://'));
-
-  /// 获取路径的简短显示版本（用于日志）
-  String _getShortPath(String path) {
-    const maxLength = 50;
-    if (path.length <= maxLength) return path;
-    return '...${path.substring(path.length - maxLength)}';
+    // 使用统一的方法获取图片路径
+    return widget.card.getLocalImagePaths().map((path) {
+      return ImageSource(
+        path: path,
+        isLocal: !path.startsWith('http'),
+      );
+    }).toList();
   }
 }
 

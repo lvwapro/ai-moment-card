@@ -116,19 +116,207 @@ class _CardInfoWidgetState extends State<CardInfoWidget> {
                     ),
                     const SizedBox(height: 16),
 
+                    // 常用文案（默认平台）- 显示在最顶部
+                    ..._buildDefaultPlatformSection(context),
+
                     // 原诗（含诗词信息）
                     if (widget.card.content != null &&
                         widget.card.content!.isNotEmpty)
                       _buildPoetrySection(context),
 
-                    // 根据默认平台显示文案（按设置的顺序）
-                    ..._buildPlatformSections(context),
+                    // 对联展示（如果有）
+                    if (widget.card.duilian != null)
+                      _buildDuilianSection(context),
+
+                    // 其他平台文案（排除常用文案）
+                    ..._buildOtherPlatformSections(context),
                   ],
                 ),
               ),
           ],
         ),
       );
+
+  // 对联部分（包含横批、上联、下联和解析）
+  Widget _buildDuilianSection(BuildContext context) {
+    final duilian = widget.card.duilian!;
+
+    // 构建对联文本（用于复制）
+    final duilianText =
+        '${duilian.horizontal}\n${duilian.upper}\n${duilian.lower}${duilian.analysis != null ? '\n\n${duilian.analysis}' : ''}';
+
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 标题栏
+          Row(
+            children: [
+              Icon(Icons.menu_book, size: 18, color: Colors.grey[700]),
+              const SizedBox(width: 8),
+              Text(
+                context.l10n('对联'),
+                style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.grey[700],
+                ),
+              ),
+              const Spacer(),
+              // 对联预览按钮
+              IconButton(
+                icon: const Icon(Icons.visibility_outlined, size: 18),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                tooltip: context.l10n('对联预览'),
+                onPressed: () => _showDuilianPreview(context),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                icon: const Icon(Icons.copy, size: 18),
+                padding: EdgeInsets.zero,
+                constraints: const BoxConstraints(),
+                tooltip: context.l10n('复制'),
+                onPressed: () => _copyToClipboard(context, duilianText),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(
+              color: Colors.grey[50],
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: Colors.grey[200]!),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 横批
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(vertical: 8),
+                  child: Text(
+                    duilian.horizontal,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                // 上联和下联
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    // 上联
+                    Expanded(
+                      child: Text(
+                        duilian.upper,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          height: 1.8,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    // 下联
+                    Expanded(
+                      child: Text(
+                        duilian.lower,
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          height: 1.8,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                // 解析（如果有）
+                if (duilian.analysis != null &&
+                    duilian.analysis!.isNotEmpty) ...[
+                  const SizedBox(height: 12),
+                  const Divider(),
+                  const SizedBox(height: 12),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        context.l10n('解析'),
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: Colors.grey[700],
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        duilian.analysis!,
+                        style: TextStyle(
+                          fontSize: 13,
+                          height: 1.6,
+                          color: Colors.grey[700],
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  // 将诗词内容按句分割（根据标点符号：。，；、！？等）
+  List<String> _splitPoetryIntoSentences(String content) {
+    // 按标点符号分割，保留标点符号
+    final sentences = <String>[];
+    final buffer = StringBuffer();
+
+    for (int i = 0; i < content.length; i++) {
+      final char = content[i];
+      buffer.write(char);
+
+      // 检查是否是句末标点符号
+      if (char == '。' ||
+          char == '，' ||
+          char == '；' ||
+          char == '！' ||
+          char == '？' ||
+          char == '\n') {
+        final sentence = buffer.toString().trim();
+        if (sentence.isNotEmpty) {
+          sentences.add(sentence);
+        }
+        buffer.clear();
+      }
+    }
+
+    // 处理最后剩余的文本
+    final remaining = buffer.toString().trim();
+    if (remaining.isNotEmpty) {
+      sentences.add(remaining);
+    }
+
+    // 如果没有找到标点符号，按换行符分割
+    if (sentences.isEmpty) {
+      return content
+          .split('\n')
+          .where((line) => line.trim().isNotEmpty)
+          .toList();
+    }
+
+    return sentences;
+  }
 
   // 诗词部分（包含标题、作者、朝代和内容）
   Widget _buildPoetrySection(BuildContext context) {
@@ -172,38 +360,68 @@ class _CardInfoWidgetState extends State<CardInfoWidget> {
           const SizedBox(height: 8),
           Container(
             width: double.infinity,
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.grey[50],
               borderRadius: BorderRadius.circular(8),
               border: Border.all(color: Colors.grey[200]!),
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                // 诗词标题和作者信息
-                if (widget.card.title != null ||
-                    widget.card.author != null) ...[
+                // 诗词标题
+                if (widget.card.title != null) ...[
                   Text(
-                    '《${widget.card.title ?? ""}》'
-                    '${widget.card.author != null ? " · ${widget.card.author}" : ""}'
-                    '${widget.card.time != null ? " · ${widget.card.time}" : ""}',
+                    widget.card.title!,
                     style: TextStyle(
-                      fontSize: 13,
+                      fontSize: 18,
                       fontWeight: FontWeight.bold,
-                      color: Colors.grey[800],
+                      color: Theme.of(context).primaryColor,
+                      height: 1.4,
                     ),
+                    textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: 12),
                 ],
-                // 诗词内容
-                Text(
-                  widget.card.content!,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    height: 1.8,
+                // 作者和朝代
+                if (widget.card.author != null || widget.card.time != null) ...[
+                  Text(
+                    [
+                      if (widget.card.author != null) widget.card.author,
+                      if (widget.card.time != null) widget.card.time,
+                    ].join(' · '),
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                      height: 1.4,
+                    ),
+                    textAlign: TextAlign.center,
                   ),
-                ),
+                  const SizedBox(height: 20),
+                ],
+                // 诗词内容（每句居中展示，整体往右移动一点）
+                if (widget.card.content != null)
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: Column(
+                      children: _splitPoetryIntoSentences(widget.card.content!)
+                          .where((sentence) => sentence.trim().isNotEmpty)
+                          .map((sentence) => Padding(
+                                padding: const EdgeInsets.only(bottom: 16),
+                                child: Text(
+                                  sentence.trim(),
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    height: 1.2,
+                                    letterSpacing: 0.5,
+                                    color: Colors.black87,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
+                              ))
+                          .toList(),
+                    ),
+                  ),
               ],
             ),
           ),
@@ -212,8 +430,8 @@ class _CardInfoWidgetState extends State<CardInfoWidget> {
     );
   }
 
-  /// 根据默认平台设置构建平台文案列表
-  List<Widget> _buildPlatformSections(BuildContext context) {
+  /// 构建常用文案（默认平台）部分
+  List<Widget> _buildDefaultPlatformSection(BuildContext context) {
     final appState = Provider.of<AppState>(context, listen: false);
     final defaultPlatform = appState.defaultPlatform;
 
@@ -246,15 +464,200 @@ class _CardInfoWidgetState extends State<CardInfoWidget> {
       },
     };
 
-    // 将默认平台放在第一位，其他平台按顺序排列
-    final orderedPlatforms = <PlatformType>[
-      defaultPlatform,
-      ...PlatformType.values.where((p) => p != defaultPlatform),
+    // 只处理常用文案（默认平台）
+    final widgets = <Widget>[];
+    final defaultData = platformData[defaultPlatform];
+    if (defaultData != null) {
+      final defaultContent = defaultData['content'] as String?;
+      if (defaultContent != null && defaultContent.isNotEmpty) {
+        widgets.add(
+          _buildDefaultCopywritingSection(
+            context,
+            title: defaultData['title'] as String,
+            content: defaultContent,
+            icon: defaultData['icon'] as IconData,
+            platform: defaultPlatform,
+          ),
+        );
+      }
+    }
+
+    return widgets;
+  }
+
+  /// 构建常用文案的特殊样式widget
+  Widget _buildDefaultCopywritingSection(
+    BuildContext context, {
+    required String title,
+    required String content,
+    required IconData icon,
+    required PlatformType platform,
+  }) =>
+      Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).primaryColor.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(icon, size: 18, color: Theme.of(context).primaryColor),
+                const SizedBox(width: 8),
+                Flexible(
+                  child: Text(
+                    title,
+                    style: TextStyle(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                    overflow: TextOverflow.ellipsis,
+                    maxLines: 1,
+                  ),
+                ),
+
+                const SizedBox(width: 8),
+                // 常用文案标签
+                Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: Text(
+                    context.l10n('常用文案'),
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                ),
+
+                const Spacer(),
+                // 朋友圈文案添加预览按钮
+                if (platform == PlatformType.pengyouquan) ...[
+                  IconButton(
+                    icon: const Icon(Icons.visibility_outlined, size: 18),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    tooltip: context.l10n('朋友圈预览'),
+                    onPressed: () => _showMomentsPreview(context),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                // 小红书文案添加预览按钮
+                if (platform == PlatformType.xiaohongshu) ...[
+                  IconButton(
+                    icon: const Icon(Icons.visibility_outlined, size: 18),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    tooltip: context.l10n('小红书预览'),
+                    onPressed: () => _showXiaohongshuPreview(context),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                // 微博文案添加预览按钮
+                if (platform == PlatformType.weibo) ...[
+                  IconButton(
+                    icon: const Icon(Icons.visibility_outlined, size: 18),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    tooltip: context.l10n('微博预览'),
+                    onPressed: () => _showWeiboPreview(context),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                // 抖音文案添加预览按钮
+                if (platform == PlatformType.douyin) ...[
+                  IconButton(
+                    icon: const Icon(Icons.visibility_outlined, size: 18),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
+                    tooltip: context.l10n('抖音预览'),
+                    onPressed: () => _showDouyinPreview(context),
+                  ),
+                  const SizedBox(width: 8),
+                ],
+                IconButton(
+                  icon: const Icon(Icons.copy, size: 18),
+                  padding: EdgeInsets.zero,
+                  constraints: const BoxConstraints(),
+                  tooltip: context.l10n('复制'),
+                  onPressed: () => _copyToClipboard(context, content),
+                ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(
+              content,
+              style: TextStyle(
+                fontSize: 15,
+                height: 1.6,
+                fontWeight: FontWeight.w500,
+                color: Colors.grey[800],
+              ),
+            ),
+          ],
+        ),
+      );
+
+  /// 构建其他平台文案列表（排除常用文案）
+  List<Widget> _buildOtherPlatformSections(BuildContext context) {
+    final appState = Provider.of<AppState>(context, listen: false);
+    final defaultPlatform = appState.defaultPlatform;
+
+    // 定义平台信息映射
+    final platformData = {
+      PlatformType.shiju: {
+        'content': widget.card.shiju,
+        'title': context.l10n('诗句'),
+        'icon': Icons.format_quote,
+      },
+      PlatformType.pengyouquan: {
+        'content': widget.card.pengyouquan,
+        'title': context.l10n('朋友圈'),
+        'icon': Icons.chat_bubble_outline,
+      },
+      PlatformType.xiaohongshu: {
+        'content': widget.card.xiaohongshu,
+        'title': context.l10n('小红书'),
+        'icon': Icons.menu_book,
+      },
+      PlatformType.weibo: {
+        'content': widget.card.weibo,
+        'title': context.l10n('微博'),
+        'icon': Icons.public,
+      },
+      PlatformType.douyin: {
+        'content': widget.card.douyin,
+        'title': context.l10n('抖音'),
+        'icon': Icons.music_note,
+      },
+    };
+
+    // 定义固定的平台顺序（排除对联）
+    final allPlatforms = [
+      PlatformType.shiju,
+      PlatformType.pengyouquan,
+      PlatformType.xiaohongshu,
+      PlatformType.weibo,
+      PlatformType.douyin,
     ];
 
-    // 构建widget列表（不显示默认标签，只按顺序排列）
+    // 构建其他平台文案列表（排除常用文案）
     final widgets = <Widget>[];
-    for (final platform in orderedPlatforms) {
+    for (final platform in allPlatforms) {
+      // 跳过常用文案（默认平台）
+      if (platform == defaultPlatform) {
+        continue;
+      }
+
       final data = platformData[platform];
       if (data != null) {
         final content = data['content'] as String?;
@@ -491,6 +894,27 @@ class _CardInfoWidgetState extends State<CardInfoWidget> {
             MultiPlatformPreviewDialog.single(
           card: widget.card,
           platform: PlatformType.douyin,
+        ),
+        transitionsBuilder: (context, animation, secondaryAnimation, child) {
+          return FadeTransition(
+            opacity: animation,
+            child: child,
+          );
+        },
+      ),
+    );
+  }
+
+  /// 显示对联预览
+  void _showDuilianPreview(BuildContext context) {
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.transparent,
+        pageBuilder: (context, animation, secondaryAnimation) =>
+            MultiPlatformPreviewDialog.single(
+          card: widget.card,
+          platform: PlatformType.duilian,
         ),
         transitionsBuilder: (context, animation, secondaryAnimation, child) {
           return FadeTransition(

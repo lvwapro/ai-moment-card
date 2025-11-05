@@ -72,68 +72,43 @@ class _CachedCardImageState extends State<CachedCardImage>
 
   /// 尝试同步获取本地图片
   ImageProvider? _tryGetLocalImageSync() {
-    final localPaths =
-        widget.card.metadata['localImagePaths'] as List<dynamic>?;
+    // 使用统一的 getFirstImagePath() 方法获取首图
+    final firstImagePath = widget.card.getFirstImagePath();
 
-    if (localPaths != null && localPaths.isNotEmpty) {
-      for (var path in localPaths) {
-        try {
-          final localFile = File(path.toString());
-          if (localFile.existsSync()) {
-            return FileImage(localFile);
-          }
-        } catch (e) {
-          // 继续尝试下一个
+    // 判断是本地图片还是网络 URL
+    if (!firstImagePath.startsWith('http')) {
+      try {
+        final localFile = File(firstImagePath);
+        if (localFile.existsSync()) {
+          return FileImage(localFile);
         }
+      } catch (e) {
+        // 本地文件检查失败
       }
     }
+
     return null;
   }
 
   /// 异步获取图片Provider
   Future<ImageProvider?> _getImageProviderAsync() async {
-    // 1. 再次尝试本地图片（异步）
-    final localPaths =
-        widget.card.metadata['localImagePaths'] as List<dynamic>?;
-    if (localPaths != null && localPaths.isNotEmpty) {
-      for (var path in localPaths) {
-        try {
-          final localFile = File(path.toString());
-          if (await localFile.exists()) {
-            return FileImage(localFile);
-          }
-        } catch (e) {
-          // 继续尝试下一个
-        }
-      }
-    }
+    // 使用统一的 getFirstImagePath() 方法获取首图
+    final firstImagePath = widget.card.getFirstImagePath();
 
-    // 2. 尝试云端图片URL
-    final cloudUrls = widget.card.metadata['cloudImageUrls'] as List<dynamic>?;
-    if (cloudUrls != null && cloudUrls.isNotEmpty) {
-      for (var url in cloudUrls) {
-        if (url.toString().startsWith('http')) {
-          return NetworkImage(
-            url.toString(),
-            headers: {'Cache-Control': 'max-age=86400'},
-          );
-        }
-      }
-    }
-
-    // 3. 使用卡片当前的图片路径
-    if (widget.card.image.path.startsWith('http')) {
+    // 判断是本地图片还是网络 URL
+    if (firstImagePath.startsWith('http')) {
       return NetworkImage(
-        widget.card.image.path,
+        firstImagePath,
         headers: {'Cache-Control': 'max-age=86400'},
       );
     } else {
       try {
-        if (await widget.card.image.exists()) {
-          return FileImage(widget.card.image);
+        final localFile = File(firstImagePath);
+        if (await localFile.exists()) {
+          return FileImage(localFile);
         }
       } catch (e) {
-        // 忽略错误
+        // 本地文件检查失败
       }
     }
 

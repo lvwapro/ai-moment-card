@@ -476,64 +476,8 @@ class MomentsPreviewWidget extends StatelessWidget {
 
   /// 获取所有图片路径
   List<String> _getImages() {
-    final images = <String>[];
-
-    // 1. 优先尝试本地图片路径
-    final localPaths = _getListFromMetadata('localImagePaths');
-    for (final path in localPaths) {
-      if (_isValidPath(path)) {
-        images.add(path);
-      }
-    }
-
-    // 2. 如果没有可用的本地图片，尝试云端图片
-    if (images.isEmpty) {
-      final cloudUrls = _getListFromMetadata('cloudImageUrls');
-      for (final url in cloudUrls) {
-        if (_isValidPath(url)) {
-          images.add(url);
-        }
-      }
-    }
-
-    // 3. 最后的备选方案：使用卡片原始图片
-    if (images.isEmpty) {
-      final originalPath = card.image.path;
-      if (originalPath.isNotEmpty) {
-        images.add(originalPath);
-      }
-    }
-
-    return images;
-  }
-
-  /// 从 metadata 中安全获取列表
-  List<String> _getListFromMetadata(String key) {
-    final data = card.metadata[key];
-    if (data == null) return [];
-
-    if (data is List) {
-      return data.map((e) => e.toString()).where((s) => s.isNotEmpty).toList();
-    }
-
-    return [];
-  }
-
-  /// 验证路径是否有效
-  bool _isValidPath(String path) {
-    if (path.isEmpty) return false;
-
-    // 如果是网络图片，检查URL格式
-    if (path.startsWith('http')) {
-      return path.startsWith('http://') || path.startsWith('https://');
-    }
-
-    // 如果是本地图片，检查文件是否存在
-    try {
-      return File(path).existsSync();
-    } catch (e) {
-      return false;
-    }
+    // 使用统一的方法获取本地图片路径
+    return card.getLocalImagePaths();
   }
 
   /// 格式化时间显示
@@ -582,7 +526,7 @@ class MomentsPreviewWidget extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.only(top: 0), // 从2改为0，往上移
             child: Image.asset(
-              'assets/weixin_love.png',
+              'assets/images/weixin_love.png',
               width: 18, // 放大从16到18
               height: 18,
               errorBuilder: (context, error, stackTrace) => const Icon(

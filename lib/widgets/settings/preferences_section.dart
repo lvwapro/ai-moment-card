@@ -42,7 +42,7 @@ class _PreferencesSectionState extends State<PreferencesSection> {
             ),
             SettingItemWidget(
               icon: Icons.content_copy,
-              title: context.l10n('默认显示文案'),
+              title: context.l10n('常用文案'),
               subtitle: AppState.getPlatformDisplayName(
                   appState.defaultPlatform, context),
               trailing: const Icon(Icons.chevron_right),
@@ -62,7 +62,7 @@ class _PreferencesSectionState extends State<PreferencesSection> {
                   ),
                   const SizedBox(width: 8),
                   Image.asset(
-                    'assets/vip.png',
+                    'assets/images/vip.png',
                     height: 16,
                     fit: BoxFit.contain,
                   ),
@@ -92,7 +92,7 @@ class _PreferencesSectionState extends State<PreferencesSection> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    context.l10n('显示情绪标签'),
+                    context.l10n('应用展示'),
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w500,
                           fontSize: 16,
@@ -100,13 +100,13 @@ class _PreferencesSectionState extends State<PreferencesSection> {
                   ),
                   const SizedBox(width: 8),
                   Image.asset(
-                    'assets/vip.png',
+                    'assets/images/vip.png',
                     height: 16,
                     fit: BoxFit.contain,
                   ),
                 ],
               ),
-              subtitle: context.l10n('在卡片上显示情绪标签'),
+              subtitle: context.l10n('在卡片上显示应用名称'),
               trailing: Transform.scale(
                 scale: 0.8, // 缩小开关尺寸
                 child: Switch(
@@ -304,7 +304,7 @@ class _PreferencesSectionState extends State<PreferencesSection> {
                         if (isVipFont) ...[
                           const SizedBox(width: 8),
                           Image.asset(
-                            'assets/vip.png',
+                            'assets/images/vip.png',
                             height: 20,
                             fit: BoxFit.contain,
                           ),
@@ -345,12 +345,14 @@ class _PreferencesSectionState extends State<PreferencesSection> {
             children: [
               Center(
                 child: Text(
-                  context.l10n('选择默认显示文案'),
+                  context.l10n('选择常用文案'),
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
               const SizedBox(height: 16),
-              ...PlatformType.values.map((platform) {
+              ...PlatformType.values
+                  .where((platform) => platform != PlatformType.shiju)
+                  .map((platform) {
                 final isSelected = appState.defaultPlatform == platform;
                 return Container(
                   margin: const EdgeInsets.only(bottom: 4),

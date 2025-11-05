@@ -100,18 +100,20 @@ flutter:
   
   assets:
     - assets/images/
-    - assets/images/backgrounds/
     - assets/fonts/
     - assets/animation/
-    - assets/vip.png
-    - assets/weibo_vip.png
-    - assets/xiaohongshu_share.png
-    - assets/douyin_share.png
-    - assets/weixin_love.png
-    - assets/phone_border.png
-    - assets/avatar.png
-    - assets/weibo_share.jpg
-    - assets/duilian.png
+    - assets/images/vip.png
+    - assets/images/weibo_vip.png
+    - assets/images/xiaohongshu_share.png
+    - assets/images/douyin_share.png
+    - assets/images/weixin_love.png
+    - assets/images/phone_border.png
+    - assets/images/avatar.png
+    - assets/images/weibo_share.jpg
+    - assets/images/duilian.png
+    - assets/images/appName_zh.png
+    - assets/images/appName_en.png
+    
     - .env
   
   fonts:

@@ -34,7 +34,8 @@ class WeiboPreviewWidget extends StatelessWidget {
                   // 微博内容卡片
                   Container(
                     color: Colors.white,
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.only(
+                        top: 16, left: 16, right: 16, bottom: 8),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -120,7 +121,7 @@ class WeiboPreviewWidget extends StatelessWidget {
                                       const SizedBox(width: 4),
                                       // VIP徽章图片
                                       Image.asset(
-                                        'assets/weibo_vip.png',
+                                        'assets/images/weibo_vip.png',
                                         width: 20,
                                         height: 20,
                                         fit: BoxFit.contain,
@@ -212,17 +213,15 @@ class WeiboPreviewWidget extends StatelessWidget {
                         Text(
                           context.l10n('点赞是美意,赞赏是鼓励'),
                           style: TextStyle(
-                            fontSize: 13,
+                            fontSize: 12,
                             color: Colors.grey[600],
                           ),
                         ),
 
-                        const SizedBox(height: 8),
+                        const SizedBox(height: 4),
 
                         // 奖励图标部分
                         _buildRewardSection(context),
-
-                        const SizedBox(height: 12),
                       ],
                     ),
                   ),
@@ -451,29 +450,27 @@ class WeiboPreviewWidget extends StatelessWidget {
   }
 
   /// 构建"大家都在搜"部分
-  Widget _buildTrendingSearches(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          context.l10n('大家都在搜'),
-          style: TextStyle(
-            fontSize: 13,
-            color: Colors.grey[700],
+  Widget _buildTrendingSearches(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            context.l10n('大家都在搜'),
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.grey[700],
+            ),
           ),
-        ),
-        const SizedBox(height: 8),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: [
-            _buildSearchChip(context.l10n('迹见文案')),
-            _buildSearchChip(context.l10n('迹见文案-AI文案助手')),
-          ],
-        ),
-      ],
-    );
-  }
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _buildSearchChip(context.l10n('迹见文案')),
+              _buildSearchChip(context.l10n('迹见文案-AI文案助手')),
+            ],
+          ),
+        ],
+      );
 
   /// 构建搜索气泡
   Widget _buildSearchChip(String text) => Container(
@@ -504,7 +501,7 @@ class WeiboPreviewWidget extends StatelessWidget {
 
   /// 构建奖励图标部分
   Widget _buildRewardSection(BuildContext context) => Image.asset(
-        'assets/weibo_share.jpg',
+        'assets/images/weibo_share.jpg',
         fit: BoxFit.contain,
         errorBuilder: (context, error, stackTrace) => const SizedBox.shrink(),
       );
@@ -540,32 +537,31 @@ class WeiboPreviewWidget extends StatelessWidget {
       );
 
   /// 构建互动项
-  Widget _buildInteractionItem(String label, String count, bool isActive) {
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        Text(
-          '$label $count',
-          style: TextStyle(
-            fontSize: 14,
-            fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-            color: isActive ? Colors.black87 : Colors.grey[500],
-          ),
-        ),
-        // 自定义下划线（位置更靠下）
-        if (isActive)
-          Positioned(
-            left: 0,
-            right: 0,
-            bottom: -2,
-            child: Container(
-              height: 2.0,
-              color: Colors.orange,
+  Widget _buildInteractionItem(String label, String count, bool isActive) =>
+      Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Text(
+            '$label $count',
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
+              color: isActive ? Colors.black87 : Colors.grey[500],
             ),
           ),
-      ],
-    );
-  }
+          // 自定义下划线（位置更靠下）
+          if (isActive)
+            Positioned(
+              left: 0,
+              right: 0,
+              bottom: -2,
+              child: Container(
+                height: 2.0,
+                color: Colors.orange,
+              ),
+            ),
+        ],
+      );
 
   /// 构建评论区域
   Widget _buildCommentSection(BuildContext context) => Column(
@@ -574,9 +570,9 @@ class WeiboPreviewWidget extends StatelessWidget {
           // 第一条评论
           _buildCommentItem(
             context,
-            avatarPath: 'assets/avatar.png',
+            avatarPath: 'assets/images/avatar.png',
             userName: 'haohaoteuk1023',
-            userNameColor: Colors.black87,
+            userNameColor: const Color.fromARGB(255, 58, 58, 58),
             comment: context.l10n('真不错'),
             time: '11-3 20:27',
             location: '${context.l10n('来自')} ${context.l10n('日本')}',
@@ -597,124 +593,124 @@ class WeiboPreviewWidget extends StatelessWidget {
     required String location,
     required String likeCount,
     Widget? rightBadge,
-  }) {
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // 头像和徽章
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: Image.asset(
-                avatarPath,
-                width: 32,
-                height: 32,
-                fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
+  }) =>
+      Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // 头像和徽章
+          Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: Image.asset(
+                  avatarPath,
                   width: 32,
                   height: 32,
-                  color: Colors.grey[300],
-                  child:
-                      const Icon(Icons.person, size: 20, color: Colors.white),
+                  fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) => Container(
+                    width: 32,
+                    height: 32,
+                    color: Colors.grey[300],
+                    child:
+                        const Icon(Icons.person, size: 20, color: Colors.white),
+                  ),
                 ),
               ),
-            ),
-            if (badge != null) ...[
-              const SizedBox(width: 4),
-              badge,
-            ],
-          ],
-        ),
-        const SizedBox(width: 8),
-
-        // 评论内容
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // 用户名
-              Text(
-                userName,
-                style: TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
-                  color: userNameColor,
-                ),
-              ),
-              const SizedBox(height: 4),
-              // 评论内容和右侧徽章（单行显示）
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(
-                    child: Text(
-                      comment,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        fontSize: 13,
-                        color: Colors.black87,
-                      ),
-                    ),
-                  ),
-                  if (rightBadge != null) ...[
-                    const SizedBox(width: 4),
-                    Padding(
-                      padding: const EdgeInsets.only(top: 2),
-                      child: rightBadge,
-                    ),
-                  ],
-                ],
-              ),
-              const SizedBox(height: 4),
-              // 时间地点和三个icon在一行
-              Row(
-                children: [
-                  // 时间和地点（左侧）
-                  Expanded(
-                    child: Text(
-                      '$time $location',
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Colors.grey[600],
-                      ),
-                    ),
-                  ),
-                  // 三个互动图标（右侧，更小）
-                  Icon(Icons.share_outlined, size: 14, color: Colors.grey[600]),
-                  const SizedBox(width: 12),
-                  Icon(Icons.chat_bubble_outline,
-                      size: 14, color: Colors.grey[600]),
-                  const SizedBox(width: 12),
-                  if (likeCount.isNotEmpty)
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(Icons.thumb_up_outlined,
-                            size: 14, color: Colors.grey[600]),
-                        const SizedBox(width: 4),
-                        Text(
-                          likeCount,
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Colors.grey[600],
-                          ),
-                        ),
-                      ],
-                    )
-                  else
-                    Icon(Icons.thumb_up_outlined,
-                        size: 14, color: Colors.grey[600]),
-                ],
-              ),
+              if (badge != null) ...[
+                const SizedBox(width: 4),
+                badge,
+              ],
             ],
           ),
-        ),
-      ],
-    );
-  }
+          const SizedBox(width: 8),
+
+          // 评论内容
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // 用户名
+                Text(
+                  userName,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500,
+                    color: userNameColor,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                // 评论内容和右侧徽章（单行显示）
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        comment,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.black87,
+                        ),
+                      ),
+                    ),
+                    if (rightBadge != null) ...[
+                      const SizedBox(width: 4),
+                      Padding(
+                        padding: const EdgeInsets.only(top: 2),
+                        child: rightBadge,
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: 4),
+                // 时间地点和三个icon在一行
+                Row(
+                  children: [
+                    // 时间和地点（左侧）
+                    Expanded(
+                      child: Text(
+                        '$time $location',
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ),
+                    // 三个互动图标（右侧，更小）
+                    Icon(Icons.share_outlined,
+                        size: 14, color: Colors.grey[600]),
+                    const SizedBox(width: 12),
+                    Icon(Icons.chat_bubble_outline,
+                        size: 14, color: Colors.grey[600]),
+                    const SizedBox(width: 12),
+                    if (likeCount.isNotEmpty)
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.thumb_up_outlined,
+                              size: 14, color: Colors.grey[600]),
+                          const SizedBox(width: 4),
+                          Text(
+                            likeCount,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey[600],
+                            ),
+                          ),
+                        ],
+                      )
+                    else
+                      Icon(Icons.thumb_up_outlined,
+                          size: 14, color: Colors.grey[600]),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
 
   /// 构建底部导航项
   Widget _buildBottomNavItem(IconData icon, String count) {
@@ -736,53 +732,8 @@ class WeiboPreviewWidget extends StatelessWidget {
 
   /// 获取图片列表
   List<String> _getImages() {
-    final images = <String>[];
-
-    // 1. 优先使用本地图片路径
-    final localPaths = _getListFromMetadata('localImagePaths');
-    for (final path in localPaths) {
-      if (_isValidPath(path)) {
-        images.add(path);
-      }
-    }
-
-    // 2. 如果本地图片不够，补充云端图片
-    if (images.isEmpty) {
-      final cloudUrls = _getListFromMetadata('cloudImageUrls');
-      for (final url in cloudUrls) {
-        if (_isValidPath(url)) {
-          images.add(url);
-        }
-      }
-    }
-
-    // 3. 如果还是没有图片，使用原始图片
-    if (images.isEmpty && card.image.existsSync()) {
-      images.add(card.image.path);
-    }
-
-    return images;
-  }
-
-  /// 从 metadata 中获取列表
-  List<String> _getListFromMetadata(String key) {
-    final metadata = card.metadata;
-    if (metadata.containsKey(key)) {
-      final value = metadata[key];
-      if (value is List) {
-        return value.map((e) => e.toString()).toList();
-      }
-    }
-    return [];
-  }
-
-  /// 验证路径是否有效
-  bool _isValidPath(String path) {
-    if (path.isEmpty) return false;
-    // 检查是否是网络URL
-    if (path.startsWith('http')) return true;
-    // 检查本地文件是否存在
-    return File(path).existsSync();
+    // 使用统一的方法获取本地图片路径
+    return card.getLocalImagePaths();
   }
 
   /// 格式化日期时间

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:ai_poetry_card/models/poetry_card.dart';
 import 'package:ai_poetry_card/widgets/common/fallback_background.dart';
 import '../providers/app_state.dart';
+import '../services/language_service.dart';
 
 class PoetryCardWidget extends StatelessWidget {
   final PoetryCard card;
@@ -60,35 +61,22 @@ class PoetryCardWidget extends StatelessWidget {
                   ),
                 ),
 
-                // 情绪标签（根据设置显示）
+                // 应用名称（根据设置显示）
                 Positioned(
                   top: 12,
                   left: 20,
                   child: Consumer<AppState>(
                     builder: (context, appState, child) {
-                      // 如果开启显示情绪标签且卡片有保存的情绪标签，显示情绪标签
-                      if (appState.showMoodTagOnCard &&
-                          card.moodTag != null &&
-                          card.moodTag!.isNotEmpty) {
-                        // 如果包含多个标签，只显示第一个
-                        final displayTag = card.moodTag!.split(',').first;
-                        return Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 12,
-                            vertical: 6,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          child: Text(
-                            displayTag,
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w500,
-                            ),
-                          ),
+                      // 如果开启显示情绪标签，显示应用名称
+                      if (appState.showMoodTagOnCard) {
+                        // 根据语言选择对应的图片
+                        final imagePath = context.isChinese
+                            ? 'assets/images/appName_zh.png'
+                            : 'assets/images/appName_en.png';
+                        return Image.asset(
+                          imagePath,
+                          height: 64,
+                          fit: BoxFit.contain,
                         );
                       }
                       // 不显示
@@ -204,82 +192,55 @@ class PoetryCardWidget extends StatelessWidget {
   }
 
   /// 构建背景图片，支持本地文件和网络URL
-  Widget _buildBackgroundImage(PoetryCard card) {
-    return FutureBuilder<ImageProvider?>(
-      future: _getImageProvider(card),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Container(
-            color: Colors.grey.shade300,
-            child: const Center(
-              child: CircularProgressIndicator(),
-            ),
-          );
-        }
-
-        if (snapshot.hasData && snapshot.data != null) {
-          return Image(
-            image: snapshot.data!,
-            fit: BoxFit.cover,
-            errorBuilder: (context, error, stackTrace) {
-              print('❌ 图片加载失败，使用备用背景');
-              return FallbackBackgrounds.cardPreview();
-            },
-          );
-        } else {
-          return FallbackBackgrounds.cardPreview();
-        }
-      },
-    );
-  }
-
-  /// 智能获取图片Provider：优先本地图片，其次云端图片
-  Future<ImageProvider?> _getImageProvider(PoetryCard card) async {
-    // 1. 优先尝试本地图片路径
-    final localPaths = card.metadata['localImagePaths'] as List<dynamic>?;
-    if (localPaths != null && localPaths.isNotEmpty) {
-      for (var path in localPaths) {
-        try {
-          final localFile = File(path.toString());
-          if (await localFile.exists()) {
-            print('🖼️ 使用本地图片: $path');
-            return FileImage(localFile);
+  Widget _buildBackgroundImage(PoetryCard card) =>
+      FutureBuilder<ImageProvider?>(
+        future: _getImageProvider(card),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Container(
+              color: Colors.grey.shade300,
+              child: const Center(
+                child: CircularProgressIndicator(),
+              ),
+            );
           }
-        } catch (e) {
-          print('⚠️ 本地图片检查失败: $path, 错误: $e');
-        }
-      }
-    }
 
-    // 2. 尝试云端图片URL
-    final cloudUrls = card.metadata['cloudImageUrls'] as List<dynamic>?;
-    if (cloudUrls != null && cloudUrls.isNotEmpty) {
-      for (var url in cloudUrls) {
-        if (url.toString().startsWith('http')) {
-          print('🖼️ 使用云端图片: $url');
-          return NetworkImage(url.toString());
-        }
-      }
-    }
+          if (snapshot.hasData && snapshot.data != null) {
+            return Image(
+              image: snapshot.data!,
+              fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                print('❌ 图片加载失败，使用备用背景');
+                return FallbackBackgrounds.cardPreview();
+              },
+            );
+          } else {
+            return FallbackBackgrounds.cardPreview();
+          }
+        },
+      );
 
-    // 3. 使用卡片当前的图片路径
-    if (card.image.path.startsWith('http')) {
-      print('🖼️ 使用卡片URL图片: ${card.image.path}');
-      return NetworkImage(card.image.path);
+  /// 智能获取图片Provider：使用统一的 getFirstImagePath() 方法
+  Future<ImageProvider?> _getImageProvider(PoetryCard card) async {
+    // 使用统一的 getFirstImagePath() 方法获取首图
+    final firstImagePath = card.getFirstImagePath();
+
+    // 判断是本地图片还是网络 URL
+    if (firstImagePath.startsWith('http')) {
+      return NetworkImage(firstImagePath);
     } else {
-      // 检查本地文件是否存在
       try {
-        if (await card.image.exists()) {
-          print('🖼️ 使用卡片本地图片: ${card.image.path}');
-          return FileImage(card.image);
+        final localFile = File(firstImagePath);
+        if (await localFile.exists()) {
+          return FileImage(localFile);
         }
       } catch (e) {
-        print('⚠️ 卡片图片检查失败: ${card.image.path}, 错误: $e');
+        print('⚠️ 图片检查失败: $firstImagePath, 错误: $e');
       }
     }
 
-    // 4. 都不可用，返回null使用备用背景
-    print('⚠️ 所有图片源都不可用，将使用备用背景');
+    // 都不可用，返回null使用备用背景
+    print('⚠️ 图片不可用，将使用备用背景');
     return null;
   }
 }

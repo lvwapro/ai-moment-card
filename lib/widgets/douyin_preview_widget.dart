@@ -325,234 +325,245 @@ class _DouyinPreviewWidgetState extends State<DouyinPreviewWidget> {
   }
 
   /// 构建左下角信息栏
-  Widget _buildBottomLeftInfo(BuildContext context) => Positioned(
-        bottom: 90,
-        left: 16,
-        right: 80,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 用户名和图文标签
-            Row(
-              children: [
-                Text(
-                  '@${context.l10n('迹见文案')}',
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ],
-            ),
+  Widget _buildBottomLeftInfo(BuildContext context) {
+    final images = _getImages();
+    final hasImageIndicator = images.length > 1;
+    final bottomOffset = hasImageIndicator ? 90.0 : 75.0;
 
-            // 文案内容
-            if (widget.card.douyin != null &&
-                widget.card.douyin!.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text.rich(
-                TextSpan(
-                  children: [
-                    TextSpan(
-                      text: widget.card.douyin!,
-                      style: const TextStyle(
-                        fontSize: 15,
-                        color: Colors.white,
-                        height: 1.4,
-                      ),
-                    ),
-                    TextSpan(
-                      text: ' ${context.l10n('展开')}',
-                      style: const TextStyle(
-                        fontSize: 15,
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        height: 1.4,
-                      ),
-                    ),
-                  ],
+    return Positioned(
+      bottom: bottomOffset,
+      left: 16,
+      right: 80,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 用户名和图文标签
+          Row(
+            children: [
+              Text(
+                '@${context.l10n('迹见文案')}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
                 ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
               ),
             ],
+          ),
 
+          // 文案内容
+          if (widget.card.douyin != null && widget.card.douyin!.isNotEmpty) ...[
             const SizedBox(height: 8),
-
-            // 分享给按钮
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: const Color(0xFF282828).withOpacity(0.4),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
+            Text.rich(
+              TextSpan(
                 children: [
-                  Image.asset(
-                    'assets/douyin_share.png',
-                    width: 16,
-                    height: 16,
-                    color: Colors.white,
-                    errorBuilder: (context, error, stackTrace) => const Icon(
-                      Icons.share_outlined,
-                      size: 16,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    context.l10n('分享给'),
+                  TextSpan(
+                    text: widget.card.douyin!,
                     style: const TextStyle(
-                      fontSize: 13,
+                      fontSize: 15,
                       color: Colors.white,
+                      height: 1.4,
                     ),
                   ),
-                  const SizedBox(width: 6),
-                  // 小头像
-                  ClipOval(
-                    child: Image.asset(
-                      'assets/avatar.png',
-                      width: 20,
-                      height: 20,
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        width: 20,
-                        height: 20,
-                        color: Colors.grey,
-                        child: const Icon(Icons.person,
-                            size: 12, color: Colors.white),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    context.l10n('AI助手'),
+                  TextSpan(
+                    text: ' ${context.l10n('展开')}',
                     style: const TextStyle(
-                      fontSize: 13,
+                      fontSize: 15,
                       color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      height: 1.4,
                     ),
                   ),
                 ],
               ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
-        ),
-      );
 
-  /// 构建右侧互动栏
-  Widget _buildRightInteractionBar(BuildContext context) => Positioned(
-        right: 12,
-        bottom: 90,
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // 头像
-            Stack(
-              clipBehavior: Clip.none,
-              children: [
-                Container(
-                  width: 36,
-                  height: 36,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 1),
-                  ),
-                  child: ClipOval(
-                    child: Image.asset(
-                      'assets/images/logo.png',
-                      fit: BoxFit.cover,
-                      errorBuilder: (context, error, stackTrace) => Container(
-                        color: Colors.grey[700],
-                        child: const Icon(Icons.person,
-                            color: Colors.white, size: 18),
-                      ),
-                    ),
-                  ),
-                ),
-                // 关注按钮
-                Positioned(
-                  bottom: -8,
-                  left: 0,
-                  right: 0,
-                  child: Center(
-                    child: Container(
-                      width: 16,
-                      height: 16,
-                      decoration: const BoxDecoration(
-                        color: const Color(0xFFfd3661),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.add,
-                        color: Colors.white,
-                        size: 12,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
+          const SizedBox(height: 8),
+
+          // 分享给按钮
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            decoration: BoxDecoration(
+              color: const Color(0xFF282828).withOpacity(0.4),
+              borderRadius: BorderRadius.circular(10),
             ),
-
-            const SizedBox(height: 16),
-
-            // 点赞
-            _buildInteractionButton(
-              Icons.favorite,
-              '13.8w',
-              Colors.white,
-            ),
-
-            const SizedBox(height: 16),
-
-            // 评论
-            _buildInteractionButton(
-              Icons.comment,
-              '2341',
-              Colors.white,
-            ),
-
-            const SizedBox(height: 16),
-
-            // 收藏
-            _buildInteractionButton(
-              Icons.star,
-              '95',
-              Colors.white,
-            ),
-
-            const SizedBox(height: 16),
-
-            // 分享
-            Column(
+            child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
                 Image.asset(
-                  'assets/douyin_share.png',
-                  width: 24,
-                  height: 24,
+                  'assets/images/douyin_share.png',
+                  width: 16,
+                  height: 16,
                   color: Colors.white,
                   errorBuilder: (context, error, stackTrace) => const Icon(
-                    Icons.share,
+                    Icons.share_outlined,
+                    size: 16,
                     color: Colors.white,
-                    size: 24,
                   ),
                 ),
-                const SizedBox(height: 2),
-                const Text(
-                  '1261',
-                  style: TextStyle(
-                    fontSize: 11,
+                const SizedBox(width: 6),
+                Text(
+                  context.l10n('分享给'),
+                  style: const TextStyle(
+                    fontSize: 13,
                     color: Colors.white,
-                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                const SizedBox(width: 6),
+                // 小头像
+                ClipOval(
+                  child: Image.asset(
+                    'assets/images/avatar.png',
+                    width: 20,
+                    height: 20,
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      width: 20,
+                      height: 20,
+                      color: Colors.grey,
+                      child: const Icon(Icons.person,
+                          size: 12, color: Colors.white),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  context.l10n('AI助手'),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    color: Colors.white,
                   ),
                 ),
               ],
             ),
-          ],
-        ),
-      );
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 构建右侧互动栏
+  Widget _buildRightInteractionBar(BuildContext context) {
+    final images = _getImages();
+    final hasImageIndicator = images.length > 1;
+    final bottomOffset = hasImageIndicator ? 90.0 : 75.0;
+
+    return Positioned(
+      right: 12,
+      bottom: bottomOffset,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // 头像
+          Stack(
+            clipBehavior: Clip.none,
+            children: [
+              Container(
+                width: 36,
+                height: 36,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  border: Border.all(color: Colors.white, width: 1),
+                ),
+                child: ClipOval(
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    fit: BoxFit.cover,
+                    errorBuilder: (context, error, stackTrace) => Container(
+                      color: Colors.grey[700],
+                      child: const Icon(Icons.person,
+                          color: Colors.white, size: 18),
+                    ),
+                  ),
+                ),
+              ),
+              // 关注按钮
+              Positioned(
+                bottom: -8,
+                left: 0,
+                right: 0,
+                child: Center(
+                  child: Container(
+                    width: 16,
+                    height: 16,
+                    decoration: const BoxDecoration(
+                      color: const Color(0xFFfd3661),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.add,
+                      color: Colors.white,
+                      size: 12,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 16),
+
+          // 点赞
+          _buildInteractionButton(
+            Icons.favorite,
+            '13.8w',
+            Colors.white,
+          ),
+
+          const SizedBox(height: 16),
+
+          // 评论
+          _buildInteractionButton(
+            Icons.comment,
+            '2341',
+            Colors.white,
+          ),
+
+          const SizedBox(height: 16),
+
+          // 收藏
+          _buildInteractionButton(
+            Icons.star,
+            '95',
+            Colors.white,
+          ),
+
+          const SizedBox(height: 16),
+
+          // 分享
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Image.asset(
+                'assets/images/douyin_share.png',
+                width: 24,
+                height: 24,
+                color: Colors.white,
+                errorBuilder: (context, error, stackTrace) => const Icon(
+                  Icons.share,
+                  color: Colors.white,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(height: 2),
+              const Text(
+                '1261',
+                style: TextStyle(
+                  fontSize: 11,
+                  color: Colors.white,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
 
   /// 构建单个互动按钮
   Widget _buildInteractionButton(IconData icon, String count, Color color) {
@@ -661,52 +672,7 @@ class _DouyinPreviewWidgetState extends State<DouyinPreviewWidget> {
 
   /// 获取图片列表
   List<String> _getImages() {
-    final images = <String>[];
-
-    // 1. 优先使用本地图片路径
-    final localPaths = _getListFromMetadata('localImagePaths');
-    for (final path in localPaths) {
-      if (_isValidPath(path)) {
-        images.add(path);
-      }
-    }
-
-    // 2. 如果本地图片不够，补充云端图片
-    if (images.isEmpty) {
-      final cloudUrls = _getListFromMetadata('cloudImageUrls');
-      for (final url in cloudUrls) {
-        if (_isValidPath(url)) {
-          images.add(url);
-        }
-      }
-    }
-
-    // 3. 如果还是没有图片，使用原始图片
-    if (images.isEmpty && widget.card.image.existsSync()) {
-      images.add(widget.card.image.path);
-    }
-
-    return images;
-  }
-
-  /// 从 metadata 中获取列表
-  List<String> _getListFromMetadata(String key) {
-    final metadata = widget.card.metadata;
-    if (metadata.containsKey(key)) {
-      final value = metadata[key];
-      if (value is List) {
-        return value.map((e) => e.toString()).toList();
-      }
-    }
-    return [];
-  }
-
-  /// 验证路径是否有效
-  bool _isValidPath(String path) {
-    if (path.isEmpty) return false;
-    // 检查是否是网络URL
-    if (path.startsWith('http')) return true;
-    // 检查本地文件是否存在
-    return File(path).existsSync();
+    // 使用统一的方法获取本地图片路径
+    return widget.card.getLocalImagePaths();
   }
 }

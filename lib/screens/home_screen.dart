@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:geolocator/geolocator.dart';
 
 import '../models/poetry_card.dart';
 import '../models/nearby_place.dart';
@@ -18,6 +19,7 @@ import '../widgets/mood_tag_selector_widget.dart';
 import '../widgets/generate_button_widget.dart';
 import '../widgets/loading_overlay.dart';
 import '../widgets/place_selector_widget.dart';
+import '../widgets/common/permission_guide_dialog.dart';
 import 'card_detail_screen.dart';
 import '../services/upgrade_service.dart';
 
@@ -67,6 +69,26 @@ class _HomeScreenState extends State<HomeScreen> {
     });
 
     try {
+      // 1. 检查位置权限
+      final locationService = LocationService();
+      final permissionStatus = await locationService.getLocationPermissionStatus();
+      
+      if (permissionStatus == LocationPermission.deniedForever) {
+        // 权限被永久拒绝，显示引导弹窗
+        if (mounted) {
+          await PermissionGuideDialog.showLocationPermissionDialog(context);
+        }
+        if (mounted) {
+          setState(() {
+            _nearbyPlaces = [];
+            _placesError = true;
+            _isLoadingPlaces = false;
+          });
+        }
+        return;
+      }
+
+      // 2. 获取附近地点
       final cardGenerator = Provider.of<CardGenerator>(context, listen: false);
       final places = await cardGenerator.fetchNearbyPlaces();
 
@@ -106,8 +128,26 @@ class _HomeScreenState extends State<HomeScreen> {
     appState.setSelectedMoodTags([]);
 
     try {
-      // 获取当前位置
+      // 1. 检查位置权限
       final locationService = LocationService();
+      final permissionStatus = await locationService.getLocationPermissionStatus();
+      
+      if (permissionStatus == LocationPermission.deniedForever) {
+        // 权限被永久拒绝，显示引导弹窗
+        if (mounted) {
+          await PermissionGuideDialog.showLocationPermissionDialog(context);
+        }
+        if (mounted) {
+          setState(() {
+            _moodTags = [];
+            _moodTagsError = true;
+            _isLoadingMoodTags = false;
+          });
+        }
+        return;
+      }
+
+      // 2. 获取当前位置
       final location = await locationService.getCurrentLocation();
 
       if (location != null) {

@@ -184,8 +184,6 @@ class EnglishTranslations {
         'Are you sure you want to delete this card? This action cannot be undone.',
     '确定要删除选中的 ': 'Are you sure you want to delete the selected ',
     ' 张卡片吗？此操作不可撤销。': ' cards? This action cannot be undone.',
-
-    // 新增的翻译
     '升级': 'Upgrade',
     '升级到专业版': 'Upgrade to Pro',
     '解锁无限生成和所有功能': 'Unlock unlimited generations and all features',
@@ -240,6 +238,7 @@ class EnglishTranslations {
     '各平台文案': 'Platform Copywriting',
     '原诗': 'Original Poem',
     '诗句': 'Verse',
+    '解析': 'Analysis',
     '朋友圈': 'WeChat',
     '小红书': 'Xiaohongshu',
     '微博': 'Weibo',
@@ -248,17 +247,28 @@ class EnglishTranslations {
     '拍照失败：': 'Camera failed: ',
     '上传失败：': 'Upload failed: ',
     '需要相册权限': 'Photo Library Access Required',
+    '需要位置权限': 'Location Access Required',
+    '需要相机权限': 'Camera Access Required',
     '请在设置中允许访问相册，以便选择图片。':
         'Please allow access to your photo library in Settings to select photos.',
+    '请在设置中允许访问相机，以便拍照。':
+        'Please allow access to your camera in Settings to take photos.',
+    '获取您的位置信息，为您推荐附近地点和基于位置的氛围标签，提供更个性化的文案生成体验。':
+        'Get your location to recommend nearby places and location-based mood tags for a more personalized copy generation experience.',
+    '访问您的相册以选择图片，生成个性化的文案卡片。':
+        'Access your photo library to select images and generate personalized copy cards.',
+    '使用相机拍摄照片，生成个性化的文案卡片。':
+        'Use the camera to take photos and generate personalized copy cards.',
+    '在设置中找到"位置服务"并开启': 'Find "Location Services" in Settings and enable it',
+    '在设置中找到"照片"并开启': 'Find "Photos" in Settings and enable it',
+    '在设置中找到"相机"并开启': 'Find "Camera" in Settings and enable it',
+    '在设置中找到"权限"并开启': 'Find "Permissions" in Settings and enable it',
     '请在设置中授予"照片和视频"访问权限，以便保存卡片到相册':
         'Please grant "Photos and Videos" access in Settings to save cards to gallery',
     '重新授权': 'Re-authorize',
     '已保存到相册': 'Saved to Gallery',
     '保存失败，请重试': 'Save failed, please try again',
     '查看': 'View',
-    '需要相机权限': 'Camera Access Required',
-    '请在设置中允许访问相机，以便拍照。':
-        'Please allow access to your camera in Settings to take photos.',
     '上传图片': 'Upload Image',
     '选择图片来源': 'Select Image Source',
     '请选择您想要添加图片的方式': 'Please select how you want to add images',
@@ -348,6 +358,8 @@ class EnglishTranslations {
     '朋友圈预览': 'Moments Preview',
     '小红书预览': 'Xiaohongshu Preview',
     '微博预览': 'Weibo Preview',
+    '抖音预览': 'Douyin Preview',
+    '对联预览': 'Couplet Preview',
     '关注': 'Follow',
     '来自': 'From',
     '友善评论，文明发言': 'Be kind and respectful',
@@ -380,6 +392,8 @@ class EnglishTranslations {
     '默认文案风格': 'Default Text Style',
     '默认显示文案': 'Default Display Content',
     '选择默认显示文案': 'Select Default Display Content',
+    '常用文案': 'Common Content',
+    '选择常用文案': 'Select Common Content',
     '默认': 'Default',
     '数据管理': 'Data Management',
     '导出数据': 'Export Data',
@@ -540,6 +554,8 @@ class EnglishTranslations {
     '正在获取附近地点...': 'Loading nearby places...',
     '显示情绪标签': 'Show Mood Tag',
     '在卡片上显示情绪标签': 'Display mood tag on card',
+    '应用展示': 'App Display',
+    '在卡片上显示应用名称': 'Display app name on card',
     '已聚合 {0} 个足迹': 'Aggregated {0} footprints',
     '篇': 'cards',
     '附近地点': 'Nearby Places',

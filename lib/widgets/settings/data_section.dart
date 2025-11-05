@@ -148,13 +148,11 @@ class DataSection extends StatelessWidget {
 
         // 获取图片链接（优先云端链接，其次本地路径）
         String imageUrl = '';
-        final cloudUrls = card.metadata['cloudImageUrls'] as List<dynamic>?;
-        final localPaths = card.metadata['localImagePaths'] as List<dynamic>?;
-
-        if (cloudUrls != null && cloudUrls.isNotEmpty) {
-          imageUrl = cloudUrls.first.toString();
-        } else if (localPaths != null && localPaths.isNotEmpty) {
-          imageUrl = localPaths.first.toString();
+        if (card.cloudImageUrls != null && card.cloudImageUrls!.isNotEmpty) {
+          imageUrl = card.cloudImageUrls!.first;
+        } else if (card.localImagePaths != null &&
+            card.localImagePaths!.isNotEmpty) {
+          imageUrl = card.localImagePaths!.first;
         } else if (card.image.path.isNotEmpty) {
           imageUrl = card.image.path;
         }

@@ -7,6 +7,7 @@ import 'package:permission_handler/permission_handler.dart';
 import '../services/cos_upload_service.dart';
 import '../services/language_service.dart';
 import 'common/fallback_background.dart';
+import 'common/permission_guide_dialog.dart';
 
 /// 增强版图片选择组件 - 集成腾讯云 COS 上传功能
 class EnhancedImageSelectionWidget extends StatefulWidget {
@@ -50,13 +51,17 @@ class _EnhancedImageSelectionWidgetState
       if (cameraStatus.isDenied) {
         final result = await Permission.camera.request();
         if (result.isDenied) {
-          _showCameraPermissionDeniedDialog();
+          if (mounted) {
+            await PermissionGuideDialog.showCameraPermissionDialog(context);
+          }
           return;
         }
       }
 
       if (cameraStatus.isPermanentlyDenied) {
-        _showCameraPermissionDeniedDialog();
+        if (mounted) {
+          await PermissionGuideDialog.showCameraPermissionDialog(context);
+        }
         return;
       }
 
@@ -77,13 +82,17 @@ class _EnhancedImageSelectionWidgetState
       if (photosStatus.isDenied) {
         final result = await Permission.photos.request();
         if (result.isDenied) {
-          _showPermissionDeniedDialog();
+          if (mounted) {
+            await PermissionGuideDialog.showPhotosPermissionDialog(context);
+          }
           return;
         }
       }
 
       if (photosStatus.isPermanentlyDenied) {
-        _showPermissionDeniedDialog();
+        if (mounted) {
+          await PermissionGuideDialog.showPhotosPermissionDialog(context);
+        }
         return;
       }
 
@@ -178,54 +187,6 @@ class _EnhancedImageSelectionWidgetState
 
     // 通知父组件数据变化
     _notifyDataChanged();
-  }
-
-  /// 显示权限被拒绝的对话框
-  void _showPermissionDeniedDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.l10n('需要相册权限')),
-        content: Text(context.l10n('请在设置中允许访问相册，以便选择图片。')),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(context.l10n('取消')),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              openAppSettings();
-            },
-            child: Text(context.l10n('去设置')),
-          ),
-        ],
-      ),
-    );
-  }
-
-  /// 显示相机权限被拒绝的对话框
-  void _showCameraPermissionDeniedDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(context.l10n('需要相机权限')),
-        content: Text(context.l10n('请在设置中允许访问相机，以便拍照。')),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(context).pop(),
-            child: Text(context.l10n('取消')),
-          ),
-          TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-              openAppSettings();
-            },
-            child: Text(context.l10n('去设置')),
-          ),
-        ],
-      ),
-    );
   }
 
   @override

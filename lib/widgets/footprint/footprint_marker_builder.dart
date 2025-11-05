@@ -177,58 +177,17 @@ class FootprintMarkerBuilder {
     );
   }
 
-  /// 构建标记的图片（优先使用缓存）
+  /// 构建标记的图片（使用统一的 getFirstImagePath 方法）
   static Widget _buildMarkerImage(PoetryCard card) {
-    // 1. 优先使用本地缓存图片（最快）
-    final localPaths = card.metadata['localImagePaths'] as List<dynamic>?;
-    if (localPaths != null && localPaths.isNotEmpty) {
-      final localPath = localPaths.first.toString();
-      final localFile = File(localPath);
-      return Image.file(
-        localFile,
+    // 使用统一的 getFirstImagePath() 方法获取首图
+    final firstImagePath = card.getFirstImagePath();
+
+    // 判断是本地图片还是网络 URL
+    if (firstImagePath.startsWith('http')) {
+      return Image.network(
+        firstImagePath,
         fit: BoxFit.cover,
         cacheWidth: 100, // 缩小缓存尺寸，提高性能
-        errorBuilder: (context, error, stackTrace) => _buildFallbackImage(card),
-      );
-    }
-
-    // 2. 使用卡片原始图片（本地文件）
-    if (!card.image.path.startsWith('http')) {
-      return Image.file(
-        card.image,
-        fit: BoxFit.cover,
-        cacheWidth: 100,
-        errorBuilder: (context, error, stackTrace) => _buildNetworkImage(card),
-      );
-    }
-
-    // 3. 最后才使用网络图片
-    return _buildNetworkImage(card);
-  }
-
-  /// 构建网络图片（带缓存）
-  static Widget _buildNetworkImage(PoetryCard card) {
-    // 优先使用云端图片URL
-    final cloudUrls = card.metadata['cloudImageUrls'] as List<dynamic>?;
-    String? imageUrl;
-
-    if (cloudUrls != null && cloudUrls.isNotEmpty) {
-      final cloudUrl = cloudUrls.first.toString();
-      if (cloudUrl.startsWith('http')) {
-        imageUrl = cloudUrl;
-      }
-    }
-
-    // 备用：使用卡片图片URL
-    if (imageUrl == null && card.image.path.startsWith('http')) {
-      imageUrl = card.image.path;
-    }
-
-    if (imageUrl != null) {
-      return Image.network(
-        imageUrl,
-        fit: BoxFit.cover,
-        cacheWidth: 100, // 缓存优化
         loadingBuilder: (context, child, loadingProgress) {
           if (loadingProgress == null) return child;
           return _buildPlaceholder();
@@ -236,18 +195,10 @@ class FootprintMarkerBuilder {
         errorBuilder: (context, error, stackTrace) =>
             _buildDefaultMarkerImage(),
       );
-    }
-
-    return _buildDefaultMarkerImage();
-  }
-
-  /// 备用图片
-  static Widget _buildFallbackImage(PoetryCard card) {
-    if (card.image.path.startsWith('http')) {
-      return _buildNetworkImage(card);
     } else {
+      final localFile = File(firstImagePath);
       return Image.file(
-        card.image,
+        localFile,
         fit: BoxFit.cover,
         cacheWidth: 100,
         errorBuilder: (context, error, stackTrace) =>

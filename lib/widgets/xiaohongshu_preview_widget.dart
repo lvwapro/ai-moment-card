@@ -221,7 +221,7 @@ class _XiaohongshuPreviewWidgetState extends State<XiaohongshuPreviewWidget> {
 
                           // 分享按钮
                           Image.asset(
-                            'assets/xiaohongshu_share.png',
+                            'assets/images/xiaohongshu_share.png',
                             width: 20,
                             height: 20,
                             errorBuilder: (context, error, stackTrace) =>
@@ -383,7 +383,7 @@ class _XiaohongshuPreviewWidgetState extends State<XiaohongshuPreviewWidget> {
             context.l10n('momo'),
             context.l10n('好美！！！'),
             context.l10n('5天前 深圳'),
-            avatarPath: 'assets/avatar.png', // 使用西瓜恐龙头像
+            avatarPath: 'assets/images/avatar.png', // 使用西瓜恐龙头像
           ),
           const SizedBox(height: 12),
           _buildCommentItem(
@@ -569,51 +569,13 @@ class _XiaohongshuPreviewWidgetState extends State<XiaohongshuPreviewWidget> {
   List<ImageSource> _getImages() {
     final List<ImageSource> images = [];
 
-    // 1. 优先使用本地图片路径
-    final localPaths = _getListFromMetadata('localImagePaths');
+    // 使用统一的方法获取本地图片路径
+    final localPaths = widget.card.getLocalImagePaths();
     for (final path in localPaths) {
-      if (_isValidPath(path)) {
-        images.add(ImageSource(path: path, isLocal: true));
-      }
-    }
-
-    // 2. 如果本地图片不够，补充云端图片
-    if (images.isEmpty) {
-      final cloudUrls = _getListFromMetadata('cloudImageUrls');
-      for (final url in cloudUrls) {
-        if (_isValidPath(url)) {
-          images.add(ImageSource(path: url, isLocal: false));
-        }
-      }
-    }
-
-    // 3. 如果还是没有图片，使用原始图片
-    if (images.isEmpty && widget.card.image.existsSync()) {
-      images.add(ImageSource(path: widget.card.image.path, isLocal: true));
+      images.add(ImageSource(path: path, isLocal: true));
     }
 
     return images;
-  }
-
-  /// 从 metadata 中获取列表
-  List<String> _getListFromMetadata(String key) {
-    final metadata = widget.card.metadata;
-    if (metadata.containsKey(key)) {
-      final value = metadata[key];
-      if (value is List) {
-        return value.map((e) => e.toString()).toList();
-      }
-    }
-    return [];
-  }
-
-  /// 验证路径是否有效
-  bool _isValidPath(String path) {
-    if (path.isEmpty) return false;
-    // 检查是否是网络URL
-    if (path.startsWith('http')) return true;
-    // 检查本地文件是否存在
-    return File(path).existsSync();
   }
 
   /// 格式化日期
