@@ -28,7 +28,7 @@ class CosUploadService {
   // 从 .env 文件或环境变量获取敏感信息
   static String get _secretId {
     // 优先从 .env 文件获取
-    final envValue = dotenv.env['TENCENT_SECRET_ID'];
+    final envValue = dotenv.env['SECRET_ID_TX'];
     if (envValue != null &&
         envValue.isNotEmpty &&
         envValue != 'YOUR_SECRET_ID_HERE') {
@@ -37,7 +37,7 @@ class CosUploadService {
 
     // 回退到环境变量
     return const String.fromEnvironment(
-      'TENCENT_SECRET_ID',
+      'SECRET_ID_TX',
       defaultValue: 'YOUR_SECRET_ID_HERE',
     );
   }

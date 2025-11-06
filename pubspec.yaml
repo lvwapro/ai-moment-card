@@ -130,7 +130,7 @@ flutter:
     - family: YanShiXiaXingKai
       fonts:
         - asset: assets/fonts/YanShiXiaXingKai-2.ttf
-          weight: 700
+          weight: 600
 
 flutter_launcher_icons:
   android: true
