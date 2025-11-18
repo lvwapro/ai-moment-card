@@ -60,12 +60,14 @@ class _PreferencesSectionState extends State<PreferencesSection> {
                           fontSize: 16,
                         ),
                   ),
-                  const SizedBox(width: 8),
-                  Image.asset(
-                    'assets/images/vip.png',
-                    height: 16,
-                    fit: BoxFit.contain,
-                  ),
+                  if (!appState.isPremium) ...[
+                    const SizedBox(width: 8),
+                    Image.asset(
+                      'assets/images/vip.png',
+                      height: 16,
+                      fit: BoxFit.contain,
+                    ),
+                  ],
                 ],
               ),
               subtitle: context.l10n('在卡片上显示二维码'),
@@ -98,12 +100,14 @@ class _PreferencesSectionState extends State<PreferencesSection> {
                           fontSize: 16,
                         ),
                   ),
-                  const SizedBox(width: 8),
-                  Image.asset(
-                    'assets/images/vip.png',
-                    height: 16,
-                    fit: BoxFit.contain,
-                  ),
+                  if (!appState.isPremium) ...[
+                    const SizedBox(width: 8),
+                    Image.asset(
+                      'assets/images/vip.png',
+                      height: 16,
+                      fit: BoxFit.contain,
+                    ),
+                  ],
                 ],
               ),
               subtitle: context.l10n('在卡片上显示应用名称'),
