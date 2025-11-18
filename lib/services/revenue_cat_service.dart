@@ -114,11 +114,15 @@ class RevenueCatService {
       try {
         CustomerInfo customerInfo = await Purchases.getCustomerInfo();
         if (customerInfo.entitlements.all["Pro"]?.isActive ?? false) {
-          print('VIP购买成功');
-          // 购买成功后刷新服务器端会员状态
-          final vipStatus = await _vipService.refreshVipStatus();
-          final isPremium = vipStatus?.isPremium ?? false;
-          return {'success': true, 'isPremium': isPremium};
+          print('VIP购买成功，RevenueCat权益已激活');
+          // 异步刷新服务器端会员状态（不阻塞UI更新）
+          _vipService.refreshVipStatus().then((vipStatus) {
+            print('服务器会员状态已同步: ${vipStatus?.isPremium ?? false}');
+          }).catchError((e) {
+            print('服务器会员状态同步失败: $e');
+          });
+          // 直接返回成功，因为RevenueCat已确认购买
+          return {'success': true, 'isPremium': true};
         }
       } catch (e) {
         print('获取用户信息失败: $e');
@@ -146,11 +150,15 @@ class RevenueCatService {
       await Purchases.restorePurchases();
       CustomerInfo customerInfo = await Purchases.getCustomerInfo();
       if (customerInfo.entitlements.all["Pro"]?.isActive ?? false) {
-        print('恢复购买成功');
-        // 恢复购买成功后也刷新会员状态
-        final vipStatus = await _vipService.refreshVipStatus();
-        final isPremium = vipStatus?.isPremium ?? false;
-        return {'success': true, 'isPremium': isPremium};
+        print('恢复购买成功，RevenueCat权益已激活');
+        // 异步刷新服务器端会员状态（不阻塞UI更新）
+        _vipService.refreshVipStatus().then((vipStatus) {
+          print('服务器会员状态已同步: ${vipStatus?.isPremium ?? false}');
+        }).catchError((e) {
+          print('服务器会员状态同步失败: $e');
+        });
+        // 直接返回成功，因为RevenueCat已确认权益激活
+        return {'success': true, 'isPremium': true};
       }
       print('恢复购买完成，但未找到有效订阅');
       return {'success': false, 'isPremium': false};
