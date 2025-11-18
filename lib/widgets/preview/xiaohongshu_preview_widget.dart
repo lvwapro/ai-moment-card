@@ -184,7 +184,7 @@ class _XiaohongshuPreviewWidgetState extends State<XiaohongshuPreviewWidget> {
 
                           // 昵称
                           Text(
-                            context.l10n('迹见文案'),
+                            context.l10n('拾光记'),
                             style: const TextStyle(
                               fontSize: 13,
                               color: Colors.black,
@@ -388,7 +388,7 @@ class _XiaohongshuPreviewWidgetState extends State<XiaohongshuPreviewWidget> {
           const SizedBox(height: 12),
           _buildCommentItem(
             context,
-            context.l10n('迹见文案'),
+            context.l10n('拾光记'),
             context.l10n('记录生活'),
             context.l10n('5天前 深圳'),
             isAuthor: true,

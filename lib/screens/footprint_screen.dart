@@ -231,7 +231,7 @@ class _FootprintScreenState extends State<FootprintScreen> {
                       TileLayer(
                         urlTemplate: _getMapUrl(),
                         subdomains: _getMapSubdomains(),
-                        userAgentPackageName: 'com.qualrb.aiPoetry',
+                        userAgentPackageName: 'com.qualrb.aiPoetryCard',
                         tileSize: 256,
                         retinaMode: _getRetinaMode(),
                       ),
@@ -304,7 +304,7 @@ class _FootprintScreenState extends State<FootprintScreen> {
       // 分享
       final result = await Share.shareXFiles(
         [XFile(file.path)],
-        text: context.l10n('我的足迹地图 - 迹见文案'),
+        text: context.l10n('我的足迹地图 - 拾光记'),
       );
 
       // 分享完成后删除临时文件

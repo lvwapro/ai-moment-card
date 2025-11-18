@@ -110,7 +110,7 @@ class WeiboPreviewWidget extends StatelessWidget {
                                   Row(
                                     children: [
                                       Text(
-                                        context.l10n('迹见文案'),
+                                        context.l10n('拾光记'),
                                         style: const TextStyle(
                                           fontSize: 14,
                                           fontWeight: FontWeight.w600,
@@ -465,8 +465,8 @@ class WeiboPreviewWidget extends StatelessWidget {
             spacing: 8,
             runSpacing: 8,
             children: [
-              _buildSearchChip(context.l10n('迹见文案')),
-              _buildSearchChip(context.l10n('迹见文案-AI文案助手')),
+              _buildSearchChip(context.l10n('拾光记')),
+              _buildSearchChip(context.l10n('拾光记-AI文案助手')),
             ],
           ),
         ],

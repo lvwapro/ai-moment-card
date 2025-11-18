@@ -43,7 +43,8 @@ class MomentsPreviewWidget extends StatelessWidget {
                             clipBehavior: Clip.none, // 允许子元素超出边界
                             decoration: BoxDecoration(
                               image: DecorationImage(
-                                image: AssetImage('assets/images/wechat_background.png'),
+                                image: AssetImage(
+                                    'assets/images/wechat_background.png'),
                                 fit: BoxFit.cover,
                               ),
                             ),
@@ -56,7 +57,7 @@ class MomentsPreviewWidget extends StatelessWidget {
                                   right: 64, // 头像宽度64 + 间距16
                                   bottom: -4, // 调整为正值，避免被裁剪
                                   child: Text(
-                                    context.l10n('迹见文案'),
+                                    context.l10n('拾光记'),
                                     style: const TextStyle(
                                       fontSize: 17,
                                       fontWeight: FontWeight.w600,
@@ -108,7 +109,7 @@ class MomentsPreviewWidget extends StatelessWidget {
                                     children: [
                                       // 昵称
                                       Text(
-                                        context.l10n('迹见文案'),
+                                        context.l10n('拾光记'),
                                         style: const TextStyle(
                                           fontSize: 14, // 从16改为14
                                           fontWeight: FontWeight.w600,
@@ -547,7 +548,7 @@ class MomentsPreviewWidget extends StatelessWidget {
               TextSpan(
                 children: [
                   TextSpan(
-                    text: context.l10n('迹见文案'),
+                    text: context.l10n('拾光记'),
                     style: const TextStyle(
                       fontSize: 14,
                       color: Color(0xFF576B95),
@@ -567,7 +568,7 @@ class MomentsPreviewWidget extends StatelessWidget {
         children: [
           _buildCommentItem(context.l10n('AI助手'), context.l10n('真不错！👍')),
           _buildCommentReplyItem(
-            context.l10n('迹见文案'),
+            context.l10n('拾光记'),
             context.l10n('AI助手'),
             '哈哈哈哈🌹',
           ),

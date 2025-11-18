@@ -10,7 +10,7 @@ class GalleryService {
   static final GalleryService instance = GalleryService._();
 
   /// 相册名称（可选，用于保存到特定相册）
-  static const String albumName = '迹见文案';
+  static const String albumName = '拾光记';
 
   /// 检查是否有相册访问权限
   ///

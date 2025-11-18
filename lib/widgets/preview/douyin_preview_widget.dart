@@ -342,7 +342,7 @@ class _DouyinPreviewWidgetState extends State<DouyinPreviewWidget> {
           Row(
             children: [
               Text(
-                '@${context.l10n('迹见文案')}',
+                '@${context.l10n('拾光记')}',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,

@@ -61,7 +61,7 @@ class AboutSection extends StatelessWidget {
         scheme: 'mailto',
         path: 'huangdh3@gmail.com',
         queryParameters: {
-          'subject': context.l10n('迹见文案 - 用户反馈'),
+          'subject': context.l10n('拾光记 - 用户反馈'),
           'body': context.l10n(
               '请在此处输入您的反馈意见...\n\n---\n版本：v1.0.0\n设备：${Platform.operatingSystem}'),
         },
