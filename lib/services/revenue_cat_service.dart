@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
 import 'package:purchases_ui_flutter/purchases_ui_flutter.dart';
 import 'vip_service.dart';
+import 'network_service.dart';
 
 /// RevenueCat 购买系统服务
 class RevenueCatService {
@@ -11,10 +12,14 @@ class RevenueCatService {
   RevenueCatService._internal();
 
   final VipService _vipService = VipService();
+  final NetworkService _networkService = NetworkService();
 
   // 初始化状态
   bool _isInitialized = false;
   bool get isInitialized => _isInitialized;
+
+  // 初始化锁，防止重复初始化
+  bool _isInitializing = false;
 
   /// 初始化 RevenueCat 购买系统
   /// [uid] 用户ID，从外部传入
@@ -24,6 +29,16 @@ class RevenueCatService {
       return;
     }
 
+    if (_isInitializing) {
+      print('RevenueCat 正在初始化中，等待完成...');
+      // 等待初始化完成
+      while (_isInitializing) {
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+      return;
+    }
+
+    _isInitializing = true;
     WidgetsFlutterBinding.ensureInitialized();
     try {
       await Purchases.setLogLevel(LogLevel.debug);
@@ -35,6 +50,7 @@ class RevenueCatService {
             PurchasesConfiguration("appl_fsALmSkZBnAhaDtBrHakpGOXmVn");
       } else {
         print('不支持的平台: ${Platform.operatingSystem}');
+        _isInitializing = false;
         return;
       }
       configuration.appUserID = uid;
@@ -46,14 +62,43 @@ class RevenueCatService {
     } catch (e) {
       print('RevenueCat 初始化失败: $e');
       _isInitialized = false;
+    } finally {
+      _isInitializing = false;
+    }
+  }
+
+  /// 确保 RevenueCat 已初始化，如果未初始化则先初始化
+  Future<bool> _ensureInitialized() async {
+    if (_isInitialized) {
+      return true;
+    }
+
+    if (_isInitializing) {
+      // 等待初始化完成
+      while (_isInitializing) {
+        await Future.delayed(const Duration(milliseconds: 100));
+      }
+      return _isInitialized;
+    }
+
+    try {
+      print('RevenueCat 未初始化，正在自动初始化...');
+      final deviceId = await _networkService.getDeviceId();
+      await initPurchaseSDK(deviceId);
+      return _isInitialized;
+    } catch (e) {
+      print('RevenueCat 自动初始化失败: $e');
+      return false;
     }
   }
 
   /// 显示应用内购买付费墙
   /// 返回购买结果，同时返回更新后的会员状态（用于更新AppState）
   Future<Map<String, dynamic>> showIAPPaywall() async {
-    if (!_isInitialized) {
-      print('RevenueCat 未初始化');
+    // 确保 RevenueCat 已初始化
+    final initialized = await _ensureInitialized();
+    if (!initialized) {
+      print('RevenueCat 初始化失败，无法显示付费墙');
       return {'success': false, 'isPremium': false};
     }
 
@@ -91,8 +136,10 @@ class RevenueCatService {
   /// 返回购买结果，同时返回更新后的会员状态（用于更新AppState）
   Future<Map<String, dynamic>> restorePurchases() async {
     try {
-      if (!_isInitialized) {
-        print('RevenueCat 未初始化');
+      // 确保 RevenueCat 已初始化
+      final initialized = await _ensureInitialized();
+      if (!initialized) {
+        print('RevenueCat 初始化失败，无法恢复购买');
         return {'success': false, 'isPremium': false};
       }
 
@@ -116,8 +163,10 @@ class RevenueCatService {
   /// 检查用户是否为会员
   Future<bool> isPremiumUser() async {
     try {
-      if (!_isInitialized) {
-        print('RevenueCat 未初始化');
+      // 确保 RevenueCat 已初始化
+      final initialized = await _ensureInitialized();
+      if (!initialized) {
+        print('RevenueCat 初始化失败，无法检查会员状态');
         return false;
       }
 
@@ -132,8 +181,10 @@ class RevenueCatService {
   /// 获取用户信息
   Future<CustomerInfo?> getCustomerInfo() async {
     try {
-      if (!_isInitialized) {
-        print('RevenueCat 未初始化');
+      // 确保 RevenueCat 已初始化
+      final initialized = await _ensureInitialized();
+      if (!initialized) {
+        print('RevenueCat 初始化失败，无法获取用户信息');
         return null;
       }
 
