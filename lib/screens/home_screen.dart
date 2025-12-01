@@ -71,8 +71,9 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       // 1. 检查位置权限
       final locationService = LocationService();
-      final permissionStatus = await locationService.getLocationPermissionStatus();
-      
+      final permissionStatus =
+          await locationService.getLocationPermissionStatus();
+
       if (permissionStatus == LocationPermission.deniedForever) {
         // 权限被永久拒绝，显示引导弹窗
         if (mounted) {
@@ -130,8 +131,9 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       // 1. 检查位置权限
       final locationService = LocationService();
-      final permissionStatus = await locationService.getLocationPermissionStatus();
-      
+      final permissionStatus =
+          await locationService.getLocationPermissionStatus();
+
       if (permissionStatus == LocationPermission.deniedForever) {
         // 权限被永久拒绝，显示引导弹窗
         if (mounted) {
@@ -271,6 +273,7 @@ class _HomeScreenState extends State<HomeScreen> {
           _localImagePaths.clear();
           _selectedPlace = null; // 重置位置选择
           _description = ''; // 重置描述
+          _descriptionController.clear(); // 清空描述输入框
         });
         // 重置氛围标签选择
         appState.setSelectedMoodTags([]);
