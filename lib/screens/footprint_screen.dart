@@ -411,23 +411,19 @@ class _FootprintScreenState extends State<FootprintScreen> {
     final currentLang = LanguageService.to.getCurrentLanguage();
 
     if (currentLang == 'zh') {
-      // 中文使用高德地图（高清晰度，scale=2）
-      return 'https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=10&style=8&x={x}&y={y}&z={z}';
+      // https://webrd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&scale=10&style=8&x={x}&y={y}&z={z} scale
+      // 中文使用高德地图
+      return 'http://wprd0{s}.is.autonavi.com/appmaptile?lang=zh_cn&size=1&style=7&x={x}&y={y}&z={z}';
     } else {
-      // 英文使用 CartoDB Voyager（清晰的英文地图）
-      return 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+      // 英文使用高德地图（英文版）
+      return 'http://wprd0{s}.is.autonavi.com/appmaptile?lang=en&size=1&style=7&x={x}&y={y}&z={z}';
     }
   }
 
   /// 获取地图子域名
   List<String> _getMapSubdomains() {
-    final currentLang = LanguageService.to.getCurrentLanguage();
-
-    if (currentLang == 'zh') {
-      return ['1', '2', '3', '4']; // 高德地图子域名
-    } else {
-      return ['a', 'b', 'c', 'd']; // CartoDB 子域名
-    }
+    // 现在中英文都使用高德地图，统一使用数字子域名
+    return ['1', '2', '3', '4'];
   }
 
   /// 获取 Retina 模式设置
