@@ -266,40 +266,44 @@ class _MultiPlatformPreviewDialogState
                           );
                         },
                         child: Container(
+                          constraints: const BoxConstraints(maxWidth: 300),
                           padding: const EdgeInsets.symmetric(
                               horizontal: 16, vertical: 8),
                           decoration: BoxDecoration(
                             color: const Color(0xFF6F6F6F),
                             borderRadius: BorderRadius.circular(20),
                           ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: List.generate(
-                              orderedPlatforms.length,
-                              (index) => GestureDetector(
-                                onTap: () {
-                                  // 点击具体平台名称切换到该平台
-                                  _pageController.animateToPage(
-                                    index,
-                                    duration: const Duration(milliseconds: 300),
-                                    curve: Curves.easeInOut,
-                                  );
-                                },
-                                child: Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 8),
-                                  child: Text(
-                                    _getPlatformName(
-                                        context, orderedPlatforms[index]),
-                                    style: TextStyle(
-                                      color: _currentIndex == index
-                                          ? Colors.white
-                                          : Colors.white.withOpacity(0.5),
-                                      fontSize:
-                                          _currentIndex == index ? 15 : 13,
-                                      fontWeight: _currentIndex == index
-                                          ? FontWeight.bold
-                                          : FontWeight.normal,
+                          child: SingleChildScrollView(
+                            scrollDirection: Axis.horizontal,
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: List.generate(
+                                orderedPlatforms.length,
+                                (index) => GestureDetector(
+                                  onTap: () {
+                                    // 点击具体平台名称切换到该平台
+                                    _pageController.animateToPage(
+                                      index,
+                                      duration: const Duration(milliseconds: 300),
+                                      curve: Curves.easeInOut,
+                                    );
+                                  },
+                                  child: Padding(
+                                    padding:
+                                        const EdgeInsets.symmetric(horizontal: 8),
+                                    child: Text(
+                                      _getPlatformName(
+                                          context, orderedPlatforms[index]),
+                                      style: TextStyle(
+                                        color: _currentIndex == index
+                                            ? Colors.white
+                                            : Colors.white.withOpacity(0.5),
+                                        fontSize:
+                                            _currentIndex == index ? 15 : 13,
+                                        fontWeight: _currentIndex == index
+                                            ? FontWeight.bold
+                                            : FontWeight.normal,
+                                      ),
                                     ),
                                   ),
                                 ),
