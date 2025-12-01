@@ -65,7 +65,7 @@ class PoetryCardApp extends StatelessWidget {
             title: 'AI诗意瞬间卡片',
             theme: AppTheme.getLightTheme(appState.fontFamilyName),
             darkTheme: AppTheme.getDarkTheme(appState.fontFamilyName),
-            themeMode: ThemeMode.system,
+            themeMode: ThemeMode.light, // 强制浅色模式
             home: const AppInitializer(),
             debugShowCheckedModeBanner: false,
             localizationsDelegates: const [
