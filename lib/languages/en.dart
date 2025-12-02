@@ -598,6 +598,16 @@ class EnglishTranslations {
     '网络连接引导提示': 'Please check your network connection.\n\nIf this is the first installation, please ensure "Wireless Data" permission is granted in system settings (Select "WLAN & Cellular Data").',
     '服务器连接失败，请稍后重试': 'Server connection failed, please try again later',
     '在设置中找到"无线数据"并开启': 'Find "Wireless Data" in Settings and enable it',
+    
+    // Invite Code
+    '邀请码': 'Invite Code',
+    '邀请码已复制': 'Invite Code Copied',
+    '兑换邀请码': 'Redeem Invite Code',
+    '请输入邀请码': 'Enter Invite Code',
+    '兑换': 'Redeem',
+    '恭喜！邀请码兑换成功！': 'Congrats! Invite code redeemed successfully!',
+    '兑换失败，请检查邀请码': 'Redeem failed, please check the code',
+    '兑换出错': 'Redeem Error',
   };
 
   static String getText(String key) => translations[key] ?? key;

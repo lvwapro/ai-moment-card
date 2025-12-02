@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../services/vip_service.dart';
 import '../services/language_service.dart';
@@ -36,6 +37,11 @@ class AppState extends ChangeNotifier {
   bool _showMoodTagOnCard = true; // 默认显示情绪标签
   FontFamily _selectedFont = FontFamily.system; // 默认系统字体
 
+  // 邀请码状态
+  String? _inviteCode;
+  bool _inviteCodeHasBeenUsed = false; // 我的邀请码是否已被别人兑换
+  String? _usedCode; // 我兑换过的邀请码（如果有值表示我已兑换过别人的码）
+
   // Getters
   bool get isPremium => _isPremium;
   List<String> get selectedMoodTags => _selectedMoodTags; // 情绪标签列表 getter
@@ -43,6 +49,10 @@ class AppState extends ChangeNotifier {
   PlatformType get defaultPlatform => _defaultPlatform;
   bool get showMoodTagOnCard => _showMoodTagOnCard; // 显示情绪标签 getter
   FontFamily get selectedFont => _selectedFont;
+
+  String? get inviteCode => _inviteCode;
+  bool get inviteCodeHasBeenUsed => _inviteCodeHasBeenUsed; // 我的邀请码是否已被别人兑换
+  String? get usedCode => _usedCode; // 我兑换过的邀请码
 
   // 获取字体名称（null表示使用系统默认字体）
   String? get fontFamilyName {
@@ -89,7 +99,36 @@ class AppState extends ChangeNotifier {
         ? moodTagStr.split(',')
         : [];
 
+    await reloadUserInfo();
+
     notifyListeners();
+  }
+
+  /// 从本地存储重新加载用户信息
+  Future<void> reloadUserInfo() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final userInfoString = prefs.getString('user_info');
+      if (userInfoString != null) {
+        final userInfo = jsonDecode(userInfoString) as Map<String, dynamic>;
+        Map<String, dynamic> userData = userInfo;
+        // 处理嵌套结构：有些接口返回包含 data 字段，有些直接是数据
+        if (userInfo.containsKey('data') && userInfo['data'] is Map) {
+          userData = userInfo['data'] as Map<String, dynamic>;
+        }
+
+        _inviteCode = userData['inviteCode'] as String?;
+
+        if (userData['inviteCodeUsage'] != null) {
+          final usage = userData['inviteCodeUsage'] as Map<String, dynamic>;
+          _inviteCodeHasBeenUsed = usage['hasUsed'] ?? false; // 我的邀请码是否已被别人兑换
+          _usedCode = usage['usedCode'] as String?; // 我兑换过的邀请码
+        }
+        notifyListeners();
+      }
+    } catch (e) {
+      print('加载用户信息失败: $e');
+    }
   }
 
   Future<void> _saveSettings() async {
@@ -135,6 +174,12 @@ class AppState extends ChangeNotifier {
   Future<void> setSelectedFont(FontFamily font) async {
     _selectedFont = font;
     await _saveSettings();
+    notifyListeners();
+  }
+
+  /// 标记我已兑换过别人的邀请码
+  void markRedeemedOthersCode(String code) {
+    _usedCode = code;
     notifyListeners();
   }
 
