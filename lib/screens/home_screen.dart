@@ -31,7 +31,7 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
   List<String> _uploadedUrls = []; // 已上传的图片 URL 列表
   List<String> _localImagePaths = []; // 本地图片路径列表
   bool _isGenerating = false;
@@ -49,9 +49,14 @@ class _HomeScreenState extends State<HomeScreen> {
   bool _isLoadingMoodTags = false; // 是否正在加载情绪标签
   bool _moodTagsError = false; // 情绪标签加载是否出错
 
+  // 权限弹窗状态，防止重复弹出
+  bool _isShowingPermissionDialog = false;
+
   @override
   void initState() {
     super.initState();
+    // 添加生命周期监听器，用于在用户授权网络权限后重新加载数据
+    WidgetsBinding.instance.addObserver(this);
     _descriptionController.addListener(() {
       setState(() {
         _description = _descriptionController.text;
@@ -60,6 +65,26 @@ class _HomeScreenState extends State<HomeScreen> {
     // 加载附近地点和情绪标签
     _loadNearbyPlaces();
     _loadMoodTags();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    super.didChangeAppLifecycleState(state);
+    // 当应用从后台恢复到前台时，检查之前是否加载失败，如果失败则重新加载
+    // 这解决了 iOS 首次安装时网络权限弹窗导致请求失败的问题
+    if (state == AppLifecycleState.resumed) {
+      print('🔄 应用恢复到前台，检查是否需要重新加载数据...');
+      // 如果地点加载失败且当前没有在加载中，则重新加载
+      if (_placesError && !_isLoadingPlaces) {
+        print('🔄 重新加载附近地点...');
+        _loadNearbyPlaces();
+      }
+      // 如果情绪标签加载失败且当前没有在加载中，则重新加载
+      if (_moodTagsError && !_isLoadingMoodTags) {
+        print('🔄 重新加载情绪标签...');
+        _loadMoodTags();
+      }
+    }
   }
 
   /// 检查网络并提示
@@ -84,16 +109,19 @@ class _HomeScreenState extends State<HomeScreen> {
           await locationService.getLocationPermissionStatus();
 
       if (permissionStatus == LocationPermission.deniedForever) {
-        // 权限被永久拒绝，显示引导弹窗
-        if (mounted) {
-          await PermissionGuideDialog.showLocationPermissionDialog(context);
-        }
+        // 权限被永久拒绝，先停止 loading 状态
         if (mounted) {
           setState(() {
             _nearbyPlaces = [];
             _placesError = true;
             _isLoadingPlaces = false;
           });
+        }
+        // 显示引导弹窗（避免重复弹出）
+        if (mounted && !_isShowingPermissionDialog) {
+          _isShowingPermissionDialog = true;
+          await PermissionGuideDialog.showLocationPermissionDialog(context);
+          _isShowingPermissionDialog = false;
         }
         return;
       }
@@ -155,16 +183,19 @@ class _HomeScreenState extends State<HomeScreen> {
           await locationService.getLocationPermissionStatus();
 
       if (permissionStatus == LocationPermission.deniedForever) {
-        // 权限被永久拒绝，显示引导弹窗
-        if (mounted) {
-          await PermissionGuideDialog.showLocationPermissionDialog(context);
-        }
+        // 权限被永久拒绝，先停止 loading 状态
         if (mounted) {
           setState(() {
             _moodTags = [];
             _moodTagsError = true;
             _isLoadingMoodTags = false;
           });
+        }
+        // 显示引导弹窗（避免重复弹出）
+        if (mounted && !_isShowingPermissionDialog) {
+          _isShowingPermissionDialog = true;
+          await PermissionGuideDialog.showLocationPermissionDialog(context);
+          _isShowingPermissionDialog = false;
         }
         return;
       }
@@ -227,6 +258,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _descriptionController.dispose();
     super.dispose();
   }
