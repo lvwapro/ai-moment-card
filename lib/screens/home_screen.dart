@@ -22,6 +22,7 @@ import '../widgets/home/place_selector_widget.dart';
 import '../widgets/common/permission_guide_dialog.dart';
 import 'card_detail_screen.dart';
 import '../services/upgrade_service.dart';
+import '../services/init_service.dart';
 import '../widgets/common/network_helper.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -73,17 +74,35 @@ class _HomeScreenState extends State<HomeScreen> with WidgetsBindingObserver {
     // 当应用从后台恢复到前台时，检查之前是否加载失败，如果失败则重新加载
     // 这解决了 iOS 首次安装时网络权限弹窗导致请求失败的问题
     if (state == AppLifecycleState.resumed) {
-      print('🔄 应用恢复到前台，检查是否需要重新加载数据...');
-      // 如果地点加载失败且当前没有在加载中，则重新加载
-      if (_placesError && !_isLoadingPlaces) {
-        print('🔄 重新加载附近地点...');
-        _loadNearbyPlaces();
+      _handleAppResumed();
+    }
+  }
+
+  /// 处理应用恢复到前台的逻辑
+  Future<void> _handleAppResumed() async {
+    print('🔄 应用恢复到前台，检查是否需要重新加载数据...');
+
+    // 重新初始化用户信息并保存
+    final result = await InitService.initUserAndSave();
+    if (result != null) {
+      print('✅ 重新init用户并保存成功');
+      // 通知 AppState 重新加载用户信息（更新 inviteCode 等）
+      if (mounted) {
+        final appState = Provider.of<AppState>(context, listen: false);
+        await appState.reloadUserInfo();
+        print('✅ AppState 已更新邀请信息');
       }
-      // 如果情绪标签加载失败且当前没有在加载中，则重新加载
-      if (_moodTagsError && !_isLoadingMoodTags) {
-        print('🔄 重新加载情绪标签...');
-        _loadMoodTags();
-      }
+    }
+
+    // 如果地点加载失败且当前没有在加载中，则重新加载
+    if (_placesError && !_isLoadingPlaces) {
+      print('🔄 重新加载附近地点...');
+      _loadNearbyPlaces();
+    }
+    // 如果情绪标签加载失败且当前没有在加载中，则重新加载
+    if (_moodTagsError && !_isLoadingMoodTags) {
+      print('🔄 重新加载情绪标签...');
+      _loadMoodTags();
     }
   }
 

@@ -135,6 +135,15 @@ class InitService {
     }
   }
 
+  /// 用户初始化并保存信息（供外部调用）
+  static Future<Map<String, dynamic>?> initUserAndSave() async {
+    final userInitResult = await initUser();
+    if (userInitResult != null) {
+      await _saveUserInfo(userInitResult);
+    }
+    return userInitResult;
+  }
+
   /// 保存用户信息到本地
   static Future<void> _saveUserInfo(Map<String, dynamic> userInfo) async {
     try {
