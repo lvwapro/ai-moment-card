@@ -595,6 +595,9 @@ class EnglishTranslations {
     '拾光记-AI文案助手': 'GatherLight - AI Copywriting Assistant',
     '真不错': 'Great!',
     '日本': 'Japan',
+    '网络连接引导提示': 'Please check your network connection.\n\nIf this is the first installation, please ensure "Wireless Data" permission is granted in system settings (Select "WLAN & Cellular Data").',
+    '服务器连接失败，请稍后重试': 'Server connection failed, please try again later',
+    '在设置中找到"无线数据"并开启': 'Find "Wireless Data" in Settings and enable it',
   };
 
   static String getText(String key) => translations[key] ?? key;

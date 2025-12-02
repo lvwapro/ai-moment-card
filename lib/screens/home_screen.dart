@@ -22,6 +22,7 @@ import '../widgets/home/place_selector_widget.dart';
 import '../widgets/common/permission_guide_dialog.dart';
 import 'card_detail_screen.dart';
 import '../services/upgrade_service.dart';
+import '../widgets/common/network_helper.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -59,6 +60,14 @@ class _HomeScreenState extends State<HomeScreen> {
     // 加载附近地点和情绪标签
     _loadNearbyPlaces();
     _loadMoodTags();
+  }
+
+  /// 检查网络并提示
+  Future<void> _checkNetwork() async {
+    final hasNetwork = await NetworkHelper.checkNetwork();
+    if (!hasNetwork && mounted) {
+      NetworkHelper.showNetworkAlert(context);
+    }
   }
 
   /// 加载附近地点
@@ -108,6 +117,17 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       print('❌ 加载附近地点失败: $e');
       if (mounted) {
+        // 检查网络状态，如果是通的但请求失败，提示服务器问题
+        final hasNetwork = await NetworkHelper.checkNetwork();
+        if (hasNetwork && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(context.l10n('服务器连接失败，请稍后重试')),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+
         setState(() {
           _nearbyPlaces = [];
           _placesError = true;
@@ -185,6 +205,17 @@ class _HomeScreenState extends State<HomeScreen> {
     } catch (e) {
       print('❌ 加载情绪标签失败: $e');
       if (mounted) {
+        // 检查网络状态，如果是通的但请求失败，提示服务器问题
+        final hasNetwork = await NetworkHelper.checkNetwork();
+        if (hasNetwork && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(context.l10n('服务器连接失败，请稍后重试')),
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+
         setState(() {
           _moodTags = [];
           _moodTagsError = true;
@@ -328,7 +359,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     moodTags: _moodTags,
                     isLoading: _isLoadingMoodTags,
                     hasError: _moodTagsError,
-                    onRetry: _loadMoodTags,
+                    onRetry: () async {
+                      await _checkNetwork();
+                      _loadMoodTags();
+                    },
                   ),
                   const SizedBox(height: 24),
                   // 地址选择组件
@@ -342,7 +376,10 @@ class _HomeScreenState extends State<HomeScreen> {
                     },
                     isLoading: _isLoadingPlaces,
                     hasError: _placesError,
-                    onRetry: _loadNearbyPlaces,
+                    onRetry: () async {
+                      await _checkNetwork();
+                      _loadNearbyPlaces();
+                    },
                   ),
                   const SizedBox(height: 16),
                   DescriptionInputWidget(

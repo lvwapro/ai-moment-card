@@ -51,11 +51,11 @@ class MoodTagService {
         }
       } else {
         print('❌ 请求失败，状态码: ${response.statusCode}');
-        return null;
+        throw Exception('请求失败: ${response.statusCode}');
       }
     } catch (e) {
       print('❌ 获取情绪标签失败: $e');
-      return null;
+      rethrow; // 继续抛出异常，让外层处理
     }
   }
 }

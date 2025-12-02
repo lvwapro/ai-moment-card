@@ -54,7 +54,7 @@ class CardGenerator extends ChangeNotifier {
       return null;
     } catch (e) {
       print('❌ 获取附近地点失败: $e');
-      return null;
+      rethrow;
     }
   }
 

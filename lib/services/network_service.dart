@@ -375,15 +375,15 @@ class NetworkService {
           return data;
         } else {
           print('⚠️ 获取附近地点失败: ${data['message']}');
-          return null;
+          throw Exception(' ${data['message']}');
         }
       } else {
         print('⚠️ 获取附近地点失败 - HTTP ${response.statusCode}');
-        return null;
+        throw Exception('请求失败: ${response.statusCode}');
       }
     } catch (e) {
       print('⚠️ 获取附近地点异常: ${e.toString().split('\n').first}');
-      return null;
+      rethrow;
     }
   }
 
